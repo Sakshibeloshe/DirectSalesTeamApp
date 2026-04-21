@@ -1,0 +1,176 @@
+import Foundation
+import Combine
+
+@MainActor
+final class LeadDetailViewModel: ObservableObject {
+
+    let lead: Lead
+    var onStatusUpdate: ((UUID, LeadStatus) -> Void)?
+
+    @Published var documents: [LeadDocument]
+    @Published var timeline: [TimelineEvent]
+    @Published var messages: [LeadMessage]
+    @Published var showEligibility = false
+    @Published var showSubmitSuccess = false
+    @Published var showRequestDocsConfirm = false
+
+    var uploadedCount: Int { documents.filter { $0.status.isVerified }.count }
+    var totalCount: Int    { documents.count }
+    var missingCount: Int  { documents.filter { !$0.status.isUploaded }.count }
+    var canSubmit: Bool    { missingCount == 0 }
+
+    init(lead: Lead, onStatusUpdate: ((UUID, LeadStatus) -> Void)? = nil) {
+        self.lead = lead
+        self.onStatusUpdate = onStatusUpdate
+        self.documents = LeadDocument.defaultDocuments(for: lead.loanType)
+        self.timeline  = LeadDetailViewModel.makeTimeline(for: lead)
+        self.messages  = LeadDetailViewModel.makeMessages()
+    }
+
+    func requestDocument(id: UUID) {
+        guard let idx = documents.firstIndex(where: { $0.id == id }) else { return }
+        documents[idx].requestUpload()
+
+        appendTimelineEvent(
+            title: "\(documents[idx].name) Requested",
+            description: "A request was sent to \(lead.name) to complete this document.",
+            isRejected: false
+        )
+    }
+
+    func markDocumentUploaded(id: UUID, fileName: String) {
+        guard let idx = documents.firstIndex(where: { $0.id == id }) else { return }
+        documents[idx].markUploaded(fileName: fileName)
+
+        appendTimelineEvent(
+            title: "\(documents[idx].name) Uploaded",
+            description: "\(fileName) uploaded and awaiting quick verification.",
+            isRejected: false
+        )
+    }
+
+    func verifyUploadedDocument(id: UUID) {
+        guard let idx = documents.firstIndex(where: { $0.id == id }) else { return }
+        documents[idx].markVerified(note: "Quick due diligence completed.")
+
+        appendTimelineEvent(
+            title: "\(documents[idx].name) Verified",
+            description: "Uploaded document cleared through quick due diligence.",
+            isRejected: false
+        )
+    }
+
+    func verifyIdentityDocument(id: UUID, data: IdentityVerificationData) {
+        guard let idx = documents.firstIndex(where: { $0.id == id }) else { return }
+        documents[idx].markVerified(
+            identityData: data,
+            note: "Identity details verified via quick due diligence."
+        )
+
+        appendTimelineEvent(
+            title: "\(documents[idx].name) Verified",
+            description: "\(data.fullName)'s KYC details were entered and verified.",
+            isRejected: false
+        )
+    }
+
+    func submitApplication() {
+        onStatusUpdate?(lead.id, .submitted)
+        showSubmitSuccess = true
+    }
+
+    func calculateEligibility(
+        monthlyIncome: Double,
+        existingEMIs: Double,
+        loanAmount: Double,
+        propertyValue: Double,
+        cibilScore: Int
+    ) -> EligibilityResult {
+        let rate   = lead.loanType.defaultRate / 12.0 / 100.0
+        let n      = Double(lead.loanType.defaultTenureMonths)
+        let power  = pow(1 + rate, n)
+        let emi    = loanAmount * rate * power / (power - 1)
+
+        let totalEMI = existingEMIs + emi
+        let foir     = totalEMI / monthlyIncome
+        let ltv      = propertyValue > 0 ? loanAmount / propertyValue : 0
+
+        let foirLimit = lead.loanType.foirLimit
+        var factors: [String] = []
+        var eligible = true
+
+        if foir > foirLimit {
+            factors.append("FOIR \(String(format: "%.1f", foir * 100))% exceeds \(Int(foirLimit * 100))% limit")
+            eligible = false
+        }
+        if ltv > 0.90 {
+            factors.append("LTV \(String(format: "%.1f", ltv * 100))% exceeds 90% limit")
+            eligible = false
+        }
+        if cibilScore < 650 {
+            factors.append("CIBIL score \(cibilScore) below minimum 650")
+            eligible = false
+        }
+        if eligible {
+            factors.append("All parameters within acceptable range")
+        }
+
+        return EligibilityResult(
+            isEligible: eligible,
+            foir: foir,
+            ltv: ltv,
+            proposedEMI: emi,
+            totalEMI: totalEMI,
+            keyFactors: factors,
+            foirLimit: foirLimit
+        )
+    }
+
+    private static func makeTimeline(for lead: Lead) -> [TimelineEvent] {
+        [
+            TimelineEvent(
+                id: UUID(),
+                title: "Lead Created",
+                description: "Lead \(lead.name) created.",
+                time: "10:00",
+                isRejected: false
+            ),
+            TimelineEvent(
+                id: UUID(),
+                title: "KYC Pending",
+                description: "Aadhaar and PAN details still need due diligence verification.",
+                time: "10:10",
+                isRejected: true
+            ),
+            TimelineEvent(
+                id: UUID(),
+                title: "Bank Statement Requested",
+                description: "Loan officer requested the latest 6-month statement.",
+                time: "10:25",
+                isRejected: false
+            ),
+        ]
+    }
+
+    private static func makeMessages() -> [LeadMessage] {
+        [
+            LeadMessage(id: UUID(), sender: "Loan Officer", text: "Can you share the latest bank statement?", time: "10:24", isMe: false),
+            LeadMessage(id: UUID(), sender: "You", text: "Will upload by evening.", time: "10:26", isMe: true),
+        ]
+    }
+
+    private func appendTimelineEvent(title: String, description: String, isRejected: Bool) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+
+        timeline.append(
+            TimelineEvent(
+                id: UUID(),
+                title: title,
+                description: description,
+                time: formatter.string(from: Date()),
+                isRejected: isRejected
+            )
+        )
+    }
+}
