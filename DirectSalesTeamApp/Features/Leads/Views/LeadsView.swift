@@ -22,12 +22,13 @@ struct LeadsView: View {
                             Spacer()
                         }
                         .padding(.horizontal, AppSpacing.md)
-                        .padding(.top, AppSpacing.sm)
+                        .padding(.top, AppSpacing.xs)
                         .padding(.bottom, AppSpacing.xs)
                     }
 
                     leadListContent
                 }
+                .padding(.top, -8)
             }
             .navigationTitle("Leads")
             .navigationBarTitleDisplayMode(.large)
@@ -45,8 +46,9 @@ struct LeadsView: View {
                         .padding(.vertical, 8)
                         .background(Color.brandBlue)
                         .clipShape(Capsule())
+                        .overlay(Capsule().strokeBorder(Color.clear, lineWidth: 0))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderless)
                 }
             }
             // ── Add Lead modal — always bottom sheet, never iPad popup ──
@@ -75,30 +77,32 @@ struct LeadsView: View {
         VStack(spacing: 0) {
             SearchBarView(text: $viewModel.searchText)
                 .padding(.horizontal, AppSpacing.md)
-                .padding(.top, AppSpacing.xs)
-                .padding(.bottom, AppSpacing.sm)
+                .padding(.vertical, AppSpacing.xs)
 
-            Divider().opacity(0.5)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: AppSpacing.xs) {
-                    ForEach(viewModel.filters) { filter in
-                        FilterChipView(
-                            filter: filter,
-                            count: viewModel.count(for: filter),
-                            isSelected: viewModel.selectedFilter == filter
-                        ) {
-                            withAnimation(.easeInOut(duration: 0.2)) {
+            HStack(spacing: 0) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: AppSpacing.xs) {
+                        ForEach(viewModel.filters) { filter in
+                            FilterChipView(
+                                filter: filter,
+                                count: viewModel.count(for: filter),
+                                isSelected: viewModel.selectedFilter == filter
+                            ) {
                                 viewModel.selectFilter(filter)
                             }
                         }
                     }
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.xs)
                 }
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.vertical, AppSpacing.sm)
-            }
 
-            Divider().opacity(0.5)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color.textTertiary)
+                    .padding(.trailing, AppSpacing.md)
+                    .padding(.leading, AppSpacing.xs)
+            }
+            .padding(.bottom, AppSpacing.xs)
         }
         .background(Color.surfaceSecondary)
     }

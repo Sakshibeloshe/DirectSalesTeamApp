@@ -53,12 +53,12 @@ struct ProfileView: View {
     // MARK: - Agent Header
 
     private var agentHeaderSection: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 14) {
             // Avatar
             ZStack {
                 Circle()
                     .fill(Color(red: 0.85, green: 0.88, blue: 0.97))
-                    .frame(width: 64, height: 64)
+                    .frame(width: 60, height: 60)
                 Text(vm.agent.initials)
                     .font(.title2).fontWeight(.semibold)
                     .foregroundStyle(Color(red: 0.28, green: 0.4, blue: 0.78))
@@ -67,14 +67,19 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(vm.agent.fullName)
                     .font(.title3).fontWeight(.bold)
+                    .foregroundStyle(Color(.label))
                 Text(vm.agent.displayZone)
                     .font(.subheadline).foregroundStyle(.secondary)
                 TierBadge(tier: vm.agent.tier)
             }
             Spacer()
         }
-        .padding(20)
-        .background(Color(.systemBackground))
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
+        .padding(.bottom, 4)
     }
 
     // MARK: - Performance Card

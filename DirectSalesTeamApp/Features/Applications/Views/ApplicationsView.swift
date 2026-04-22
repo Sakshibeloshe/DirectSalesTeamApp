@@ -3,29 +3,26 @@ import SwiftUI
 struct ApplicationsView: View {
     @StateObject private var viewModel = ApplicationsViewModel()
 
+    // Maps ApplicationStatus → display title for filter chips
+    private let filterStatuses: [(label: String, status: ApplicationStatus?)] = [
+        ("All", nil),
+        ("Under Review", .underReview),
+        ("Approved", .approved),
+        ("Disbursed", .disbursed),
+        ("Submitted", .submitted),
+        ("Rejected", .rejected),
+    ]
+
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
                 Color.surfaceSecondary.ignoresSafeArea()
 
                 VStack(spacing: 0) {
+                    // ── Filter chip row (matches Leads style) ──
+                    filterChipRow
 
-                    // ── Stats bar (tappable — filters list) ──
-                    ApplicationStatsBar(stats: viewModel.stats) { tappedStatus in
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            // Tap same stat to deselect (back to All)
-                            viewModel.selectStatus(
-                                viewModel.selectedStatus == tappedStatus ? nil : tappedStatus
-                            )
-                        }
-                    }
-
-                    topDivider
-
-                    // ── Active filter pill (shown when a stat is tapped) ──
-                    if let active = viewModel.selectedStatus {
-                        activeFilterBanner(status: active)
-                    }
+                    Divider().opacity(0.5)
 
                     // ── List ──
                     if viewModel.isLoading {
@@ -36,10 +33,10 @@ struct ApplicationsView: View {
                         applicationList
                     }
                 }
+                .padding(.top, -8)
             }
             .navigationTitle("Applications")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar { toolbarDots }
             .sheet(item: $viewModel.selectedApplication) { app in
                 ApplicationDetailPlaceholder(application: app)
             }
@@ -49,46 +46,98 @@ struct ApplicationsView: View {
         }
     }
 
-    // MARK: - Stats → list divider
-    private var topDivider: some View {
-        Rectangle()
-            .fill(Color.borderLight)
-            .frame(height: 1)
+    // MARK: - Filter Chip Row
+
+    private var filterChipRow: some View {
+        HStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.xs) {
+                    ForEach(filterStatuses, id: \.label) { item in
+                        let isSelected = viewModel.selectedStatus == item.status
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                viewModel.selectStatus(
+                                    viewModel.selectedStatus == item.status ? nil : item.status
+                                )
+                            }
+                        } label: {
+                            HStack(spacing: 5) {
+                                Text(item.label)
+                                    .font(AppFont.subheadMed())
+
+                                // Count badge for non-"All" chips
+                                if let status = item.status {
+                                    let count = countFor(status)
+                                    if count > 0 && !isSelected {
+                                        Text("\(count)")
+                                            .font(.system(size: 11, weight: .semibold))
+                                            .foregroundColor(Color.textSecondary)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.surfaceTertiary)
+                                            .clipShape(Capsule())
+                                    }
+                                } else {
+                                    // "All" chip — show total count
+                                    let total = viewModel.stats.total
+                                    if total > 0 && !isSelected {
+                                        Text("\(total)")
+                                            .font(.system(size: 11, weight: .semibold))
+                                            .foregroundColor(Color.textSecondary)
+                                            .padding(.horizontal, 6)
+                                            .padding(.vertical, 2)
+                                            .background(Color.surfaceTertiary)
+                                            .clipShape(Capsule())
+                                    }
+                                }
+                            }
+                            .foregroundColor(isSelected ? .white : Color.textSecondary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                Group {
+                                    if isSelected {
+                                        Capsule().fill(Color.brandBlue)
+                                    } else {
+                                        Capsule().fill(Color.surfacePrimary)
+                                    }
+                                }
+                            )
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(
+                                        isSelected ? Color.clear : Color.borderLight,
+                                        lineWidth: 1
+                                    )
+                            )
+                            .contentShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .animation(.easeInOut(duration: 0.15), value: isSelected)
+                    }
+                }
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.xs)
+            }
+
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Color.textTertiary)
+                .padding(.trailing, AppSpacing.md)
+                .padding(.leading, AppSpacing.xs)
+        }
+        .padding(.bottom, AppSpacing.xs)
+        .background(Color.surfaceSecondary)
     }
 
-    // MARK: - Active filter banner
-    private func activeFilterBanner(status: ApplicationStatus) -> some View {
-        HStack(spacing: AppSpacing.xs) {
-            Circle()
-                .fill(status.dotColor)
-                .frame(width: 7, height: 7)
-            Text("Showing: \(status.rawValue)")
-                .font(AppFont.subheadMed())
-                .foregroundColor(status.textColor)
-            Spacer()
-            Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    viewModel.selectStatus(nil)
-                }
-            } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .bold))
-                    Text("Clear")
-                        .font(AppFont.captionMed())
-                }
-                .foregroundColor(Color.textSecondary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 4)
-                .background(Color.surfaceTertiary)
-                .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
+    private func countFor(_ status: ApplicationStatus) -> Int {
+        switch status {
+        case .underReview: return viewModel.stats.underReview
+        case .approved:    return viewModel.stats.approved
+        case .disbursed:   return viewModel.stats.disbursed
+        case .submitted:   return viewModel.applications.filter { $0.status == .submitted }.count
+        case .rejected:    return viewModel.applications.filter { $0.status == .rejected }.count
         }
-        .padding(.horizontal, AppSpacing.md)
-        .padding(.vertical, AppSpacing.xs + 2)
-        .background(status.backgroundColor)
-        .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     // MARK: - Application List
@@ -152,24 +201,6 @@ struct ApplicationsView: View {
                     .padding(.horizontal, AppSpacing.xxl)
             }
             Spacer()
-        }
-    }
-
-    // MARK: - Toolbar dots (matching screenshot)
-    @ToolbarContentBuilder
-    private var toolbarDots: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            HStack(spacing: 6) {
-                ForEach(
-                    [Color(hex: "#F87171"),
-                     Color(hex: "#60A5FA"),
-                     Color(hex: "#34D399"),
-                     Color(hex: "#F87171")],
-                    id: \.self
-                ) { color in
-                    Circle().fill(color).frame(width: 10, height: 10)
-                }
-            }
         }
     }
 }

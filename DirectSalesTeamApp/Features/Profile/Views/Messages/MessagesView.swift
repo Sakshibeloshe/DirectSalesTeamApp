@@ -32,14 +32,6 @@ struct MessagesView: View {
                         Image(systemName: "square.and.pencil")
                     }
                 }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        Task { await vm.loadThreads() }
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                }
             }
             .sheet(isPresented: $vm.showComposeSheet) {
                 NewConversationSheet(
@@ -64,13 +56,6 @@ struct MessagesView: View {
     private var threadList: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ConnectionHubCard(
-                    pendingConnections: vm.pendingConnectionCount,
-                    onAddMessage: { vm.showComposeSheet = true }
-                )
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-
                 ForEach(vm.threads) { thread in
                     NavigationLink {
                         ChatView(
@@ -94,18 +79,13 @@ struct MessagesView: View {
                     .padding(.vertical, 24)
                     .frame(maxWidth: .infinity)
             }
+            .padding(.top, 16)
             .padding(.bottom, 20)
         }
     }
 
     private var emptyState: some View {
         VStack(spacing: 18) {
-            ConnectionHubCard(
-                pendingConnections: vm.pendingConnectionCount,
-                onAddMessage: { vm.showComposeSheet = true }
-            )
-            .padding(.horizontal, 20)
-
             Image(systemName: "bubble.left.and.bubble.right")
                 .font(.system(size: 44))
                 .foregroundStyle(.tertiary)
