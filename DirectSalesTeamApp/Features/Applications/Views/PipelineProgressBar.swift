@@ -30,21 +30,20 @@ struct PipelineProgressBar: View {
         let isRejected  = application.status == .rejected
 
         if isRejected {
-            // Rejected: segments up to review filled (blue), review segment red, rest grey
             if stage.id < currentStep {
-                return Color(hex: "#93C5FD")   // light blue — passed
+                return Color.brandBlueSoft
             } else if stage.id == currentStep {
-                return Color(hex: "#EF4444")   // red — rejection point
+                return Color.statusRejected
             } else {
-                return Color(hex: "#E5E7EB")   // grey — unreached
+                return Color.surfaceTertiary
             }
         } else {
             if stage.id < currentStep {
-                return Color(hex: "#93C5FD")   // light blue — passed
+                return Color.brandBlueSoft
             } else if stage.id == currentStep {
-                return Color(hex: "#1D4ED8")   // dark blue — current
+                return Color.brandBlue
             } else {
-                return Color(hex: "#E5E7EB")   // grey — upcoming
+                return Color.surfaceTertiary
             }
         }
     }

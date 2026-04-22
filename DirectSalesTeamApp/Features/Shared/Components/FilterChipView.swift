@@ -44,6 +44,5 @@ struct FilterChipView: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .animation(.easeInOut(duration: 0.15), value: isSelected)
     }
 }

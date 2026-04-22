@@ -19,24 +19,41 @@ struct ApplicationsView: View {
                 Color.surfaceSecondary.ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // ── Filter chip row (matches Leads style) ──
-                    filterChipRow
 
-                    Divider().opacity(0.5)
+                    // ✅ STATIC HEADER
+                    VStack(spacing: 0) {
 
-                    // ── List ──
-                    if viewModel.isLoading {
-                        loadingView
-                    } else if viewModel.filteredApplications.isEmpty {
-                        emptyView
-                    } else {
-                        applicationList
+                        // Title
+                        HStack {
+                            Text("Applications")
+                                .font(AppFont.largeTitle())
+                                .foregroundColor(Color.textPrimary)
+
+                            Spacer()
+                        }
+                        .padding(.horizontal, AppSpacing.md)
+                        .padding(.top, AppSpacing.lg)
+
+                        // ✅ Filter Chips with chevrons
+                        filterChipHeader
+                            .padding(.top, AppSpacing.sm)
+
+                        Divider().opacity(0.5)
+                    }
+
+                    // ✅ SCROLLABLE CONTENT ONLY
+                    ScrollView {
+                        if viewModel.isLoading {
+                            loadingView
+                        } else if viewModel.filteredApplications.isEmpty {
+                            emptyView
+                        } else {
+                            applicationList
+                        }
                     }
                 }
-                .padding(.top, -8)
             }
-            .navigationTitle("Applications")
-            .navigationBarTitleDisplayMode(.large)
+            .navigationBarHidden(true)
             .sheet(item: $viewModel.selectedApplication) { app in
                 ApplicationDetailPlaceholder(application: app)
             }
@@ -46,88 +63,89 @@ struct ApplicationsView: View {
         }
     }
 
-    // MARK: - Filter Chip Row
-
-    private var filterChipRow: some View {
-        HStack(spacing: 0) {
+    // MARK: - FILTER CHIP HEADER WITH CHEVRONS
+    private var filterChipHeader: some View {
+        ZStack {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: AppSpacing.xs) {
                     ForEach(filterStatuses, id: \.label) { item in
-                        let isSelected = viewModel.selectedStatus == item.status
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                viewModel.selectStatus(
-                                    viewModel.selectedStatus == item.status ? nil : item.status
-                                )
-                            }
-                        } label: {
-                            HStack(spacing: 5) {
-                                Text(item.label)
-                                    .font(AppFont.subheadMed())
-
-                                // Count badge for non-"All" chips
-                                if let status = item.status {
-                                    let count = countFor(status)
-                                    if count > 0 && !isSelected {
-                                        Text("\(count)")
-                                            .font(.system(size: 11, weight: .semibold))
-                                            .foregroundColor(Color.textSecondary)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.surfaceTertiary)
-                                            .clipShape(Capsule())
-                                    }
-                                } else {
-                                    // "All" chip — show total count
-                                    let total = viewModel.stats.total
-                                    if total > 0 && !isSelected {
-                                        Text("\(total)")
-                                            .font(.system(size: 11, weight: .semibold))
-                                            .foregroundColor(Color.textSecondary)
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 2)
-                                            .background(Color.surfaceTertiary)
-                                            .clipShape(Capsule())
-                                    }
-                                }
-                            }
-                            .foregroundColor(isSelected ? .white : Color.textSecondary)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background(
-                                Group {
-                                    if isSelected {
-                                        Capsule().fill(Color.brandBlue)
-                                    } else {
-                                        Capsule().fill(Color.surfacePrimary)
-                                    }
-                                }
-                            )
-                            .overlay(
-                                Capsule()
-                                    .strokeBorder(
-                                        isSelected ? Color.clear : Color.borderLight,
-                                        lineWidth: 1
-                                    )
-                            )
-                            .contentShape(Capsule())
-                        }
-                        .buttonStyle(.plain)
-                        .animation(.easeInOut(duration: 0.15), value: isSelected)
+                        chipView(for: item)
                     }
                 }
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.vertical, AppSpacing.xs)
+                .padding(.horizontal, 32) // space for chevrons
+                .padding(.vertical, AppSpacing.sm)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear
+                            .preference(key: ScrollOffsetTracker.self, value: geo.frame(in: .named("appsScroll")).minX)
+                            .onAppear { viewModel.contentWidth = geo.size.width }
+                            .onChange(of: geo.size.width) { _ in viewModel.contentWidth = geo.size.width }
+                    }
+                )
             }
+            .coordinateSpace(name: "appsScroll")
+            .onPreferenceChange(ScrollOffsetTracker.self) { value in viewModel.scrollOffset = value }
 
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color.textTertiary)
-                .padding(.trailing, AppSpacing.md)
-                .padding(.leading, AppSpacing.xs)
+            // LEFT CHEVRON
+            HStack {
+                Image(systemName: "chevron.left")
+                    .foregroundColor(Color.textSecondary)
+                    .padding(6)
+                    .background(Color.surfacePrimary)
+                    .clipShape(Circle())
+                    .opacity(viewModel.canScrollLeft ? 1 : 0)
+
+                Spacer()
+
+                // RIGHT CHEVRON
+                Image(systemName: "chevron.right")
+                    .foregroundColor(Color.textSecondary)
+                    .padding(6)
+                    .background(Color.surfacePrimary)
+                    .clipShape(Circle())
+                    .opacity(viewModel.canScrollRight ? 1 : 0)
+            }
+            .padding(.horizontal, 8)
         }
-        .padding(.bottom, AppSpacing.xs)
         .background(Color.surfaceSecondary)
+        .onAppear { viewModel.viewWidth = UIScreen.main.bounds.width }
+    }
+
+    // MARK: - CHIP VIEW (NO SHRINK, INSTANT RESPONSE)
+    private func chipView(for item: (label: String, status: ApplicationStatus?)) -> some View {
+        let isSelected = viewModel.selectedStatus == item.status
+
+        return Button {
+            viewModel.selectStatus(item.status)
+        } label: {
+            HStack(spacing: 5) {
+                Text(item.label)
+                    .font(AppFont.subheadMed())
+
+                let count = item.status == nil
+                    ? viewModel.stats.total
+                    : countFor(item.status!)
+
+                if count > 0 {
+                    Text("\(count)")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(isSelected ? .white.opacity(0.85) : Color.textSecondary)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(isSelected ? Color.white.opacity(0.2) : Color.surfaceTertiary)
+                        .clipShape(Capsule())
+                }
+            }
+            .foregroundColor(isSelected ? .white : Color.textSecondary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(isSelected ? Color.brandBlue : Color.surfacePrimary)
+            .clipShape(Capsule())
+            .overlay(
+                Capsule().strokeBorder(isSelected ? Color.clear : Color.borderLight, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private func countFor(_ status: ApplicationStatus) -> Int {
@@ -142,28 +160,26 @@ struct ApplicationsView: View {
 
     // MARK: - Application List
     private var applicationList: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                ForEach(Array(viewModel.filteredApplications.enumerated()), id: \.element.id) { index, app in
-                    ApplicationRowView(application: app) {
-                        viewModel.selectedApplication = app
-                    }
-                    if index < viewModel.filteredApplications.count - 1 {
-                        Divider()
-                            .padding(.leading, 76)
-                    }
+        LazyVStack(spacing: 0) {
+            ForEach(Array(viewModel.filteredApplications.enumerated()), id: \.element.id) { index, app in
+                ApplicationRowView(application: app) {
+                    viewModel.selectedApplication = app
+                }
+                if index < viewModel.filteredApplications.count - 1 {
+                    Divider()
+                        .padding(.leading, 76)
                 }
             }
-            .background(Color.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
-            .overlay(
-                RoundedRectangle(cornerRadius: AppRadius.md)
-                    .strokeBorder(Color.borderLight, lineWidth: 1)
-            )
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.top, AppSpacing.sm)
-            .padding(.bottom, AppSpacing.xl)
         }
+        .background(Color.surfacePrimary)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.md)
+                .strokeBorder(Color.borderLight, lineWidth: 1)
+        )
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.top, AppSpacing.sm)
+        .padding(.bottom, AppSpacing.xl)
     }
 
     // MARK: - Loading

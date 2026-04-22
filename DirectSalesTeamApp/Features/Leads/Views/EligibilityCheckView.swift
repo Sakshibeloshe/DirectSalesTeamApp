@@ -159,7 +159,7 @@ struct EligibilityCheckView: View {
     }
 
     private var cibilColor: Color {
-        if cibilScore >= 750 { return Color(hex: "#22C55E") }
+        if cibilScore >= 750 { return Color.statusApproved }
         if cibilScore >= 650 { return Color.brandBlue }
         return Color.statusRejected
     }
@@ -172,28 +172,28 @@ struct EligibilityCheckView: View {
             VStack(alignment: .leading, spacing: AppSpacing.sm) {
                 Text("ELIGIBILITY RESULT")
                     .font(AppFont.captionMed())
-                    .foregroundColor(r.isEligible ? Color(hex: "#057A55") : Color.statusRejected)
+                    .foregroundColor(r.isEligible ? Color.statusApproved : Color.statusRejected)
                     .tracking(0.6)
 
                 HStack(spacing: AppSpacing.sm) {
                     Circle()
-                        .fill(r.isEligible ? Color(hex: "#22C55E") : Color.statusRejected)
+                        .fill(r.isEligible ? Color.statusApproved : Color.statusRejected)
                         .frame(width: 18, height: 18)
                     Text(r.isEligible ? "Eligible" : "Not Eligible")
                         .font(.system(size: 22, weight: .bold))
-                        .foregroundColor(r.isEligible ? Color(hex: "#057A55") : Color.statusRejected)
+                        .foregroundColor(r.isEligible ? Color.statusApproved : Color.statusRejected)
                 }
 
                 Text(r.isEligible ? "Likely to be approved" : "Likely to be rejected")
                     .font(AppFont.subhead())
-                    .foregroundColor(r.isEligible ? Color(hex: "#057A55") : Color.statusRejected)
+                    .foregroundColor(r.isEligible ? Color.statusApproved : Color.statusRejected)
 
                 if !r.keyFactors.isEmpty {
                     Divider()
                     VStack(alignment: .leading, spacing: 5) {
                         Text("KEY FACTORS:")
                             .font(AppFont.captionMed())
-                            .foregroundColor(r.isEligible ? Color(hex: "#057A55") : Color.statusRejected)
+                            .foregroundColor(r.isEligible ? Color.statusApproved : Color.statusRejected)
                             .tracking(0.5)
                         ForEach(r.keyFactors, id: \.self) { f in
                             HStack(alignment: .top, spacing: 5) {
@@ -201,20 +201,20 @@ struct EligibilityCheckView: View {
                                 Text(f)
                             }
                             .font(AppFont.subhead())
-                            .foregroundColor(r.isEligible ? Color(hex: "#057A55") : Color.statusRejected)
+                            .foregroundColor(r.isEligible ? Color.statusApproved : Color.statusRejected)
                         }
                     }
                 }
             }
             .padding(AppSpacing.md)
             .background(
-                (r.isEligible ? Color(hex: "#F0FFF4") : Color(hex: "#FEF2F2"))
+                (r.isEligible ? Color.statusApprovedBg : Color.statusRejectedBg)
             )
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
             .overlay(
                 RoundedRectangle(cornerRadius: AppRadius.md)
                     .strokeBorder(
-                        (r.isEligible ? Color(hex: "#86EFAC") : Color(hex: "#FECACA")),
+                        (r.isEligible ? Color.statusApproved.opacity(0.3) : Color.statusRejected.opacity(0.3)),
                         lineWidth: 1
                     )
             )
@@ -225,13 +225,13 @@ struct EligibilityCheckView: View {
                     label: "FOIR",
                     value: String(format: "%.1f%%", r.foir * 100),
                     sub: "Limit: \(Int(r.foirLimit * 100))%",
-                    color: r.foir > r.foirLimit ? Color.statusRejected : Color(hex: "#22C55E")
+                    color: r.foir > r.foirLimit ? Color.statusRejected : Color.textPrimary
                 )
                 metricCell(
                     label: "LTV",
                     value: r.ltv > 0 ? String(format: "%.1f%%", r.ltv * 100) : "N/A",
                     sub: "Ideal: <90%",
-                    color: r.ltv > 0.90 ? Color.statusRejected : Color(hex: "#22C55E")
+                    color: r.ltv > 0.90 ? Color.statusRejected : Color.textPrimary
                 )
                 metricCell(
                     label: "Proposed EMI",

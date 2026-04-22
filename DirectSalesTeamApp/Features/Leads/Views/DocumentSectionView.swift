@@ -188,12 +188,12 @@ struct DocumentRowView: View {
         Button { showRequestAlert = true } label: {
             Image(systemName: "paperplane")
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(Color.statusSubmitted)
+                .foregroundColor(Color.brandBlue)
                 .frame(width: 32, height: 32)
-                .background(Color.statusSubmittedBg)
+                .background(Color.brandBlue.opacity(0.12))
                 .clipShape(Circle())
                 .overlay(
-                    Circle().strokeBorder(Color.statusSubmitted.opacity(0.2), lineWidth: 1)
+                    Circle().strokeBorder(Color.brandBlue.opacity(0.2), lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)

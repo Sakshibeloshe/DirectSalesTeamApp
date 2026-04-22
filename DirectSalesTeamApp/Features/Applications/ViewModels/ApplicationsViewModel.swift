@@ -11,6 +11,14 @@ final class ApplicationsViewModel: ObservableObject {
     @Published var isLoading: Bool                       = false
     @Published var errorMessage: String?                 = nil
     @Published var selectedApplication: LoanApplication? = nil
+    
+    // MARK: - Scroll Tracking
+    @Published var scrollOffset: CGFloat = 0
+    @Published var contentWidth: CGFloat = 0
+    @Published var viewWidth: CGFloat = 0
+    
+    var canScrollLeft: Bool { scrollOffset < -5 }
+    var canScrollRight: Bool { viewWidth > 0 && contentWidth > viewWidth && scrollOffset > -(contentWidth - viewWidth + 5) }
 
     // MARK: - Filter Options
     let statusFilters: [ApplicationStatus?] = [nil] + ApplicationStatus.allCases

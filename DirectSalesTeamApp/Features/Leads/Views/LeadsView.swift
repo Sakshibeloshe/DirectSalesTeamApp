@@ -35,20 +35,12 @@ struct LeadsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { viewModel.showAddLead = true } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 13, weight: .bold))
-                            Text("Add Lead")
-                                .font(AppFont.subheadMed())
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(Color.brandBlue)
-                        .clipShape(Capsule())
-                        .overlay(Capsule().strokeBorder(Color.clear, lineWidth: 0))
+                        Text("Add Lead")
+                            .font(AppFont.subheadMed())
                     }
-                    .buttonStyle(.borderless)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.brandBlue)
+                    .buttonBorderShape(.capsule)
                 }
             }
             // ── Add Lead modal — always bottom sheet, never iPad popup ──
@@ -79,28 +71,68 @@ struct LeadsView: View {
                 .padding(.horizontal, AppSpacing.md)
                 .padding(.vertical, AppSpacing.xs)
 
-            HStack(spacing: 0) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: AppSpacing.xs) {
-                        ForEach(viewModel.filters) { filter in
-                            FilterChipView(
-                                filter: filter,
-                                count: viewModel.count(for: filter),
-                                isSelected: viewModel.selectedFilter == filter
-                            ) {
-                                viewModel.selectFilter(filter)
+            ScrollViewReader { proxy in
+                GeometryReader { outerGeo in
+                    HStack(spacing: 0) {
+                        if viewModel.canScrollLeft {
+                            Button {
+                                if let first = viewModel.filters.first {
+                                    withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(first.id, anchor: .leading) }
+                                }
+                            } label: {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Color.textTertiary)
+                                    .padding(.leading, AppSpacing.md)
+                                    .padding(.trailing, AppSpacing.xs)
+                            }
+                        }
+
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: AppSpacing.xs) {
+                                ForEach(viewModel.filters) { filter in
+                                    FilterChipView(
+                                        filter: filter,
+                                        count: viewModel.count(for: filter),
+                                        isSelected: viewModel.selectedFilter == filter
+                                    ) {
+                                        viewModel.selectFilter(filter)
+                                    }
+                                    .id(filter.id)
+                                }
+                            }
+                            .padding(.horizontal, AppSpacing.md)
+                            .padding(.vertical, AppSpacing.xs)
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear
+                                        .preference(key: ScrollOffsetTracker.self, value: geo.frame(in: .named("leadsScroll")).minX)
+                                        .onAppear { viewModel.contentWidth = geo.size.width }
+                                        .onChange(of: geo.size.width) { _ in viewModel.contentWidth = geo.size.width }
+                                }
+                            )
+                        }
+                        .coordinateSpace(name: "leadsScroll")
+                        .onPreferenceChange(ScrollOffsetTracker.self) { value in viewModel.scrollOffset = value }
+
+                        if viewModel.canScrollRight {
+                            Button {
+                                if let last = viewModel.filters.last {
+                                    withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(last.id, anchor: .trailing) }
+                                }
+                            } label: {
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundColor(Color.textTertiary)
+                                    .padding(.trailing, AppSpacing.md)
+                                    .padding(.leading, AppSpacing.xs)
                             }
                         }
                     }
-                    .padding(.horizontal, AppSpacing.md)
-                    .padding(.vertical, AppSpacing.xs)
+                    .onAppear { viewModel.viewWidth = outerGeo.size.width }
+                    .onChange(of: outerGeo.size.width) { _ in viewModel.viewWidth = outerGeo.size.width }
                 }
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color.textTertiary)
-                    .padding(.trailing, AppSpacing.md)
-                    .padding(.leading, AppSpacing.xs)
+                .frame(height: 44)
             }
             .padding(.bottom, AppSpacing.xs)
         }

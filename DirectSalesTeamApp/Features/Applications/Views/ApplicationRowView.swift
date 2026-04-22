@@ -74,15 +74,15 @@ struct ApplicationRowView: View {
             if application.status == .rejected {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#EF4444"))
+                    .foregroundColor(Color.statusRejected)
             } else if application.status == .disbursed {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#057A55"))
+                    .foregroundColor(Color.statusDisbursed)
             } else if let days = application.slaDays, days <= 2 {
                 Image(systemName: "clock.fill")
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: "#D97706"))
+                    .foregroundColor(Color.statusPending)
             } else {
                 Image(systemName: "clock")
                     .font(.system(size: 11))
@@ -97,10 +97,10 @@ struct ApplicationRowView: View {
 
     private var statusLabelColor: Color {
         switch application.status {
-        case .rejected:    return Color(hex: "#EF4444")
-        case .disbursed:   return Color(hex: "#057A55")
+        case .rejected:    return Color.statusRejected
+        case .disbursed:   return Color.statusDisbursed
         case .underReview:
-            if let days = application.slaDays, days <= 2 { return Color(hex: "#D97706") }
+            if let days = application.slaDays, days <= 2 { return Color.statusPending }
             return Color.textSecondary
         default:           return Color.textSecondary
         }

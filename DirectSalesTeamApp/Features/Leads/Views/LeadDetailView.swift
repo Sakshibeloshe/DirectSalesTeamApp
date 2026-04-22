@@ -125,7 +125,7 @@ struct LeadDetailView: View {
                 Spacer()
                 Text(lead.formattedCommission)
                     .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(hex: "#057A55"))
+                    .foregroundColor(Color.textPrimary)
             }
             .padding(AppSpacing.md)
         }
@@ -143,7 +143,7 @@ struct LeadDetailView: View {
             .foregroundColor(Color.brandBlue)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(Color(hex: "#EBF0FF"))
+            .background(Color.brandBlueSoft)
             .clipShape(Capsule())
             .overlay(Capsule().strokeBorder(Color.brandBlue.opacity(0.25), lineWidth: 1))
     }
@@ -151,22 +151,23 @@ struct LeadDetailView: View {
     private var amountChip: some View {
         Text(lead.formattedAmount)
             .font(AppFont.captionMed())
-            .foregroundColor(Color(hex: "#057A55"))
+            .foregroundColor(Color.brandBlue)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
-            .background(Color(hex: "#E8F5EF"))
+            .background(Color.brandBlueSoft)
             .clipShape(Capsule())
-            .overlay(Capsule().strokeBorder(Color(hex: "#057A55").opacity(0.25), lineWidth: 1))
+            .overlay(Capsule().strokeBorder(Color.brandBlue.opacity(0.25), lineWidth: 1))
     }
 
     // MARK: - 2. Action Buttons
     private var actionButtons: some View {
         HStack(spacing: AppSpacing.sm) {
             actionBtn(icon: "phone.fill",     label: "Call",             iconBg: Color.brandBlue.opacity(0.12),    iconFg: Color.brandBlue)       { call() }
-            actionBtn(icon: "message.fill",   label: "WhatsApp",         iconBg: Color(hex: "#D1FAE5"),             iconFg: Color(hex: "#059669")) { whatsapp() }
-            actionBtn(icon: "paperplane.fill",label: "Request\nDocs",    iconBg: Color.brandBlue.opacity(0.10),    iconFg: Color.brandBlue)       { vm.showRequestDocsConfirm = true }
-            actionBtn(icon: "checkmark.seal.fill", label: "Check\nEligibility", iconBg: Color.brandBlue.opacity(0.10), iconFg: Color.brandBlue)   { vm.showEligibility = true }
+            actionBtn(icon: "message.fill",   label: "WhatsApp",         iconBg: Color.brandBlue.opacity(0.12),    iconFg: Color.brandBlue)       { whatsapp() }
+            actionBtn(icon: "paperplane.fill",label: "Request\nDocs",    iconBg: Color.brandBlue.opacity(0.12),    iconFg: Color.brandBlue)       { vm.showRequestDocsConfirm = true }
+            actionBtn(icon: "checkmark.seal.fill", label: "Check\nEligibility", iconBg: Color.brandBlue.opacity(0.12), iconFg: Color.brandBlue)   { vm.showEligibility = true }
         }
+        .fixedSize(horizontal: false, vertical: true)
         .alert("Docs Requested", isPresented: $vm.showRequestDocsConfirm) {
             Button("OK", role: .cancel) {}
         } message: {
@@ -197,9 +198,12 @@ struct LeadDetailView: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
+                
+                Spacer(minLength: 0) // Push content up slightly, keeping heights exact
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.vertical, AppSpacing.sm)
+            .padding(.horizontal, 4)
             .background(Color.surfacePrimary)
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
             .overlay(

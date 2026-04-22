@@ -40,33 +40,9 @@ struct AddLeadView: View {
 
     // MARK: - Body
     var body: some View {
-        VStack(spacing: 0) {
+        NavigationStack {
+            VStack(spacing: 0) {
 
-            // ── Drag handle ──
-            Capsule()
-                .fill(Color(UIColor.systemGray4))
-                .frame(width: 36, height: 4)
-                .padding(.top, 10)
-                .padding(.bottom, 20)
-
-            // ── Header ──
-            HStack {
-                Text("New Lead")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundColor(Color.textPrimary)
-                Spacer()
-                Button { dismiss() } label: {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(Color.textSecondary)
-                        .frame(width: 32, height: 32)
-                        .background(Color(UIColor.systemGray6))
-                        .clipShape(Circle())
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.bottom, AppSpacing.lg)
 
             // ── Scrollable form ──
             ScrollView(showsIndicators: false) {
@@ -102,11 +78,19 @@ struct AddLeadView: View {
             bottomButton
         }
         .background(Color.surfacePrimary)
+        .navigationTitle("New Lead")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button("Close") { dismiss() }
+            }
+        }
         // Dismiss keyboard on drag
         .gesture(
             DragGesture(minimumDistance: 10, coordinateSpace: .local)
                 .onChanged { _ in focused = nil }
         )
+        }
     }
 
     // MARK: - Phone field (special: shows digit counter)

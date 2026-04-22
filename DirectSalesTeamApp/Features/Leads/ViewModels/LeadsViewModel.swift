@@ -12,6 +12,14 @@ final class LeadsViewModel: ObservableObject {
     @Published var isLoading: Bool         = false
     @Published var errorMessage: String?   = nil
     @Published var showAddLead: Bool       = false
+    
+    // MARK: - Scroll Tracking
+    @Published var scrollOffset: CGFloat = 0
+    @Published var contentWidth: CGFloat = 0
+    @Published var viewWidth: CGFloat = 0
+    
+    var canScrollLeft: Bool { scrollOffset < -5 }
+    var canScrollRight: Bool { viewWidth > 0 && contentWidth > viewWidth && scrollOffset > -(contentWidth - viewWidth + 5) }
 
     // MARK: - Filters
     let filters: [LeadFilter] = LeadFilter.allFilters

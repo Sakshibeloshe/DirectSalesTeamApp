@@ -44,39 +44,12 @@ struct EarningsView: View {
                                     .padding(.top, 8)
                             }
                             
-                            // Stats Row (Tappable Filters)
-                            if let stats = viewModel.stats {
-                                EarningsStatsRow(
-                                    stats: stats,
-                                    selectedFilter: viewModel.selectedFilter,
-                                    onFilterTap: { filter in
-                                        withAnimation(.easeInOut(duration: 0.2)) {
-                                            viewModel.selectFilter(filter)
-                                        }
-                                    }
-                                )
-                                .padding(.top, 8)
-                            }
+                            // Removed Stats Row as requested
                             
-                            // Filter Buttons
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    ForEach(EarningsViewModel.EarningFilter.allCases, id: \.self) { filter in
-                                        FilterPill(
-                                            title: filter.rawValue,
-                                            icon: filter.icon,
-                                            isSelected: viewModel.selectedFilter == filter
-                                        )
-                                        .onTapGesture {
-                                            withAnimation(.easeInOut(duration: 0.2)) {
-                                                viewModel.selectFilter(filter)
-                                            }
-                                        }
-                                    }
-                                }
-                                .padding(.horizontal, 16)
-                            }
-                            .padding(.top, 8)
+                            // -- Start Filter Row --
+                            FilterRowDynamic(viewModel: viewModel)
+                                .padding(.top, 8)
+                            // -- End Filter Row --
                             
                             // Transactions List
                             if viewModel.filteredEarnings.isEmpty {
@@ -182,7 +155,97 @@ struct FilterPill: View {
             Capsule()
                 .fill(isSelected ? Color.brandBlue : Color(.systemGray5))
         )
-        .animation(.easeInOut(duration: 0.2), value: isSelected)
+    }
+}
+
+struct ScrollOffsetTracker: PreferenceKey {
+    static var defaultValue: CGFloat = .zero
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        let next = nextValue()
+        if next != 0 { value = next }
+    }
+}
+
+struct FilterRowDynamic: View {
+    @ObservedObject var viewModel: EarningsViewModel
+    
+    @State private var offset: CGFloat = 0
+    @State private var contentWidth: CGFloat = 0
+    @State private var viewWidth: CGFloat = 0
+    
+    var showLeftChevron: Bool { offset < -5 }
+    var showRightChevron: Bool { viewWidth > 0 && contentWidth > viewWidth && offset > -(contentWidth - viewWidth + 5) }
+    
+    var body: some View {
+        ScrollViewReader { proxy in
+            GeometryReader { outerGeo in
+                HStack(spacing: 0) {
+                    if showLeftChevron {
+                        Button {
+                            if let first = EarningsViewModel.EarningFilter.allCases.first {
+                                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(first, anchor: .leading) }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .padding(.leading, 16)
+                                .padding(.trailing, 8)
+                        }
+                    }
+                    
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(EarningsViewModel.EarningFilter.allCases, id: \.self) { filter in
+                                let title: String = {
+                                    switch filter {
+                                    case .all: return "All"
+                                    case .paid: return "Paid \(viewModel.stats?.paidTransactionsCount ?? 0)"
+                                    case .pending: return "Pending \(viewModel.stats?.pendingTransactionsCount ?? 0)"
+                                    }
+                                }()
+                                
+                                Button {
+                                    viewModel.selectFilter(filter)
+                                } label: {
+                                    FilterPill(title: title, icon: filter.icon, isSelected: viewModel.selectedFilter == filter)
+                                }
+                                .buttonStyle(.plain)
+                                .id(filter)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear
+                                    .preference(key: ScrollOffsetTracker.self, value: geo.frame(in: .named("earningsScroll")).minX)
+                                    .onAppear { contentWidth = geo.size.width }
+                                    .onChange(of: geo.size.width) { _ in contentWidth = geo.size.width }
+                            }
+                        )
+                    }
+                    .coordinateSpace(name: "earningsScroll")
+                    .onPreferenceChange(ScrollOffsetTracker.self) { value in offset = value }
+                    
+                    if showRightChevron {
+                        Button {
+                            if let last = EarningsViewModel.EarningFilter.allCases.last {
+                                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(last, anchor: .trailing) }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .padding(.leading, 8)
+                                .padding(.trailing, 16)
+                        }
+                    }
+                }
+                .onAppear { viewWidth = outerGeo.size.width }
+                .onChange(of: outerGeo.size.width) { _ in viewWidth = outerGeo.size.width }
+            }
+            .frame(height: 36)
+        }
     }
 }
 

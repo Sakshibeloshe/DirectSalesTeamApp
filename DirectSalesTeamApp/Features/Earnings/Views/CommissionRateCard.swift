@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CommissionRateCard: View {
     let rates: [CommissionRate]
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         NavigationView {
@@ -75,8 +76,16 @@ struct CommissionRateCard: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Commission Rates")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar(content: {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            })
         }
     }
+    
     
     private func getRates(for loanType: Earning.LoanType) -> [CommissionRate]? {
         let filtered = rates.filter { $0.loanType == loanType }
