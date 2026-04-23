@@ -17,8 +17,8 @@ struct EarningsSummaryCard: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color(red: 0.22, green: 0.29, blue: 0.62),
-                            Color(red: 0.28, green: 0.36, blue: 0.72)
+                            Color.blue.opacity(0.9),
+                            Color.blue.opacity(0.7)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing

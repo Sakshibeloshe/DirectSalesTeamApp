@@ -30,17 +30,13 @@ struct PipelineProgressBar: View {
         let isRejected  = application.status == .rejected
 
         if isRejected {
-            if stage.id < currentStep {
-                return Color.brandBlueSoft
-            } else if stage.id == currentStep {
+            if stage.id <= currentStep {
                 return Color.statusRejected
             } else {
                 return Color.surfaceTertiary
             }
         } else {
-            if stage.id < currentStep {
-                return Color.brandBlueSoft
-            } else if stage.id == currentStep {
+            if stage.id <= currentStep {
                 return Color.brandBlue
             } else {
                 return Color.surfaceTertiary

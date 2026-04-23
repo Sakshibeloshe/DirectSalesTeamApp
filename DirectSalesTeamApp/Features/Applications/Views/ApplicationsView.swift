@@ -20,26 +20,17 @@ struct ApplicationsView: View {
 
                 VStack(spacing: 0) {
 
-                    // ✅ STATIC HEADER
+                    // ✅ Sticky Header & Filters
                     VStack(spacing: 0) {
-
-                        // Title
-                        HStack {
-                            Text("Applications")
-                                .font(AppFont.largeTitle())
-                                .foregroundColor(Color.textPrimary)
-
-                            Spacer()
-                        }
-                        .padding(.horizontal, AppSpacing.md)
-                        .padding(.top, AppSpacing.lg)
+                        SearchBarView(text: $viewModel.searchText)
+                            .padding(.horizontal, AppSpacing.md)
+                            .padding(.vertical, AppSpacing.xs)
 
                         // ✅ Filter Chips with chevrons
                         filterChipHeader
-                            .padding(.top, AppSpacing.sm)
-
-                        Divider().opacity(0.5)
                     }
+                    .padding(.bottom, AppSpacing.xs)
+                    .background(Color.surfaceSecondary)
 
                     // ✅ SCROLLABLE CONTENT ONLY
                     ScrollView {
@@ -52,8 +43,10 @@ struct ApplicationsView: View {
                         }
                     }
                 }
+                .padding(.top, -8)
             }
-            .navigationBarHidden(true)
+            .navigationTitle("Applications")
+            .navigationBarTitleDisplayMode(.large)
             .sheet(item: $viewModel.selectedApplication) { app in
                 ApplicationDetailPlaceholder(application: app)
             }
@@ -65,50 +58,63 @@ struct ApplicationsView: View {
 
     // MARK: - FILTER CHIP HEADER WITH CHEVRONS
     private var filterChipHeader: some View {
-        ZStack {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: AppSpacing.xs) {
-                    ForEach(filterStatuses, id: \.label) { item in
-                        chipView(for: item)
+        ScrollViewReader { proxy in
+            GeometryReader { outerGeo in
+                HStack(spacing: 0) {
+                    if viewModel.canScrollLeft {
+                        Button {
+                            if let first = filterStatuses.first {
+                                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(first.label, anchor: .leading) }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Color.textTertiary)
+                                .padding(.leading, AppSpacing.md)
+                                .padding(.trailing, AppSpacing.xs)
+                        }
+                    }
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: AppSpacing.xs) {
+                            ForEach(filterStatuses, id: \.label) { item in
+                                chipView(for: item)
+                                    .id(item.label)
+                            }
+                        }
+                        .padding(.horizontal, AppSpacing.md)
+                        .padding(.vertical, AppSpacing.xs)
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear
+                                    .preference(key: ScrollOffsetTracker.self, value: geo.frame(in: .named("appsScroll")).minX)
+                                    .onAppear { viewModel.contentWidth = geo.size.width }
+                                    .onChange(of: geo.size.width) { _ in viewModel.contentWidth = geo.size.width }
+                            }
+                        )
+                    }
+                    .coordinateSpace(name: "appsScroll")
+                    .onPreferenceChange(ScrollOffsetTracker.self) { value in viewModel.scrollOffset = value }
+
+                    if viewModel.canScrollRight {
+                        Button {
+                            if let last = filterStatuses.last {
+                                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(last.label, anchor: .trailing) }
+                            }
+                        } label: {
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(Color.textTertiary)
+                                .padding(.trailing, AppSpacing.md)
+                                .padding(.leading, AppSpacing.xs)
+                        }
                     }
                 }
-                .padding(.horizontal, 32) // space for chevrons
-                .padding(.vertical, AppSpacing.sm)
-                .background(
-                    GeometryReader { geo in
-                        Color.clear
-                            .preference(key: ScrollOffsetTracker.self, value: geo.frame(in: .named("appsScroll")).minX)
-                            .onAppear { viewModel.contentWidth = geo.size.width }
-                            .onChange(of: geo.size.width) { _ in viewModel.contentWidth = geo.size.width }
-                    }
-                )
+                .onAppear { viewModel.viewWidth = outerGeo.size.width }
+                .onChange(of: outerGeo.size.width) { _ in viewModel.viewWidth = outerGeo.size.width }
             }
-            .coordinateSpace(name: "appsScroll")
-            .onPreferenceChange(ScrollOffsetTracker.self) { value in viewModel.scrollOffset = value }
-
-            // LEFT CHEVRON
-            HStack {
-                Image(systemName: "chevron.left")
-                    .foregroundColor(Color.textSecondary)
-                    .padding(6)
-                    .background(Color.surfacePrimary)
-                    .clipShape(Circle())
-                    .opacity(viewModel.canScrollLeft ? 1 : 0)
-
-                Spacer()
-
-                // RIGHT CHEVRON
-                Image(systemName: "chevron.right")
-                    .foregroundColor(Color.textSecondary)
-                    .padding(6)
-                    .background(Color.surfacePrimary)
-                    .clipShape(Circle())
-                    .opacity(viewModel.canScrollRight ? 1 : 0)
-            }
-            .padding(.horizontal, 8)
+            .frame(height: 44)
         }
-        .background(Color.surfaceSecondary)
-        .onAppear { viewModel.viewWidth = UIScreen.main.bounds.width }
     }
 
     // MARK: - CHIP VIEW (NO SHRINK, INSTANT RESPONSE)

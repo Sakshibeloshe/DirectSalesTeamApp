@@ -37,20 +37,24 @@ extension Color {
     static let brandBlue      = mainBlue
     static let brandBlueSoft  = lightBlue
 
-    // Status colors
-    // Status colors - Muted & Subtle
+    // Status colors - Unified!
     static let statusNew      = mainBlue
     static let statusNewBg    = lightBlue
-    static let statusPending  = Color.textSecondary
-    static let statusPendingBg = Color.surfaceTertiary
-    static let statusSubmitted = Color.textSecondary
-    static let statusSubmittedBg = Color.surfaceTertiary
-    static let statusRejected = Color(hex: "#D70015").opacity(0.6)
-    static let statusRejectedBg = Color.surfaceTertiary
-    static let statusApproved = Color(hex: "#34C759").opacity(0.6)
-    static let statusApprovedBg = Color.surfaceTertiary
-    static let statusDisbursed = mainBlue.opacity(0.6)
-    static let statusDisbursedBg = lightBlue
+    
+    static let statusPending  = Color(hex: "#D97706")
+    static let statusPendingBg = Color(hex: "#FDF6EC")
+    
+    static let statusSubmitted = mainBlue
+    static let statusSubmittedBg = lightBlue
+    
+    static let statusRejected = Color(hex: "#C81E1E")
+    static let statusRejectedBg = Color(hex: "#FEF2F2")
+    
+    static let statusApproved = Color(hex: "#057A55")
+    static let statusApprovedBg = Color(hex: "#E8F5EF")
+    
+    static let statusDisbursed = Color(hex: "#057A55")
+    static let statusDisbursedBg = Color(hex: "#E8F5EF")
 
     // Neutral
     static let textPrimary    = Color(hex: "#111928")

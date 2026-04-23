@@ -12,7 +12,7 @@ struct FilterChipView: View {
                 Text(filter.title)
                     .font(AppFont.subheadMed())
 
-                if count > 0 && !isSelected {
+                if count > 0 {
                     Text("\(count)")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(isSelected ? .white.opacity(0.85) : Color.textSecondary)

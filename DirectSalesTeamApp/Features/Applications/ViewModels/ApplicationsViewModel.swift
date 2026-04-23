@@ -8,6 +8,7 @@ final class ApplicationsViewModel: ObservableObject {
     @Published var applications: [LoanApplication]       = []
     @Published var filteredApplications: [LoanApplication] = []
     @Published var selectedStatus: ApplicationStatus?    = nil   // nil = All
+    @Published var searchText: String                    = ""
     @Published var isLoading: Bool                       = false
     @Published var errorMessage: String?                 = nil
     @Published var selectedApplication: LoanApplication? = nil
@@ -36,10 +37,16 @@ final class ApplicationsViewModel: ObservableObject {
 
     // MARK: - Bindings
     private func setupBindings() {
-        Publishers.CombineLatest($applications, $selectedStatus)
-            .map { apps, status in
-                guard let status else { return apps }
-                return apps.filter { $0.status == status }
+        Publishers.CombineLatest3($applications, $selectedStatus, $searchText)
+            .map { apps, status, search in
+                var filtered = apps
+                if let status = status {
+                    filtered = filtered.filter { $0.status == status }
+                }
+                if !search.isEmpty {
+                    filtered = filtered.filter { $0.name.localizedCaseInsensitiveContains(search) || $0.phone.localizedCaseInsensitiveContains(search) }
+                }
+                return filtered
             }
             .assign(to: &$filteredApplications)
     }

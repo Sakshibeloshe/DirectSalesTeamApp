@@ -12,11 +12,11 @@ enum ApplicationStatus: String, CaseIterable, Identifiable, Codable {
 
     var dotColor: Color {
         switch self {
-        case .submitted:   return Color(hex: "#2563EB")
-        case .underReview: return Color(hex: "#D97706")
-        case .approved:    return Color(hex: "#057A55")
-        case .rejected:    return Color(hex: "#C81E1E")
-        case .disbursed:   return Color(hex: "#057A55")
+        case .submitted:   return .statusSubmitted
+        case .underReview: return .statusPending
+        case .approved:    return .statusApproved
+        case .rejected:    return .statusRejected
+        case .disbursed:   return .statusDisbursed
         }
     }
 
@@ -24,11 +24,11 @@ enum ApplicationStatus: String, CaseIterable, Identifiable, Codable {
 
     var backgroundColor: Color {
         switch self {
-        case .submitted:   return Color(hex: "#EBF0FF")
-        case .underReview: return Color(hex: "#FDF6EC")
-        case .approved:    return Color(hex: "#E8F5EF")
-        case .rejected:    return Color(hex: "#FEF2F2")
-        case .disbursed:   return Color(hex: "#E8F5EF")
+        case .submitted:   return .statusSubmittedBg
+        case .underReview: return .statusPendingBg
+        case .approved:    return .statusApprovedBg
+        case .rejected:    return .statusRejectedBg
+        case .disbursed:   return .statusDisbursedBg
         }
     }
 

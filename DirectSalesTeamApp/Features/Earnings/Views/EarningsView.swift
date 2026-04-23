@@ -109,7 +109,7 @@ struct EarningsView: View {
                         Button {
                             viewModel.showCalculator = true
                         } label: {
-                            Label("Commission Calculator", systemImage: "calculator")
+                            Label("Commission Calculator", systemImage: "percent")
                         }
                         
                         Button {
@@ -138,23 +138,18 @@ struct EarningsView: View {
 
 struct FilterPill: View {
     let title: String
-    let icon: String
     let isSelected: Bool
     
     var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
-            Text(title)
-                .font(.system(size: 14, weight: .semibold))
-        }
-        .foregroundColor(isSelected ? .white : .primary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(
-            Capsule()
-                .fill(isSelected ? Color.brandBlue : Color(.systemGray5))
-        )
+        Text(title)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundColor(isSelected ? .white : .primary)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(isSelected ? Color.brandBlue : Color(.systemGray5))
+            )
     }
 }
 
@@ -208,7 +203,7 @@ struct FilterRowDynamic: View {
                                 Button {
                                     viewModel.selectFilter(filter)
                                 } label: {
-                                    FilterPill(title: title, icon: filter.icon, isSelected: viewModel.selectedFilter == filter)
+                                    FilterPill(title: title, isSelected: viewModel.selectedFilter == filter)
                                 }
                                 .buttonStyle(.plain)
                                 .id(filter)
