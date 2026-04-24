@@ -29,13 +29,44 @@ struct BorrowerLookupService {
 
         for query in queries {
             let items = try await searchBorrowerWithRetry(query: query)
-            if let match = items.first(where: { !$0.borrowerProfileID.isEmpty && $0.isActive }) {
+            if let match = bestBorrowerMatch(
+                from: items,
+                normalizedEmail: normalizedEmail,
+                phoneDigits: phoneDigits
+            ) {
                 let name = match.email.isEmpty ? match.phone : match.email
                 return BorrowerLookupResult(borrowerProfileID: match.borrowerProfileID, displayName: name)
             }
         }
 
         return nil
+    }
+
+    private func bestBorrowerMatch(
+        from items: [BorrowerSignupStatusSearchItem],
+        normalizedEmail: String,
+        phoneDigits: String
+    ) -> BorrowerSignupStatusSearchItem? {
+        let candidates = items.filter { !$0.borrowerProfileID.isEmpty }
+        guard !candidates.isEmpty else { return nil }
+
+        if !phoneDigits.isEmpty,
+           let phoneExactMatch = candidates.first(where: { normalizedDigits($0.phone) == phoneDigits }) {
+            return phoneExactMatch
+        }
+
+        if !normalizedEmail.isEmpty {
+            let targetEmail = normalizedEmail.lowercased()
+            if let emailExactMatch = candidates.first(where: { $0.email.lowercased() == targetEmail }) {
+                return emailExactMatch
+            }
+        }
+
+        return candidates.first
+    }
+
+    private func normalizedDigits(_ value: String) -> String {
+        value.filter(\.isNumber)
     }
 
     private func searchBorrowerWithRetry(query: String) async throws -> [BorrowerSignupStatusSearchItem] {

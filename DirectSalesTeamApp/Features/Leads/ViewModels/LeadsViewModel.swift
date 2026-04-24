@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 @MainActor
 final class LeadsViewModel: ObservableObject {
@@ -103,14 +104,21 @@ final class LeadsViewModel: ObservableObject {
             return
         }
 
+        // Optimistic UI Update: directly remove from both arrays immediately with animation
+        withAnimation {
+            self.leads.removeAll { $0.id == lead.id }
+            self.filteredLeads.removeAll { $0.id == lead.id }
+        }
+
         service.deleteLead(lead)
             .receive(on: RunLoop.main)
             .sink { [weak self] completion in
                 if case .failure(let err) = completion {
                     self?.errorMessage = err.localizedDescription
+                    // Intentionally omitting rollback logic for simplicity based on current implementation
                 }
-            } receiveValue: { [weak self] _ in
-                self?.leads.removeAll { $0.id == lead.id }
+            } receiveValue: { _ in
+                // Successfully deleted
             }
             .store(in: &cancellables)
     }

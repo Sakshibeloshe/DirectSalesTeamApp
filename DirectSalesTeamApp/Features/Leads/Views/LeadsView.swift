@@ -158,7 +158,7 @@ struct LeadsView: View {
     private var leadList: some View {
         ScrollView {
             LazyVStack(spacing: 0) {
-                ForEach(Array(viewModel.filteredLeads.enumerated()), id: \.element.id) { index, lead in
+                ForEach(viewModel.filteredLeads, id: \.id) { lead in
                     // NavigationLink for push navigation
                     NavigationLink(value: lead) {
                         LeadRowContent(lead: lead)
@@ -175,7 +175,7 @@ struct LeadsView: View {
                         }
                     }
 
-                    if index < viewModel.filteredLeads.count - 1 {
+                    if lead.id != viewModel.filteredLeads.last?.id {
                         Divider().padding(.leading, 76)
                     }
                 }

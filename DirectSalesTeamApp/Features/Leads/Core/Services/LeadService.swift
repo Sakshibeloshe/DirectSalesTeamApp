@@ -32,6 +32,7 @@ enum LeadDeletionError: LocalizedError {
 final class BackendLeadService: LeadServiceProtocol {
     private let tokenStore: TokenStore
     private let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
+    private let leadMetadataStore = LeadMetadataStore()
 
     init(
         tokenStore: TokenStore = .shared,
@@ -46,7 +47,9 @@ final class BackendLeadService: LeadServiceProtocol {
             Task {
                 do {
                     let apps = try await self.listLoanApplications()
-                    let leads = apps.compactMap { self.mapLoanApplicationToLead($0) }
+                    let leads = apps
+                        .filter { $0.status != .cancelled }
+                        .compactMap { self.mapLoanApplicationToLead($0) }
                     promise(.success(leads.sorted(by: { $0.createdAt > $1.createdAt })))
                 } catch {
                     promise(.failure(error))
@@ -78,9 +81,20 @@ final class BackendLeadService: LeadServiceProtocol {
                         tenureMonths: 60
                     )
 
-                    guard let mapped = self.mapLoanApplicationToLead(created) else {
+                    guard var mapped = self.mapLoanApplicationToLead(created) else {
                         throw LeadAPIError.invalidResponse
                     }
+                    // Backend loan application payload does not currently include lead-entered
+                    // contact fields. Preserve user-entered values for the newly created item.
+                    mapped.name = lead.name
+                    mapped.phone = lead.phone
+                    mapped.email = lead.email
+                    self.leadMetadataStore.save(
+                        applicationID: created.id,
+                        name: lead.name,
+                        phone: lead.phone,
+                        email: lead.email
+                    )
                     promise(.success(mapped))
                 } catch {
                     promise(.failure(error))
@@ -100,8 +114,18 @@ final class BackendLeadService: LeadServiceProtocol {
         guard lead.status == .submitted else {
             return Fail(error: LeadDeletionError.onlySubmittedCanBeDeleted).eraseToAnyPublisher()
         }
-        // Backend currently has no DeleteLoanApplication RPC.
-        return Fail(error: LeadDeletionError.backendDeleteUnavailable).eraseToAnyPublisher()
+        return Future { promise in
+            Task {
+                do {
+                    try await self.cancelLoanApplication(applicationID: lead.id.uuidString)
+                    self.leadMetadataStore.remove(applicationID: lead.id.uuidString)
+                    promise(.success(()))
+                } catch {
+                    promise(.failure(error))
+                }
+            }
+        }
+        .eraseToAnyPublisher()
     }
 
     private func listLoanProducts() async throws -> [Loan_LoanProductItem] {
@@ -152,6 +176,17 @@ final class BackendLeadService: LeadServiceProtocol {
         return response.items
     }
 
+    private func cancelLoanApplication(applicationID: String) async throws {
+        var request = Loan_UpdateLoanApplicationStatusRequest()
+        request.applicationID = applicationID
+        request.status = .cancelled
+        request.escalationReason = ""
+        _ = try await unaryLoanCall(
+            method: "UpdateLoanApplicationStatus",
+            request: request
+        ) as Loan_UpdateLoanApplicationStatusResponse
+    }
+
     private func getDstBranchID() async throws -> String {
         guard let token = try tokenStore.accessToken(), !token.isEmpty else {
             throw AuthError.unauthenticated
@@ -198,12 +233,13 @@ final class BackendLeadService: LeadServiceProtocol {
 
         let createdAt = ISO8601DateFormatter().date(from: application.createdAt) ?? Date()
         let updatedAt = ISO8601DateFormatter().date(from: application.updatedAt) ?? createdAt
+        let cached = leadMetadataStore.metadata(for: application.id)
 
         return Lead(
             id: id,
-            name: "Borrower \(application.primaryBorrowerProfileID.prefix(6))",
-            phone: "",
-            email: "",
+            name: cached?.name ?? "Borrower \(application.primaryBorrowerProfileID.prefix(6))",
+            phone: cached?.phone ?? "",
+            email: cached?.email ?? "",
             borrowerProfileID: application.primaryBorrowerProfileID,
             loanType: mapLoanTypeFromProductName(application.loanProductName),
             loanAmount: amount,
@@ -472,6 +508,18 @@ struct Loan_ListLoanApplicationsResponse: Sendable {
     var unknownFields = SwiftProtobuf.UnknownStorage()
 }
 
+struct Loan_UpdateLoanApplicationStatusRequest: Sendable {
+    var applicationID: String = ""
+    var status: Loan_LoanApplicationStatus = .unspecified
+    var escalationReason: String = ""
+    var unknownFields = SwiftProtobuf.UnknownStorage()
+}
+
+struct Loan_UpdateLoanApplicationStatusResponse: Sendable {
+    var success: Bool = false
+    var unknownFields = SwiftProtobuf.UnknownStorage()
+}
+
 extension Loan_LoanProductItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
     static let protoMessageName = "loan.v1.LoanProduct"
     static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "")
@@ -651,5 +699,88 @@ extension Loan_ListLoanApplicationsResponse: SwiftProtobuf.Message, SwiftProtobu
     func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
         if !items.isEmpty { try visitor.visitRepeatedMessageField(value: items, fieldNumber: 1) }
         try unknownFields.traverse(visitor: &visitor)
+    }
+}
+
+extension Loan_UpdateLoanApplicationStatusRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+    static let protoMessageName = "loan.v1.UpdateLoanApplicationStatusRequest"
+    static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "")
+    mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+        while let f = try decoder.nextFieldNumber() {
+            switch f {
+            case 1: try decoder.decodeSingularStringField(value: &applicationID)
+            case 2: try decoder.decodeSingularEnumField(value: &status)
+            case 3: try decoder.decodeSingularStringField(value: &escalationReason)
+            default: break
+            }
+        }
+    }
+    func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+        if !applicationID.isEmpty { try visitor.visitSingularStringField(value: applicationID, fieldNumber: 1) }
+        if status != .unspecified { try visitor.visitSingularEnumField(value: status, fieldNumber: 2) }
+        if !escalationReason.isEmpty { try visitor.visitSingularStringField(value: escalationReason, fieldNumber: 3) }
+        try unknownFields.traverse(visitor: &visitor)
+    }
+}
+
+extension Loan_UpdateLoanApplicationStatusResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+    static let protoMessageName = "loan.v1.UpdateLoanApplicationStatusResponse"
+    static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "")
+    mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+        while let f = try decoder.nextFieldNumber() {
+            switch f {
+            case 1: try decoder.decodeSingularBoolField(value: &success)
+            default: break
+            }
+        }
+    }
+    func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+        if success { try visitor.visitSingularBoolField(value: success, fieldNumber: 1) }
+        try unknownFields.traverse(visitor: &visitor)
+    }
+}
+
+private struct StoredLeadMetadata: Codable {
+    let name: String
+    let phone: String
+    let email: String
+}
+
+private final class LeadMetadataStore {
+    private let key = "dst.lead.metadata.byApplicationID"
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    func metadata(for applicationID: String) -> StoredLeadMetadata? {
+        guard !applicationID.isEmpty else { return nil }
+        return all()[applicationID]
+    }
+
+    func save(applicationID: String, name: String, phone: String, email: String) {
+        guard !applicationID.isEmpty else { return }
+        var existing = all()
+        existing[applicationID] = StoredLeadMetadata(name: name, phone: phone, email: email)
+        persist(existing)
+    }
+
+    func remove(applicationID: String) {
+        guard !applicationID.isEmpty else { return }
+        var existing = all()
+        existing.removeValue(forKey: applicationID)
+        persist(existing)
+    }
+
+    private func all() -> [String: StoredLeadMetadata] {
+        guard let data = defaults.data(forKey: key) else { return [:] }
+        return (try? JSONDecoder().decode([String: StoredLeadMetadata].self, from: data)) ?? [:]
+    }
+
+    private func persist(_ value: [String: StoredLeadMetadata]) {
+        if let data = try? JSONEncoder().encode(value) {
+            defaults.set(data, forKey: key)
+        }
     }
 }
