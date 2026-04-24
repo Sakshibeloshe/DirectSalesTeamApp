@@ -251,6 +251,15 @@ public final class AuthRepository: Sendable {
         )
     }
 
+    public func changePassword(currentPassword: String, newPassword: String) async throws {
+        guard let token = try tokenStore.accessToken() else { throw AuthError.unauthenticated }
+        var request = Auth_V1_ChangePasswordRequest()
+        request.currentPassword = currentPassword
+        request.newPassword = newPassword
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: token)
+        _ = try await client.changePassword(request: request, metadata: metadata, options: options)
+    }
+
     // MARK: - Session Management
 
     /// ⚠️ DEPRECATED: RefreshToken is disabled on the backend.

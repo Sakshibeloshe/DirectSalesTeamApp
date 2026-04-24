@@ -126,8 +126,12 @@ struct LoginTOTPView: View {
                 Task {
                     let success = await viewModel.verifyMFA(code: code)
                     if success {
-                        AnalyticsManager.shared.logEvent(.loginCompleted)
-                        session.completeSession(contactIdentifier: viewModel.currentLoginIdentifier)
+                        if viewModel.requiresPasswordChange {
+                            path.append(LoginRoute.passwordChange)
+                        } else {
+                            AnalyticsManager.shared.logEvent(.loginCompleted)
+                            session.completeSession(contactIdentifier: viewModel.currentLoginIdentifier)
+                        }
                     }
                     isVerifying = false
                 }

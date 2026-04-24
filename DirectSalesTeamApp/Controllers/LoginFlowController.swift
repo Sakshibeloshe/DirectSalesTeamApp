@@ -13,6 +13,7 @@ enum LoginRoute: Hashable {
     case otp(String) // Pass backend factor target indicator (e.g. email or phone)
     case passkey
     case totp
+    case passwordChange
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -42,6 +43,8 @@ struct LoginRoot: View {
                         LoginPasskeyView(path: $path)
                     case .totp:    
                         LoginTOTPView(path: $path)
+                    case .passwordChange:
+                        LoginPasswordChangeView(path: $path)
                     }
                 }
         }

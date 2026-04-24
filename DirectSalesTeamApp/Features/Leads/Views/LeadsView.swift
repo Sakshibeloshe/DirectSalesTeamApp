@@ -164,6 +164,16 @@ struct LeadsView: View {
                         LeadRowContent(lead: lead)
                     }
                     .buttonStyle(.plain)
+                    .contextMenu {
+                        if lead.status == .submitted {
+                            Button(role: .destructive) {
+                                leadToDelete = lead
+                                showDeleteConfirm = true
+                            } label: {
+                                Label("Delete Lead", systemImage: "trash")
+                            }
+                        }
+                    }
 
                     if index < viewModel.filteredLeads.count - 1 {
                         Divider().padding(.leading, 76)
@@ -181,9 +191,8 @@ struct LeadsView: View {
         }
         .confirmationDialog("Delete Lead", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
-                if let lead = leadToDelete,
-                   let idx = viewModel.filteredLeads.firstIndex(where: { $0.id == lead.id }) {
-                    viewModel.deleteLead(at: IndexSet([idx]))
+                if let lead = leadToDelete {
+                    viewModel.deleteLead(lead)
                 }
                 leadToDelete = nil
             }

@@ -199,8 +199,12 @@ struct LoginOTPView: View {
                 isVerifying = true
                 Task {
                     if await viewModel.verifyMFA(code: otp) {
-                        AnalyticsManager.shared.logEvent(.loginCompleted)
-                        session.completeSession(contactIdentifier: viewModel.currentLoginIdentifier)
+                        if viewModel.requiresPasswordChange {
+                            path.append(LoginRoute.passwordChange)
+                        } else {
+                            AnalyticsManager.shared.logEvent(.loginCompleted)
+                            session.completeSession(contactIdentifier: viewModel.currentLoginIdentifier)
+                        }
                     }
                     isVerifying = false
                 }

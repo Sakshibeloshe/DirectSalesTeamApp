@@ -22,6 +22,7 @@ public final class LoginViewModel: ObservableObject {
 
     @Published public var state: State = .idle
     @Published public var errorMessage: String? // For alerts
+    @Published public var requiresPasswordChange: Bool = false
 
     private let authRepository: AuthRepository
     private let sessionManager: SessionManager
@@ -33,6 +34,7 @@ public final class LoginViewModel: ObservableObject {
     var selectedFactorType: String?
     private var webauthnRequestOptions: Data?
     private var pendingIdentifier: String?
+    private var pendingPrimaryPassword: String?
 
     @MainActor
     init(
@@ -53,6 +55,8 @@ public final class LoginViewModel: ObservableObject {
         do {
             let result = try await authRepository.loginPrimary(identifier: identifier, password: password)
             self.pendingIdentifier = identifier
+            self.pendingPrimaryPassword = password
+            self.requiresPasswordChange = result.isRequiringPasswordChange
             self.mfaSessionID = result.mfaSessionID
             self.selectedFactorType = nil
             self.webauthnRequestOptions = nil
@@ -187,6 +191,31 @@ public final class LoginViewModel: ObservableObject {
     public var loadingActionText: String {
         if case .loading(let text) = state { return text }
         return "Loading..."
+    }
+
+    public func updatePasswordAndContinue(newPassword: String) async -> Bool {
+        let trimmed = newPassword.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            self.errorMessage = "New password cannot be empty."
+            return false
+        }
+        guard let currentPassword = pendingPrimaryPassword, !currentPassword.isEmpty else {
+            self.errorMessage = "Current password context missing. Please login again."
+            return false
+        }
+
+        state = .loading("Updating password...")
+        do {
+            try await authRepository.changePassword(currentPassword: currentPassword, newPassword: trimmed)
+            pendingPrimaryPassword = trimmed
+            requiresPasswordChange = false
+            state = .success
+            return true
+        } catch {
+            state = .error(error.localizedDescription)
+            errorMessage = error.localizedDescription
+            return false
+        }
     }
 
     private func applyStagedQuickLoginPreferences(using tokens: Auth_V1_AuthTokens) {

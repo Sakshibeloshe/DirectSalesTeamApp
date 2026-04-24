@@ -133,8 +133,12 @@ struct LoginPasskeyView: View {
                 Task {
                     let success = await viewModel.verifyPasskey()
                     if success {
-                        AnalyticsManager.shared.logEvent(.loginCompleted)
-                        session.completeSession(contactIdentifier: viewModel.currentLoginIdentifier)
+                        if viewModel.requiresPasswordChange {
+                            path.append(LoginRoute.passwordChange)
+                        } else {
+                            AnalyticsManager.shared.logEvent(.loginCompleted)
+                            session.completeSession(contactIdentifier: viewModel.currentLoginIdentifier)
+                        }
                     } else if let message = viewModel.errorMessage {
                         errorMessage = message
                     }

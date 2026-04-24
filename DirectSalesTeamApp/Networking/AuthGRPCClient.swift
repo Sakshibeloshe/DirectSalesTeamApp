@@ -86,6 +86,7 @@ public protocol AuthGRPCClientProtocol: Sendable {
     func beginWebAuthnLogin(request: Auth_V1_WebAuthnLoginRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_WebAuthnLoginResponse
     func finishWebAuthnLogin(request: Auth_V1_WebAuthnFinishLoginRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_AuthTokens
     func getMyProfile(request: Auth_V1_GetMyProfileRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_GetMyProfileResponse
+    func changePassword(request: Auth_V1_ChangePasswordRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_ChangePasswordResponse
     func refreshToken(request: Auth_V1_RefreshTokenRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_AuthTokens
     func logout(request: Auth_V1_LogoutRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_LogoutResponse
 }
@@ -130,6 +131,9 @@ extension AuthGRPCClientProtocol {
     }
     public func getMyProfile(request: Auth_V1_GetMyProfileRequest, options: CallOptions) async throws -> Auth_V1_GetMyProfileResponse {
         try await getMyProfile(request: request, metadata: Metadata(), options: options)
+    }
+    public func changePassword(request: Auth_V1_ChangePasswordRequest, options: CallOptions) async throws -> Auth_V1_ChangePasswordResponse {
+        try await changePassword(request: request, metadata: Metadata(), options: options)
     }
     public func refreshToken(request: Auth_V1_RefreshTokenRequest, options: CallOptions) async throws -> Auth_V1_AuthTokens {
         try await refreshToken(request: request, metadata: Metadata(), options: options)
@@ -325,6 +329,19 @@ public final class AuthGRPCClient: AuthGRPCClientProtocol {
     ) async throws -> Auth_V1_GetMyProfileResponse {
         do {
             return try await client.getMyProfile(
+                request: .init(message: request, metadata: metadata),
+                options: options
+            )
+        } catch { throw AuthError.from(error) }
+    }
+
+    public func changePassword(
+        request: Auth_V1_ChangePasswordRequest,
+        metadata: Metadata,
+        options: CallOptions
+    ) async throws -> Auth_V1_ChangePasswordResponse {
+        do {
+            return try await client.changePassword(
                 request: .init(message: request, metadata: metadata),
                 options: options
             )

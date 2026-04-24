@@ -29,7 +29,7 @@ final class LeadsViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Init
-    init(service: LeadServiceProtocol = MockLeadService.shared) {
+    init(service: LeadServiceProtocol = BackendLeadService()) {
         self.service = service
         setupBindings()
         loadLeads()
@@ -81,7 +81,11 @@ final class LeadsViewModel: ObservableObject {
     func addLead(_ lead: Lead) {
         service.addLead(lead)
             .receive(on: RunLoop.main)
-            .sink { _ in } receiveValue: { [weak self] newLead in
+            .sink { [weak self] completion in
+                if case .failure(let err) = completion {
+                    self?.errorMessage = err.localizedDescription
+                }
+            } receiveValue: { [weak self] newLead in
                 self?.leads.insert(newLead, at: 0)
             }
             .store(in: &cancellables)
@@ -93,16 +97,22 @@ final class LeadsViewModel: ObservableObject {
         leads[idx].updatedAt = Date()
     }
 
-    func deleteLead(at offsets: IndexSet) {
-        let toDelete = offsets.map { filteredLeads[$0] }
-        toDelete.forEach { lead in
-            service.deleteLead(id: lead.id)
-                .receive(on: RunLoop.main)
-                .sink { _ in } receiveValue: { [weak self] _ in
-                    self?.leads.removeAll { $0.id == lead.id }
-                }
-                .store(in: &cancellables)
+    func deleteLead(_ lead: Lead) {
+        guard lead.status == .submitted else {
+            errorMessage = "Only submitted leads can be deleted."
+            return
         }
+
+        service.deleteLead(lead)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                if case .failure(let err) = completion {
+                    self?.errorMessage = err.localizedDescription
+                }
+            } receiveValue: { [weak self] _ in
+                self?.leads.removeAll { $0.id == lead.id }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - Computed

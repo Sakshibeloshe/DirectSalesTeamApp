@@ -210,7 +210,11 @@ struct AddLeadView: View {
             borrowerStatus = .unknown
         } catch {
             borrowerStatus = .error
-            borrowerLookupErrorMessage = error.localizedDescription
+            if let lookupError = error as? BorrowerLookupError {
+                borrowerLookupErrorMessage = lookupError.localizedDescription
+            } else {
+                borrowerLookupErrorMessage = error.localizedDescription
+            }
             showBorrowerLookupErrorAlert = true
         }
     }
