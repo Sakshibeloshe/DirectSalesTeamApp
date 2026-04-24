@@ -29,34 +29,6 @@ public final class AuthRepository: Sendable {
         self.deviceStore = deviceStore
     }
 
-    // MARK: - Signup Flow
-
-    /// Initiates the signup process.
-    /// Note: Name is ignored by the backend contract, so we don't send it.
-    public func initiateSignup(email: String, phone: String, password: String) async throws -> String {
-        var request = Auth_V1_SignupRequest()
-        request.email = email
-        request.phone = phone
-        request.password = password
-        request.role = .borrower
-
-        let options = AuthCallOptionsFactory.unauthenticated()
-        let response = try await client.initiateSignup(request: request, options: options)
-        return response.registrationID
-    }
-
-    /// Verifies both email and phone OTPs to complete signup.
-    public func verifySignupOTP(registrationID: String, emailCode: String, phoneCode: String) async throws -> Bool {
-        var request = Auth_V1_VerifyOTPsRequest()
-        request.registrationID = registrationID
-        request.emailCode = emailCode
-        request.phoneCode = phoneCode
-
-        let options = AuthCallOptionsFactory.unauthenticated()
-        let response = try await client.verifySignupOTPs(request: request, options: options)
-        return response.verified
-    }
-
     // MARK: - Login Flow
 
     public struct PrimaryLoginResult {
@@ -83,6 +55,26 @@ public final class AuthRepository: Sendable {
 
         let options = AuthCallOptionsFactory.unauthenticated()
         let response = try await client.loginPrimary(request: request, options: options)
+        return PrimaryLoginResult(
+            mfaSessionID: response.mfaSessionID,
+            allowedFactors: response.allowedFactors,
+            isRequiringPasswordChange: response.isRequiringPasswordChange
+        )
+    }
+
+    /// Step 1 (Quick Login): Starts a passwordless reopen flow using refresh token + device ID.
+    public func initiateReopen() async throws -> PrimaryLoginResult {
+        guard let refreshToken = try tokenStore.refreshToken(), !refreshToken.isEmpty else {
+            throw AuthError.unauthenticated
+        }
+        let deviceID = try deviceStore.getOrCreate()
+
+        var request = Auth_V1_InitiateReopenRequest()
+        request.refreshToken = refreshToken
+        request.deviceID = deviceID
+
+        let options = AuthCallOptionsFactory.unauthenticated()
+        let response = try await client.initiateReopen(request: request, options: options)
         return PrimaryLoginResult(
             mfaSessionID: response.mfaSessionID,
             allowedFactors: response.allowedFactors,
@@ -221,9 +213,49 @@ public final class AuthRepository: Sendable {
         return try await client.finishWebAuthnLogin(request: request, options: options)
     }
 
+    // MARK: - Profile
+
+    public struct MyProfileResult {
+        public let fullName: String?
+        public let email: String?
+        public let phone: String?
+        public let hasBorrowerProfile: Bool
+    }
+
+    public func getMyProfile() async throws -> MyProfileResult {
+        guard let token = try tokenStore.accessToken() else { throw AuthError.unauthenticated }
+        let request = Auth_V1_GetMyProfileRequest()
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: token)
+        let response = try await client.getMyProfile(request: request, metadata: metadata, options: options)
+
+        let hasBorrowerProfile: Bool
+        var fullName: String? = nil
+        if case .borrowerProfile(let profile) = response.profile {
+            hasBorrowerProfile = true
+            let composedName = [profile.firstName, profile.lastName]
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+            fullName = composedName.isEmpty ? nil : composedName
+        } else {
+            hasBorrowerProfile = false
+        }
+
+        let email = response.email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let phone = response.phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        return MyProfileResult(
+            fullName: fullName,
+            email: email.isEmpty ? nil : email,
+            phone: phone.isEmpty ? nil : phone,
+            hasBorrowerProfile: hasBorrowerProfile
+        )
+    }
+
     // MARK: - Session Management
 
-    /// Refreshes the session using the stored refresh token.
+    /// ⚠️ DEPRECATED: RefreshToken is disabled on the backend.
+    /// Do not call this method. It will always return a FailedPrecondition error.
+    /// Use InitiateReopen + MFA step-up instead.
     public func refreshSession() async throws -> Auth_V1_AuthTokens {
         guard let refreshTokenStr = try tokenStore.refreshToken() else { throw AuthError.sessionExpired }
         let deviceID = try deviceStore.getOrCreate()

@@ -4,7 +4,7 @@ final class PasskeyStatusStore {
     static let shared = PasskeyStatusStore()
 
     private let defaults = UserDefaults.standard
-    private let key = "loanOS_registered_passkey_user_ids"
+    private let key = "dst_registered_passkey_user_ids"
 
     private init() {}
 

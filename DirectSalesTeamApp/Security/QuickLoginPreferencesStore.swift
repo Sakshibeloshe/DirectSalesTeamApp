@@ -4,14 +4,14 @@ final class QuickLoginPreferencesStore {
     static let shared = QuickLoginPreferencesStore()
 
     private let defaults = UserDefaults.standard
-    private let biometricPrefix = "loanOS_quick_login_biometric_enabled_"
-    private let authenticatorPrefix = "loanOS_quick_login_authenticator_enabled_"
-    private let stagedBiometricPrefix = "loanOS_staged_signup_biometric_enabled_"
+    private let biometricPrefix = "dst_quick_login_biometric_enabled_"
+    private let authenticatorPrefix = "dst_quick_login_authenticator_enabled_"
+    private let stagedBiometricPrefix = "dst_staged_signup_biometric_enabled_"
 
     private init() {}
 
     func isBiometricEnabled(for userID: String) -> Bool {
-        bool(forKey: biometricPrefix + userID, defaultValue: true)
+        bool(forKey: biometricPrefix + userID, defaultValue: false)
     }
 
     func setBiometricEnabled(_ enabled: Bool, for userID: String) {
@@ -19,7 +19,7 @@ final class QuickLoginPreferencesStore {
     }
 
     func isAuthenticatorEnabled(for userID: String) -> Bool {
-        bool(forKey: authenticatorPrefix + userID, defaultValue: true)
+        bool(forKey: authenticatorPrefix + userID, defaultValue: false)
     }
 
     func setAuthenticatorEnabled(_ enabled: Bool, for userID: String) {

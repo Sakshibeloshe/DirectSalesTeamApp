@@ -42,14 +42,45 @@ public final class DeviceIDStore: Sendable {
 
     // MARK: Private constants
 
-    private enum Keys {
-        static let service   = "codes.chirag.lms-borrower.device"
+private enum Keys {
+        static let service   = "codes.chirag.dst-app.device"
         static let deviceID  = "deviceID"
+
+        // Legacy key from borrower app — used for one-time migration.
+        static let legacyService = "codes.chirag.lms-borrower.device"
     }
 
     // MARK: Init
 
-    private init() {}
+    private init() {
+        migrateFromLegacyIfNeeded()
+    }
+
+    // MARK: - Legacy Migration
+
+    /// One-time migration: if a device ID exists under the legacy borrower
+    /// app Keychain service but not under the new DST service, copy it over
+    /// and clear the legacy entry.
+    private func migrateFromLegacyIfNeeded() {
+        // If we already have a device ID in the new service, skip.
+        if let existing = try? KeychainHelper.read(service: Keys.service, account: Keys.deviceID), !existing.isEmpty {
+            return
+        }
+
+        // Try to read from legacy service.
+        guard let legacyID = try? KeychainHelper.read(service: Keys.legacyService, account: Keys.deviceID),
+              !legacyID.isEmpty else {
+            return
+        }
+
+        // Migrate.
+        do {
+            try KeychainHelper.save(legacyID, service: Keys.service, account: Keys.deviceID)
+            try? KeychainHelper.delete(service: Keys.legacyService, account: Keys.deviceID)
+        } catch {
+            // Migration failed — a new ID will be generated on first getOrCreate().
+        }
+    }
 
     // MARK: Public API
 

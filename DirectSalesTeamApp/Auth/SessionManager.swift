@@ -1,9 +1,14 @@
 // SessionManager.swift
-// lms_borrower/Auth
+// Direct Sales Team App
 //
 // Central brain for session lifecycle orchestration.
 // Coordinates TokenStore, DeviceIDStore, and AuthRepository to manage
-// the user's logged-in state, silent token refreshes, and secure logout.
+// the user's logged-in state and secure logout.
+//
+// NOTE: The backend has disabled the RefreshToken RPC. Session restoration
+// must always go through InitiateReopen + MFA step-up. The
+// attemptSilentRestore() method is kept as a no-op that returns false,
+// since silent token refresh is not possible with the current backend.
 
 import Foundation
 
@@ -19,10 +24,6 @@ public final class SessionManager: Sendable {
     private let authRepository: AuthRepository
     private let deviceStore: DeviceIDStore
     
-    // Since we need to update the UI, we keep a weak or injected reference to the SessionStore
-    // However, to keep it loosely coupled, SessionStore will observe or call into SessionManager.
-    // We'll expose state through async signals or explicit calls.
-    
     @MainActor
     private init(
         tokenStore: TokenStore = .shared,
@@ -36,26 +37,20 @@ public final class SessionManager: Sendable {
     
     // MARK: - Lifecycle Auth
     
-    /// Called when the app starts. Attempts to restore the session silently.
-    /// - Returns: `true` if a valid session was restored or exists, `false` otherwise.
-    public func attemptSilentRestore() async -> Bool {
-        if !tokenStore.hasStoredSession() {
-            return false
-        }
-        
-        do {
-            let tokens = try await authRepository.refreshSession()
-            try tokenStore.save(accessToken: tokens.accessToken, refreshToken: tokens.refreshToken)
-            return true
-        } catch {
-            // If the refresh fails, the session is unrecoverable.
-            NotificationCenter.default.post(name: .sessionExpired, object: nil)
-            try? tokenStore.clearAll()
-            return false
-        }
+    /// Attempts to silently restore the session.
+    ///
+    /// Since the backend has disabled the RefreshToken RPC, silent restoration
+    /// is not possible. The user must always re-authenticate via InitiateReopen + MFA.
+    /// This method always returns `false` and does NOT clear tokens or post
+    /// the `.sessionExpired` notification.
+    public func attemptSilentRestore(notifyOnFailure: Bool = true) async -> Bool {
+        // RefreshToken is disabled on the backend. Silent restore is not possible.
+        // Return false without clearing tokens — the user will be presented with
+        // the QuickLoginGate and must re-authenticate via InitiateReopen + MFA.
+        return false
     }
     
-    /// Call this when the user successfully authenticates via MFA or new signup auto-login.
+    /// Call this when the user successfully authenticates via MFA.
     public func startSession(tokens: Auth_V1_AuthTokens) throws {
         try tokenStore.save(accessToken: tokens.accessToken, refreshToken: tokens.refreshToken)
     }

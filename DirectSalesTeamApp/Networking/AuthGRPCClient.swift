@@ -42,11 +42,24 @@ public enum AuthError: Error, LocalizedError {
 
     static func from(_ error: Error) -> AuthError {
         if let rpc = error as? RPCError {
-            if rpc.message.lowercased().contains("device") || rpc.message.lowercased().contains("mismatch") {
+            let message = rpc.message.lowercased()
+
+            if message.contains("device") || message.contains("mismatch") {
                 return .deviceMismatch
             }
+
+            if rpc.code == .unauthenticated {
+                let isCredentialFailure = message.contains("invalid")
+                    || message.contains("password")
+                    || message.contains("credentials")
+                    || message.contains("not found")
+                    || message.contains("unauthorized")
+                    || message.contains("incorrect")
+                    || message.contains("wrong")
+                return isCredentialFailure ? .invalidCredentials : .sessionExpired
+            }
+
             switch rpc.code {
-            case .unauthenticated:            return .sessionExpired
             case .permissionDenied:           return .invalidCredentials
             case .unavailable, .deadlineExceeded: return .networkError(rpc.message)
             default:                          return .underlyingError(rpc)
@@ -63,6 +76,7 @@ public protocol AuthGRPCClientProtocol: Sendable {
     func initiateSignup(request: Auth_V1_SignupRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_SignupResponse
     func verifySignupOTPs(request: Auth_V1_VerifyOTPsRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_VerifyOTPsResponse
     func loginPrimary(request: Auth_V1_LoginRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_LoginPrimaryResponse
+    func initiateReopen(request: Auth_V1_InitiateReopenRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_LoginPrimaryResponse
     func selectLoginMFAFactor(request: Auth_V1_SelectLoginMFAFactorRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_SelectLoginMFAFactorResponse
     func verifyLoginMFA(request: Auth_V1_VerifyLoginMFARequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_AuthTokens
     func setupTOTP(request: Auth_V1_SetupTOTPRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_SetupTOTPResponse
@@ -71,6 +85,7 @@ public protocol AuthGRPCClientProtocol: Sendable {
     func finishWebAuthnRegistration(request: Auth_V1_WebAuthnFinishRegRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_AuthTokens
     func beginWebAuthnLogin(request: Auth_V1_WebAuthnLoginRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_WebAuthnLoginResponse
     func finishWebAuthnLogin(request: Auth_V1_WebAuthnFinishLoginRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_AuthTokens
+    func getMyProfile(request: Auth_V1_GetMyProfileRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_GetMyProfileResponse
     func refreshToken(request: Auth_V1_RefreshTokenRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_AuthTokens
     func logout(request: Auth_V1_LogoutRequest, metadata: Metadata, options: CallOptions) async throws -> Auth_V1_LogoutResponse
 }
@@ -109,6 +124,12 @@ extension AuthGRPCClientProtocol {
     }
     public func finishWebAuthnLogin(request: Auth_V1_WebAuthnFinishLoginRequest, options: CallOptions) async throws -> Auth_V1_AuthTokens {
         try await finishWebAuthnLogin(request: request, metadata: Metadata(), options: options)
+    }
+    public func initiateReopen(request: Auth_V1_InitiateReopenRequest, options: CallOptions) async throws -> Auth_V1_LoginPrimaryResponse {
+        try await initiateReopen(request: request, metadata: Metadata(), options: options)
+    }
+    public func getMyProfile(request: Auth_V1_GetMyProfileRequest, options: CallOptions) async throws -> Auth_V1_GetMyProfileResponse {
+        try await getMyProfile(request: request, metadata: Metadata(), options: options)
     }
     public func refreshToken(request: Auth_V1_RefreshTokenRequest, options: CallOptions) async throws -> Auth_V1_AuthTokens {
         try await refreshToken(request: request, metadata: Metadata(), options: options)
@@ -168,6 +189,19 @@ public final class AuthGRPCClient: AuthGRPCClientProtocol {
     ) async throws -> Auth_V1_LoginPrimaryResponse {
         do {
             return try await client.loginPrimary(
+                request: .init(message: request, metadata: metadata),
+                options: options
+            )
+        } catch { throw AuthError.from(error) }
+    }
+
+    public func initiateReopen(
+        request: Auth_V1_InitiateReopenRequest,
+        metadata: Metadata,
+        options: CallOptions
+    ) async throws -> Auth_V1_LoginPrimaryResponse {
+        do {
+            return try await client.initiateReopen(
                 request: .init(message: request, metadata: metadata),
                 options: options
             )
@@ -283,6 +317,19 @@ public final class AuthGRPCClient: AuthGRPCClientProtocol {
     }
 
     // MARK: - Session
+
+    public func getMyProfile(
+        request: Auth_V1_GetMyProfileRequest,
+        metadata: Metadata,
+        options: CallOptions
+    ) async throws -> Auth_V1_GetMyProfileResponse {
+        do {
+            return try await client.getMyProfile(
+                request: .init(message: request, metadata: metadata),
+                options: options
+            )
+        } catch { throw AuthError.from(error) }
+    }
 
     public func refreshToken(
         request: Auth_V1_RefreshTokenRequest,

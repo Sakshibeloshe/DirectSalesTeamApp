@@ -43,15 +43,49 @@ public final class TokenStore: Sendable {
 
     // MARK: Private constants
 
-    private enum Keys {
-        static let service      = "codes.chirag.lms-borrower.tokens"
+private enum Keys {
+        static let service      = "codes.chirag.dst-app.tokens"
         static let accessToken  = "accessToken"
         static let refreshToken = "refreshToken"
+
+        // Legacy keys from borrower app — used for one-time migration.
+        static let legacyService = "codes.chirag.lms-borrower.tokens"
     }
 
     // MARK: Init
 
-    private init() {}
+    private init() {
+        migrateFromLegacyIfNeeded()
+    }
+
+    // MARK: - Legacy Migration
+
+    /// One-time migration: if tokens exist under the legacy borrower app
+    /// Keychain service but not under the new DST service, copy them over
+    /// and clear the legacy entries. This prevents data contamination when
+    /// both apps are installed on the same device.
+    private func migrateFromLegacyIfNeeded() {
+        // If we already have tokens in the new service, migration is not needed.
+        if hasStoredSession() { return }
+
+        // Try to read from the legacy service.
+        guard let legacyAccess = try? KeychainHelper.read(service: Keys.legacyService, account: Keys.accessToken),
+              let legacyRefresh = try? KeychainHelper.read(service: Keys.legacyService, account: Keys.refreshToken),
+              !legacyAccess.isEmpty, !legacyRefresh.isEmpty else {
+            return
+        }
+
+        // Migrate to the new service.
+        do {
+            try KeychainHelper.save(legacyAccess, service: Keys.service, account: Keys.accessToken)
+            try KeychainHelper.save(legacyRefresh, service: Keys.service, account: Keys.refreshToken)
+            // Clear the legacy entries to prevent both apps seeing the same tokens.
+            try? KeychainHelper.delete(service: Keys.legacyService, account: Keys.accessToken)
+            try? KeychainHelper.delete(service: Keys.legacyService, account: Keys.refreshToken)
+        } catch {
+            // Migration failed silently — user will need to log in again.
+        }
+    }
 
     // MARK: Write — always atomic pair
 

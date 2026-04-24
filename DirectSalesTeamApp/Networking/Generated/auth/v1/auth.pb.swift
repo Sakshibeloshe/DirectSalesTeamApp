@@ -32,6 +32,7 @@ public enum Auth_V1_UserRole: SwiftProtobuf.Enum, Swift.CaseIterable {
   case manager // = 2
   case officer // = 3
   case borrower // = 4
+  case dst // = 5
   case UNRECOGNIZED(Int)
 
   public init() {
@@ -45,6 +46,7 @@ public enum Auth_V1_UserRole: SwiftProtobuf.Enum, Swift.CaseIterable {
     case 2: self = .manager
     case 3: self = .officer
     case 4: self = .borrower
+    case 5: self = .dst
     default: self = .UNRECOGNIZED(rawValue)
     }
   }
@@ -56,6 +58,7 @@ public enum Auth_V1_UserRole: SwiftProtobuf.Enum, Swift.CaseIterable {
     case .manager: return 2
     case .officer: return 3
     case .borrower: return 4
+    case .dst: return 5
     case .UNRECOGNIZED(let i): return i
     }
   }
@@ -67,6 +70,7 @@ public enum Auth_V1_UserRole: SwiftProtobuf.Enum, Swift.CaseIterable {
     .manager,
     .officer,
     .borrower,
+    .dst,
   ]
 
 }
@@ -119,8 +123,6 @@ public struct Auth_V1_SignupRequest: Sendable {
   public var phone: String = String()
 
   public var password: String = String()
-
-  public var role: Auth_V1_UserRole = .unspecified
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -213,6 +215,20 @@ public struct Auth_V1_LoginRequest: Sendable {
   public var emailOrPhone: String = String()
 
   public var password: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_InitiateReopenRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var refreshToken: String = String()
+
+  public var deviceID: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -347,6 +363,90 @@ public struct Auth_V1_ChangePasswordResponse: Sendable {
   public init() {}
 }
 
+public struct Auth_V1_InitiateForgotPasswordRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var emailOrPhone: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_InitiateForgotPasswordResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var resetSessionID: String = String()
+
+  public var challengeSent: Bool = false
+
+  public var maskedEmail: String = String()
+
+  public var maskedPhone: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_VerifyForgotPasswordOTPsRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var resetSessionID: String = String()
+
+  public var emailCode: String = String()
+
+  public var phoneCode: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_VerifyForgotPasswordOTPsResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var verified: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_ResetForgotPasswordRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var resetSessionID: String = String()
+
+  public var newPassword: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_ResetForgotPasswordResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var success: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Auth_V1_WebAuthnRegRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -429,6 +529,352 @@ public struct Auth_V1_WebAuthnFinishLoginRequest: Sendable {
   public init() {}
 }
 
+public struct Auth_V1_GetMyProfileRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_BranchProfile: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var branchID: String = String()
+
+  public var name: String = String()
+
+  public var region: String = String()
+
+  public var city: String = String()
+
+  public var dstCommission: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_AdminProfile: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var profileID: String = String()
+
+  public var createdAt: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_ManagerProfile: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var profileID: String = String()
+
+  public var name: String = String()
+
+  public var branch: Auth_V1_BranchProfile {
+    get {_branch ?? Auth_V1_BranchProfile()}
+    set {_branch = newValue}
+  }
+  /// Returns true if `branch` has been explicitly set.
+  public var hasBranch: Bool {self._branch != nil}
+  /// Clears the value of `branch`. Subsequent reads from it will return its default value.
+  public mutating func clearBranch() {self._branch = nil}
+
+  public var createdAt: String = String()
+
+  public var employeeSerial: Int64 = 0
+
+  public var employeeCode: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _branch: Auth_V1_BranchProfile? = nil
+}
+
+public struct Auth_V1_OfficerProfile: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var profileID: String = String()
+
+  public var name: String = String()
+
+  public var branch: Auth_V1_BranchProfile {
+    get {_branch ?? Auth_V1_BranchProfile()}
+    set {_branch = newValue}
+  }
+  /// Returns true if `branch` has been explicitly set.
+  public var hasBranch: Bool {self._branch != nil}
+  /// Clears the value of `branch`. Subsequent reads from it will return its default value.
+  public mutating func clearBranch() {self._branch = nil}
+
+  public var createdAt: String = String()
+
+  public var employeeSerial: Int64 = 0
+
+  public var employeeCode: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _branch: Auth_V1_BranchProfile? = nil
+}
+
+public struct Auth_V1_DstProfile: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var profileID: String = String()
+
+  public var name: String = String()
+
+  public var branch: Auth_V1_BranchProfile {
+    get {_branch ?? Auth_V1_BranchProfile()}
+    set {_branch = newValue}
+  }
+  /// Returns true if `branch` has been explicitly set.
+  public var hasBranch: Bool {self._branch != nil}
+  /// Clears the value of `branch`. Subsequent reads from it will return its default value.
+  public mutating func clearBranch() {self._branch = nil}
+
+  public var createdAt: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _branch: Auth_V1_BranchProfile? = nil
+}
+
+public struct Auth_V1_BorrowerProfile: @unchecked Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var profileID: String {
+    get {_storage._profileID}
+    set {_uniqueStorage()._profileID = newValue}
+  }
+
+  public var firstName: String {
+    get {_storage._firstName}
+    set {_uniqueStorage()._firstName = newValue}
+  }
+
+  public var lastName: String {
+    get {_storage._lastName}
+    set {_uniqueStorage()._lastName = newValue}
+  }
+
+  public var dateOfBirth: String {
+    get {_storage._dateOfBirth}
+    set {_uniqueStorage()._dateOfBirth = newValue}
+  }
+
+  public var gender: String {
+    get {_storage._gender}
+    set {_uniqueStorage()._gender = newValue}
+  }
+
+  public var addressLine1: String {
+    get {_storage._addressLine1}
+    set {_uniqueStorage()._addressLine1 = newValue}
+  }
+
+  public var city: String {
+    get {_storage._city}
+    set {_uniqueStorage()._city = newValue}
+  }
+
+  public var state: String {
+    get {_storage._state}
+    set {_uniqueStorage()._state = newValue}
+  }
+
+  public var pincode: String {
+    get {_storage._pincode}
+    set {_uniqueStorage()._pincode = newValue}
+  }
+
+  public var employmentType: String {
+    get {_storage._employmentType}
+    set {_uniqueStorage()._employmentType = newValue}
+  }
+
+  public var monthlyIncome: String {
+    get {_storage._monthlyIncome}
+    set {_uniqueStorage()._monthlyIncome = newValue}
+  }
+
+  public var profileCompletenessPercent: Int32 {
+    get {_storage._profileCompletenessPercent}
+    set {_uniqueStorage()._profileCompletenessPercent = newValue}
+  }
+
+  public var isAadhaarVerified: Bool {
+    get {_storage._isAadhaarVerified}
+    set {_uniqueStorage()._isAadhaarVerified = newValue}
+  }
+
+  public var isPanVerified: Bool {
+    get {_storage._isPanVerified}
+    set {_uniqueStorage()._isPanVerified = newValue}
+  }
+
+  public var aadhaarVerifiedAt: String {
+    get {_storage._aadhaarVerifiedAt}
+    set {_uniqueStorage()._aadhaarVerifiedAt = newValue}
+  }
+
+  public var panVerifiedAt: String {
+    get {_storage._panVerifiedAt}
+    set {_uniqueStorage()._panVerifiedAt = newValue}
+  }
+
+  public var createdAt: String {
+    get {_storage._createdAt}
+    set {_uniqueStorage()._createdAt = newValue}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
+public struct Auth_V1_GetMyProfileResponse: @unchecked Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var userID: String {
+    get {_storage._userID}
+    set {_uniqueStorage()._userID = newValue}
+  }
+
+  public var email: String {
+    get {_storage._email}
+    set {_uniqueStorage()._email = newValue}
+  }
+
+  public var phone: String {
+    get {_storage._phone}
+    set {_uniqueStorage()._phone = newValue}
+  }
+
+  public var role: Auth_V1_UserRole {
+    get {_storage._role}
+    set {_uniqueStorage()._role = newValue}
+  }
+
+  public var isEmailVerified: Bool {
+    get {_storage._isEmailVerified}
+    set {_uniqueStorage()._isEmailVerified = newValue}
+  }
+
+  public var isPhoneVerified: Bool {
+    get {_storage._isPhoneVerified}
+    set {_uniqueStorage()._isPhoneVerified = newValue}
+  }
+
+  public var isActive: Bool {
+    get {_storage._isActive}
+    set {_uniqueStorage()._isActive = newValue}
+  }
+
+  public var isRequiringPasswordChange: Bool {
+    get {_storage._isRequiringPasswordChange}
+    set {_uniqueStorage()._isRequiringPasswordChange = newValue}
+  }
+
+  public var hasTotp_p: Bool {
+    get {_storage._hasTotp_p}
+    set {_uniqueStorage()._hasTotp_p = newValue}
+  }
+
+  public var createdAt: String {
+    get {_storage._createdAt}
+    set {_uniqueStorage()._createdAt = newValue}
+  }
+
+  public var profile: OneOf_Profile? {
+    get {return _storage._profile}
+    set {_uniqueStorage()._profile = newValue}
+  }
+
+  public var adminProfile: Auth_V1_AdminProfile {
+    get {
+      if case .adminProfile(let v)? = _storage._profile {return v}
+      return Auth_V1_AdminProfile()
+    }
+    set {_uniqueStorage()._profile = .adminProfile(newValue)}
+  }
+
+  public var managerProfile: Auth_V1_ManagerProfile {
+    get {
+      if case .managerProfile(let v)? = _storage._profile {return v}
+      return Auth_V1_ManagerProfile()
+    }
+    set {_uniqueStorage()._profile = .managerProfile(newValue)}
+  }
+
+  public var officerProfile: Auth_V1_OfficerProfile {
+    get {
+      if case .officerProfile(let v)? = _storage._profile {return v}
+      return Auth_V1_OfficerProfile()
+    }
+    set {_uniqueStorage()._profile = .officerProfile(newValue)}
+  }
+
+  public var borrowerProfile: Auth_V1_BorrowerProfile {
+    get {
+      if case .borrowerProfile(let v)? = _storage._profile {return v}
+      return Auth_V1_BorrowerProfile()
+    }
+    set {_uniqueStorage()._profile = .borrowerProfile(newValue)}
+  }
+
+  public var dstProfile: Auth_V1_DstProfile {
+    get {
+      if case .dstProfile(let v)? = _storage._profile {return v}
+      return Auth_V1_DstProfile()
+    }
+    set {_uniqueStorage()._profile = .dstProfile(newValue)}
+  }
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public enum OneOf_Profile: Equatable, Sendable {
+    case adminProfile(Auth_V1_AdminProfile)
+    case managerProfile(Auth_V1_ManagerProfile)
+    case officerProfile(Auth_V1_OfficerProfile)
+    case borrowerProfile(Auth_V1_BorrowerProfile)
+    case dstProfile(Auth_V1_DstProfile)
+
+  }
+
+  public init() {}
+
+  fileprivate var _storage = _StorageClass.defaultInstance
+}
+
 public struct Auth_V1_RefreshTokenRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -474,7 +920,7 @@ public struct Auth_V1_LogoutResponse: Sendable {
 fileprivate let _protobuf_package = "auth.v1"
 
 extension Auth_V1_UserRole: SwiftProtobuf._ProtoNameProviding {
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0USER_ROLE_UNSPECIFIED\0\u{1}USER_ROLE_ADMIN\0\u{1}USER_ROLE_MANAGER\0\u{1}USER_ROLE_OFFICER\0\u{1}USER_ROLE_BORROWER\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{2}\0USER_ROLE_UNSPECIFIED\0\u{1}USER_ROLE_ADMIN\0\u{1}USER_ROLE_MANAGER\0\u{1}USER_ROLE_OFFICER\0\u{1}USER_ROLE_BORROWER\0\u{1}USER_ROLE_DST\0")
 }
 
 extension Auth_V1_AuthTokens: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
@@ -574,7 +1020,7 @@ extension Auth_V1_HelloResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
 
 extension Auth_V1_SignupRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".SignupRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}email\0\u{1}phone\0\u{1}password\0\u{1}role\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}email\0\u{1}phone\0\u{1}password\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -585,7 +1031,6 @@ extension Auth_V1_SignupRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
       case 1: try { try decoder.decodeSingularStringField(value: &self.email) }()
       case 2: try { try decoder.decodeSingularStringField(value: &self.phone) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.password) }()
-      case 4: try { try decoder.decodeSingularEnumField(value: &self.role) }()
       default: break
       }
     }
@@ -601,9 +1046,6 @@ extension Auth_V1_SignupRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     if !self.password.isEmpty {
       try visitor.visitSingularStringField(value: self.password, fieldNumber: 3)
     }
-    if self.role != .unspecified {
-      try visitor.visitSingularEnumField(value: self.role, fieldNumber: 4)
-    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -611,7 +1053,6 @@ extension Auth_V1_SignupRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     if lhs.email != rhs.email {return false}
     if lhs.phone != rhs.phone {return false}
     if lhs.password != rhs.password {return false}
-    if lhs.role != rhs.role {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -836,6 +1277,41 @@ extension Auth_V1_LoginRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
   public static func ==(lhs: Auth_V1_LoginRequest, rhs: Auth_V1_LoginRequest) -> Bool {
     if lhs.emailOrPhone != rhs.emailOrPhone {return false}
     if lhs.password != rhs.password {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_InitiateReopenRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InitiateReopenRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}refresh_token\0\u{3}device_id\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.refreshToken) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.deviceID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.refreshToken.isEmpty {
+      try visitor.visitSingularStringField(value: self.refreshToken, fieldNumber: 1)
+    }
+    if !self.deviceID.isEmpty {
+      try visitor.visitSingularStringField(value: self.deviceID, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_InitiateReopenRequest, rhs: Auth_V1_InitiateReopenRequest) -> Bool {
+    if lhs.refreshToken != rhs.refreshToken {return false}
+    if lhs.deviceID != rhs.deviceID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -1115,6 +1591,216 @@ extension Auth_V1_ChangePasswordResponse: SwiftProtobuf.Message, SwiftProtobuf._
   }
 }
 
+extension Auth_V1_InitiateForgotPasswordRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InitiateForgotPasswordRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}email_or_phone\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.emailOrPhone) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.emailOrPhone.isEmpty {
+      try visitor.visitSingularStringField(value: self.emailOrPhone, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_InitiateForgotPasswordRequest, rhs: Auth_V1_InitiateForgotPasswordRequest) -> Bool {
+    if lhs.emailOrPhone != rhs.emailOrPhone {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_InitiateForgotPasswordResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InitiateForgotPasswordResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}reset_session_id\0\u{3}challenge_sent\0\u{3}masked_email\0\u{3}masked_phone\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.resetSessionID) }()
+      case 2: try { try decoder.decodeSingularBoolField(value: &self.challengeSent) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.maskedEmail) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.maskedPhone) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.resetSessionID.isEmpty {
+      try visitor.visitSingularStringField(value: self.resetSessionID, fieldNumber: 1)
+    }
+    if self.challengeSent != false {
+      try visitor.visitSingularBoolField(value: self.challengeSent, fieldNumber: 2)
+    }
+    if !self.maskedEmail.isEmpty {
+      try visitor.visitSingularStringField(value: self.maskedEmail, fieldNumber: 3)
+    }
+    if !self.maskedPhone.isEmpty {
+      try visitor.visitSingularStringField(value: self.maskedPhone, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_InitiateForgotPasswordResponse, rhs: Auth_V1_InitiateForgotPasswordResponse) -> Bool {
+    if lhs.resetSessionID != rhs.resetSessionID {return false}
+    if lhs.challengeSent != rhs.challengeSent {return false}
+    if lhs.maskedEmail != rhs.maskedEmail {return false}
+    if lhs.maskedPhone != rhs.maskedPhone {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_VerifyForgotPasswordOTPsRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VerifyForgotPasswordOTPsRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}reset_session_id\0\u{3}email_code\0\u{3}phone_code\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.resetSessionID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.emailCode) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.phoneCode) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.resetSessionID.isEmpty {
+      try visitor.visitSingularStringField(value: self.resetSessionID, fieldNumber: 1)
+    }
+    if !self.emailCode.isEmpty {
+      try visitor.visitSingularStringField(value: self.emailCode, fieldNumber: 2)
+    }
+    if !self.phoneCode.isEmpty {
+      try visitor.visitSingularStringField(value: self.phoneCode, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_VerifyForgotPasswordOTPsRequest, rhs: Auth_V1_VerifyForgotPasswordOTPsRequest) -> Bool {
+    if lhs.resetSessionID != rhs.resetSessionID {return false}
+    if lhs.emailCode != rhs.emailCode {return false}
+    if lhs.phoneCode != rhs.phoneCode {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_VerifyForgotPasswordOTPsResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VerifyForgotPasswordOTPsResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}verified\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.verified) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.verified != false {
+      try visitor.visitSingularBoolField(value: self.verified, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_VerifyForgotPasswordOTPsResponse, rhs: Auth_V1_VerifyForgotPasswordOTPsResponse) -> Bool {
+    if lhs.verified != rhs.verified {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_ResetForgotPasswordRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ResetForgotPasswordRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}reset_session_id\0\u{3}new_password\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.resetSessionID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.newPassword) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.resetSessionID.isEmpty {
+      try visitor.visitSingularStringField(value: self.resetSessionID, fieldNumber: 1)
+    }
+    if !self.newPassword.isEmpty {
+      try visitor.visitSingularStringField(value: self.newPassword, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_ResetForgotPasswordRequest, rhs: Auth_V1_ResetForgotPasswordRequest) -> Bool {
+    if lhs.resetSessionID != rhs.resetSessionID {return false}
+    if lhs.newPassword != rhs.newPassword {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_ResetForgotPasswordResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ResetForgotPasswordResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_ResetForgotPasswordResponse, rhs: Auth_V1_ResetForgotPasswordResponse) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Auth_V1_WebAuthnRegRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".WebAuthnRegRequest"
   public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}user_id\0")
@@ -1315,6 +2001,679 @@ extension Auth_V1_WebAuthnFinishLoginRequest: SwiftProtobuf.Message, SwiftProtob
     if lhs.mfaSessionID != rhs.mfaSessionID {return false}
     if lhs.assertion != rhs.assertion {return false}
     if lhs.deviceID != rhs.deviceID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_GetMyProfileRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GetMyProfileRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap()
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    // Load everything into unknown fields
+    while try decoder.nextFieldNumber() != nil {}
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_GetMyProfileRequest, rhs: Auth_V1_GetMyProfileRequest) -> Bool {
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_BranchProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".BranchProfile"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}branch_id\0\u{1}name\0\u{1}region\0\u{1}city\0\u{3}dst_commission\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.branchID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.region) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.city) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.dstCommission) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.branchID.isEmpty {
+      try visitor.visitSingularStringField(value: self.branchID, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    if !self.region.isEmpty {
+      try visitor.visitSingularStringField(value: self.region, fieldNumber: 3)
+    }
+    if !self.city.isEmpty {
+      try visitor.visitSingularStringField(value: self.city, fieldNumber: 4)
+    }
+    if !self.dstCommission.isEmpty {
+      try visitor.visitSingularStringField(value: self.dstCommission, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_BranchProfile, rhs: Auth_V1_BranchProfile) -> Bool {
+    if lhs.branchID != rhs.branchID {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs.region != rhs.region {return false}
+    if lhs.city != rhs.city {return false}
+    if lhs.dstCommission != rhs.dstCommission {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_AdminProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".AdminProfile"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}profile_id\0\u{3}created_at\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.profileID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.profileID.isEmpty {
+      try visitor.visitSingularStringField(value: self.profileID, fieldNumber: 1)
+    }
+    if !self.createdAt.isEmpty {
+      try visitor.visitSingularStringField(value: self.createdAt, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_AdminProfile, rhs: Auth_V1_AdminProfile) -> Bool {
+    if lhs.profileID != rhs.profileID {return false}
+    if lhs.createdAt != rhs.createdAt {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_ManagerProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".ManagerProfile"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}profile_id\0\u{1}name\0\u{1}branch\0\u{3}created_at\0\u{3}employee_serial\0\u{3}employee_code\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.profileID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._branch) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
+      case 5: try { try decoder.decodeSingularInt64Field(value: &self.employeeSerial) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.employeeCode) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.profileID.isEmpty {
+      try visitor.visitSingularStringField(value: self.profileID, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    try { if let v = self._branch {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    if !self.createdAt.isEmpty {
+      try visitor.visitSingularStringField(value: self.createdAt, fieldNumber: 4)
+    }
+    if self.employeeSerial != 0 {
+      try visitor.visitSingularInt64Field(value: self.employeeSerial, fieldNumber: 5)
+    }
+    if !self.employeeCode.isEmpty {
+      try visitor.visitSingularStringField(value: self.employeeCode, fieldNumber: 6)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_ManagerProfile, rhs: Auth_V1_ManagerProfile) -> Bool {
+    if lhs.profileID != rhs.profileID {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs._branch != rhs._branch {return false}
+    if lhs.createdAt != rhs.createdAt {return false}
+    if lhs.employeeSerial != rhs.employeeSerial {return false}
+    if lhs.employeeCode != rhs.employeeCode {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_OfficerProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".OfficerProfile"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}profile_id\0\u{1}name\0\u{1}branch\0\u{3}created_at\0\u{3}employee_serial\0\u{3}employee_code\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.profileID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._branch) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
+      case 5: try { try decoder.decodeSingularInt64Field(value: &self.employeeSerial) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.employeeCode) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.profileID.isEmpty {
+      try visitor.visitSingularStringField(value: self.profileID, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    try { if let v = self._branch {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    if !self.createdAt.isEmpty {
+      try visitor.visitSingularStringField(value: self.createdAt, fieldNumber: 4)
+    }
+    if self.employeeSerial != 0 {
+      try visitor.visitSingularInt64Field(value: self.employeeSerial, fieldNumber: 5)
+    }
+    if !self.employeeCode.isEmpty {
+      try visitor.visitSingularStringField(value: self.employeeCode, fieldNumber: 6)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_OfficerProfile, rhs: Auth_V1_OfficerProfile) -> Bool {
+    if lhs.profileID != rhs.profileID {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs._branch != rhs._branch {return false}
+    if lhs.createdAt != rhs.createdAt {return false}
+    if lhs.employeeSerial != rhs.employeeSerial {return false}
+    if lhs.employeeCode != rhs.employeeCode {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_DstProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DstProfile"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}profile_id\0\u{1}name\0\u{1}branch\0\u{3}created_at\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.profileID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.name) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._branch) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if !self.profileID.isEmpty {
+      try visitor.visitSingularStringField(value: self.profileID, fieldNumber: 1)
+    }
+    if !self.name.isEmpty {
+      try visitor.visitSingularStringField(value: self.name, fieldNumber: 2)
+    }
+    try { if let v = self._branch {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    if !self.createdAt.isEmpty {
+      try visitor.visitSingularStringField(value: self.createdAt, fieldNumber: 4)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_DstProfile, rhs: Auth_V1_DstProfile) -> Bool {
+    if lhs.profileID != rhs.profileID {return false}
+    if lhs.name != rhs.name {return false}
+    if lhs._branch != rhs._branch {return false}
+    if lhs.createdAt != rhs.createdAt {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_BorrowerProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".BorrowerProfile"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}profile_id\0\u{3}first_name\0\u{3}last_name\0\u{3}date_of_birth\0\u{1}gender\0\u{3}address_line1\0\u{1}city\0\u{1}state\0\u{1}pincode\0\u{3}employment_type\0\u{3}monthly_income\0\u{3}profile_completeness_percent\0\u{3}is_aadhaar_verified\0\u{3}is_pan_verified\0\u{3}aadhaar_verified_at\0\u{3}pan_verified_at\0\u{3}created_at\0")
+
+  fileprivate class _StorageClass {
+    var _profileID: String = String()
+    var _firstName: String = String()
+    var _lastName: String = String()
+    var _dateOfBirth: String = String()
+    var _gender: String = String()
+    var _addressLine1: String = String()
+    var _city: String = String()
+    var _state: String = String()
+    var _pincode: String = String()
+    var _employmentType: String = String()
+    var _monthlyIncome: String = String()
+    var _profileCompletenessPercent: Int32 = 0
+    var _isAadhaarVerified: Bool = false
+    var _isPanVerified: Bool = false
+    var _aadhaarVerifiedAt: String = String()
+    var _panVerifiedAt: String = String()
+    var _createdAt: String = String()
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _profileID = source._profileID
+      _firstName = source._firstName
+      _lastName = source._lastName
+      _dateOfBirth = source._dateOfBirth
+      _gender = source._gender
+      _addressLine1 = source._addressLine1
+      _city = source._city
+      _state = source._state
+      _pincode = source._pincode
+      _employmentType = source._employmentType
+      _monthlyIncome = source._monthlyIncome
+      _profileCompletenessPercent = source._profileCompletenessPercent
+      _isAadhaarVerified = source._isAadhaarVerified
+      _isPanVerified = source._isPanVerified
+      _aadhaarVerifiedAt = source._aadhaarVerifiedAt
+      _panVerifiedAt = source._panVerifiedAt
+      _createdAt = source._createdAt
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._profileID) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._firstName) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._lastName) }()
+        case 4: try { try decoder.decodeSingularStringField(value: &_storage._dateOfBirth) }()
+        case 5: try { try decoder.decodeSingularStringField(value: &_storage._gender) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._addressLine1) }()
+        case 7: try { try decoder.decodeSingularStringField(value: &_storage._city) }()
+        case 8: try { try decoder.decodeSingularStringField(value: &_storage._state) }()
+        case 9: try { try decoder.decodeSingularStringField(value: &_storage._pincode) }()
+        case 10: try { try decoder.decodeSingularStringField(value: &_storage._employmentType) }()
+        case 11: try { try decoder.decodeSingularStringField(value: &_storage._monthlyIncome) }()
+        case 12: try { try decoder.decodeSingularInt32Field(value: &_storage._profileCompletenessPercent) }()
+        case 13: try { try decoder.decodeSingularBoolField(value: &_storage._isAadhaarVerified) }()
+        case 14: try { try decoder.decodeSingularBoolField(value: &_storage._isPanVerified) }()
+        case 15: try { try decoder.decodeSingularStringField(value: &_storage._aadhaarVerifiedAt) }()
+        case 16: try { try decoder.decodeSingularStringField(value: &_storage._panVerifiedAt) }()
+        case 17: try { try decoder.decodeSingularStringField(value: &_storage._createdAt) }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      if !_storage._profileID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._profileID, fieldNumber: 1)
+      }
+      if !_storage._firstName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._firstName, fieldNumber: 2)
+      }
+      if !_storage._lastName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._lastName, fieldNumber: 3)
+      }
+      if !_storage._dateOfBirth.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._dateOfBirth, fieldNumber: 4)
+      }
+      if !_storage._gender.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._gender, fieldNumber: 5)
+      }
+      if !_storage._addressLine1.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._addressLine1, fieldNumber: 6)
+      }
+      if !_storage._city.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._city, fieldNumber: 7)
+      }
+      if !_storage._state.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._state, fieldNumber: 8)
+      }
+      if !_storage._pincode.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._pincode, fieldNumber: 9)
+      }
+      if !_storage._employmentType.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._employmentType, fieldNumber: 10)
+      }
+      if !_storage._monthlyIncome.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._monthlyIncome, fieldNumber: 11)
+      }
+      if _storage._profileCompletenessPercent != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._profileCompletenessPercent, fieldNumber: 12)
+      }
+      if _storage._isAadhaarVerified != false {
+        try visitor.visitSingularBoolField(value: _storage._isAadhaarVerified, fieldNumber: 13)
+      }
+      if _storage._isPanVerified != false {
+        try visitor.visitSingularBoolField(value: _storage._isPanVerified, fieldNumber: 14)
+      }
+      if !_storage._aadhaarVerifiedAt.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._aadhaarVerifiedAt, fieldNumber: 15)
+      }
+      if !_storage._panVerifiedAt.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._panVerifiedAt, fieldNumber: 16)
+      }
+      if !_storage._createdAt.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._createdAt, fieldNumber: 17)
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_BorrowerProfile, rhs: Auth_V1_BorrowerProfile) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._profileID != rhs_storage._profileID {return false}
+        if _storage._firstName != rhs_storage._firstName {return false}
+        if _storage._lastName != rhs_storage._lastName {return false}
+        if _storage._dateOfBirth != rhs_storage._dateOfBirth {return false}
+        if _storage._gender != rhs_storage._gender {return false}
+        if _storage._addressLine1 != rhs_storage._addressLine1 {return false}
+        if _storage._city != rhs_storage._city {return false}
+        if _storage._state != rhs_storage._state {return false}
+        if _storage._pincode != rhs_storage._pincode {return false}
+        if _storage._employmentType != rhs_storage._employmentType {return false}
+        if _storage._monthlyIncome != rhs_storage._monthlyIncome {return false}
+        if _storage._profileCompletenessPercent != rhs_storage._profileCompletenessPercent {return false}
+        if _storage._isAadhaarVerified != rhs_storage._isAadhaarVerified {return false}
+        if _storage._isPanVerified != rhs_storage._isPanVerified {return false}
+        if _storage._aadhaarVerifiedAt != rhs_storage._aadhaarVerifiedAt {return false}
+        if _storage._panVerifiedAt != rhs_storage._panVerifiedAt {return false}
+        if _storage._createdAt != rhs_storage._createdAt {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_GetMyProfileResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GetMyProfileResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}user_id\0\u{1}email\0\u{1}phone\0\u{1}role\0\u{3}is_email_verified\0\u{3}is_phone_verified\0\u{3}is_active\0\u{3}is_requiring_password_change\0\u{3}has_totp\0\u{3}created_at\0\u{4}\u{a}admin_profile\0\u{3}manager_profile\0\u{3}officer_profile\0\u{3}borrower_profile\0\u{3}dst_profile\0")
+
+  fileprivate class _StorageClass {
+    var _userID: String = String()
+    var _email: String = String()
+    var _phone: String = String()
+    var _role: Auth_V1_UserRole = .unspecified
+    var _isEmailVerified: Bool = false
+    var _isPhoneVerified: Bool = false
+    var _isActive: Bool = false
+    var _isRequiringPasswordChange: Bool = false
+    var _hasTotp_p: Bool = false
+    var _createdAt: String = String()
+    var _profile: Auth_V1_GetMyProfileResponse.OneOf_Profile?
+
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _userID = source._userID
+      _email = source._email
+      _phone = source._phone
+      _role = source._role
+      _isEmailVerified = source._isEmailVerified
+      _isPhoneVerified = source._isPhoneVerified
+      _isActive = source._isActive
+      _isRequiringPasswordChange = source._isRequiringPasswordChange
+      _hasTotp_p = source._hasTotp_p
+      _createdAt = source._createdAt
+      _profile = source._profile
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularStringField(value: &_storage._userID) }()
+        case 2: try { try decoder.decodeSingularStringField(value: &_storage._email) }()
+        case 3: try { try decoder.decodeSingularStringField(value: &_storage._phone) }()
+        case 4: try { try decoder.decodeSingularEnumField(value: &_storage._role) }()
+        case 5: try { try decoder.decodeSingularBoolField(value: &_storage._isEmailVerified) }()
+        case 6: try { try decoder.decodeSingularBoolField(value: &_storage._isPhoneVerified) }()
+        case 7: try { try decoder.decodeSingularBoolField(value: &_storage._isActive) }()
+        case 8: try { try decoder.decodeSingularBoolField(value: &_storage._isRequiringPasswordChange) }()
+        case 9: try { try decoder.decodeSingularBoolField(value: &_storage._hasTotp_p) }()
+        case 10: try { try decoder.decodeSingularStringField(value: &_storage._createdAt) }()
+        case 20: try {
+          var v: Auth_V1_AdminProfile?
+          var hadOneofValue = false
+          if let current = _storage._profile {
+            hadOneofValue = true
+            if case .adminProfile(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._profile = .adminProfile(v)
+          }
+        }()
+        case 21: try {
+          var v: Auth_V1_ManagerProfile?
+          var hadOneofValue = false
+          if let current = _storage._profile {
+            hadOneofValue = true
+            if case .managerProfile(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._profile = .managerProfile(v)
+          }
+        }()
+        case 22: try {
+          var v: Auth_V1_OfficerProfile?
+          var hadOneofValue = false
+          if let current = _storage._profile {
+            hadOneofValue = true
+            if case .officerProfile(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._profile = .officerProfile(v)
+          }
+        }()
+        case 23: try {
+          var v: Auth_V1_BorrowerProfile?
+          var hadOneofValue = false
+          if let current = _storage._profile {
+            hadOneofValue = true
+            if case .borrowerProfile(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._profile = .borrowerProfile(v)
+          }
+        }()
+        case 24: try {
+          var v: Auth_V1_DstProfile?
+          var hadOneofValue = false
+          if let current = _storage._profile {
+            hadOneofValue = true
+            if case .dstProfile(let m) = current {v = m}
+          }
+          try decoder.decodeSingularMessageField(value: &v)
+          if let v = v {
+            if hadOneofValue {try decoder.handleConflictingOneOf()}
+            _storage._profile = .dstProfile(v)
+          }
+        }()
+        default: break
+        }
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      if !_storage._userID.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._userID, fieldNumber: 1)
+      }
+      if !_storage._email.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._email, fieldNumber: 2)
+      }
+      if !_storage._phone.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._phone, fieldNumber: 3)
+      }
+      if _storage._role != .unspecified {
+        try visitor.visitSingularEnumField(value: _storage._role, fieldNumber: 4)
+      }
+      if _storage._isEmailVerified != false {
+        try visitor.visitSingularBoolField(value: _storage._isEmailVerified, fieldNumber: 5)
+      }
+      if _storage._isPhoneVerified != false {
+        try visitor.visitSingularBoolField(value: _storage._isPhoneVerified, fieldNumber: 6)
+      }
+      if _storage._isActive != false {
+        try visitor.visitSingularBoolField(value: _storage._isActive, fieldNumber: 7)
+      }
+      if _storage._isRequiringPasswordChange != false {
+        try visitor.visitSingularBoolField(value: _storage._isRequiringPasswordChange, fieldNumber: 8)
+      }
+      if _storage._hasTotp_p != false {
+        try visitor.visitSingularBoolField(value: _storage._hasTotp_p, fieldNumber: 9)
+      }
+      if !_storage._createdAt.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._createdAt, fieldNumber: 10)
+      }
+      switch _storage._profile {
+      case .adminProfile?: try {
+        guard case .adminProfile(let v)? = _storage._profile else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 20)
+      }()
+      case .managerProfile?: try {
+        guard case .managerProfile(let v)? = _storage._profile else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 21)
+      }()
+      case .officerProfile?: try {
+        guard case .officerProfile(let v)? = _storage._profile else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 22)
+      }()
+      case .borrowerProfile?: try {
+        guard case .borrowerProfile(let v)? = _storage._profile else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 23)
+      }()
+      case .dstProfile?: try {
+        guard case .dstProfile(let v)? = _storage._profile else { preconditionFailure() }
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 24)
+      }()
+      case nil: break
+      }
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_GetMyProfileResponse, rhs: Auth_V1_GetMyProfileResponse) -> Bool {
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._userID != rhs_storage._userID {return false}
+        if _storage._email != rhs_storage._email {return false}
+        if _storage._phone != rhs_storage._phone {return false}
+        if _storage._role != rhs_storage._role {return false}
+        if _storage._isEmailVerified != rhs_storage._isEmailVerified {return false}
+        if _storage._isPhoneVerified != rhs_storage._isPhoneVerified {return false}
+        if _storage._isActive != rhs_storage._isActive {return false}
+        if _storage._isRequiringPasswordChange != rhs_storage._isRequiringPasswordChange {return false}
+        if _storage._hasTotp_p != rhs_storage._hasTotp_p {return false}
+        if _storage._createdAt != rhs_storage._createdAt {return false}
+        if _storage._profile != rhs_storage._profile {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

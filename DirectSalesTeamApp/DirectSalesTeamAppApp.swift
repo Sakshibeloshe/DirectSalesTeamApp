@@ -1,10 +1,3 @@
-//
-//  DirectSalesTeamAppApp.swift
-//  DirectSalesTeamApp
-//
-//  Created by Apple on 17/04/26.
-//
-
 import SwiftUI
 
 @main

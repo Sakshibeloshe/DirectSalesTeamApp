@@ -98,6 +98,19 @@ public enum Auth_V1_AuthService: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "InitiateReopen" metadata.
+        public enum InitiateReopen: Sendable {
+            /// Request type for "InitiateReopen".
+            public typealias Input = Auth_V1_InitiateReopenRequest
+            /// Response type for "InitiateReopen".
+            public typealias Output = Auth_V1_LoginPrimaryResponse
+            /// Descriptor for "InitiateReopen".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "InitiateReopen",
+                type: .unary
+            )
+        }
         /// Namespace for "SelectLoginMFAFactor" metadata.
         public enum SelectLoginMFAFactor: Sendable {
             /// Request type for "SelectLoginMFAFactor".
@@ -134,6 +147,45 @@ public enum Auth_V1_AuthService: Sendable {
             public static let descriptor = GRPCCore.MethodDescriptor(
                 service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
                 method: "ChangePassword",
+                type: .unary
+            )
+        }
+        /// Namespace for "InitiateForgotPassword" metadata.
+        public enum InitiateForgotPassword: Sendable {
+            /// Request type for "InitiateForgotPassword".
+            public typealias Input = Auth_V1_InitiateForgotPasswordRequest
+            /// Response type for "InitiateForgotPassword".
+            public typealias Output = Auth_V1_InitiateForgotPasswordResponse
+            /// Descriptor for "InitiateForgotPassword".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "InitiateForgotPassword",
+                type: .unary
+            )
+        }
+        /// Namespace for "VerifyForgotPasswordOTPs" metadata.
+        public enum VerifyForgotPasswordOTPs: Sendable {
+            /// Request type for "VerifyForgotPasswordOTPs".
+            public typealias Input = Auth_V1_VerifyForgotPasswordOTPsRequest
+            /// Response type for "VerifyForgotPasswordOTPs".
+            public typealias Output = Auth_V1_VerifyForgotPasswordOTPsResponse
+            /// Descriptor for "VerifyForgotPasswordOTPs".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "VerifyForgotPasswordOTPs",
+                type: .unary
+            )
+        }
+        /// Namespace for "ResetForgotPassword" metadata.
+        public enum ResetForgotPassword: Sendable {
+            /// Request type for "ResetForgotPassword".
+            public typealias Input = Auth_V1_ResetForgotPasswordRequest
+            /// Response type for "ResetForgotPassword".
+            public typealias Output = Auth_V1_ResetForgotPasswordResponse
+            /// Descriptor for "ResetForgotPassword".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "ResetForgotPassword",
                 type: .unary
             )
         }
@@ -189,6 +241,19 @@ public enum Auth_V1_AuthService: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "GetMyProfile" metadata.
+        public enum GetMyProfile: Sendable {
+            /// Request type for "GetMyProfile".
+            public typealias Input = Auth_V1_GetMyProfileRequest
+            /// Response type for "GetMyProfile".
+            public typealias Output = Auth_V1_GetMyProfileResponse
+            /// Descriptor for "GetMyProfile".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "GetMyProfile",
+                type: .unary
+            )
+        }
         /// Namespace for "RefreshToken" metadata.
         public enum RefreshToken: Sendable {
             /// Request type for "RefreshToken".
@@ -223,13 +288,18 @@ public enum Auth_V1_AuthService: Sendable {
             SetupTOTP.descriptor,
             VerifyTOTPSetup.descriptor,
             LoginPrimary.descriptor,
+            InitiateReopen.descriptor,
             SelectLoginMFAFactor.descriptor,
             VerifyLoginMFA.descriptor,
             ChangePassword.descriptor,
+            InitiateForgotPassword.descriptor,
+            VerifyForgotPasswordOTPs.descriptor,
+            ResetForgotPassword.descriptor,
             BeginWebAuthnRegistration.descriptor,
             FinishWebAuthnRegistration.descriptor,
             BeginWebAuthnLogin.descriptor,
             FinishWebAuthnLogin.descriptor,
+            GetMyProfile.descriptor,
             RefreshToken.descriptor,
             Logout.descriptor
         ]
@@ -341,6 +411,20 @@ extension Auth_V1_AuthService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_LoginPrimaryResponse>
 
+        /// Handle the "InitiateReopen" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_InitiateReopenRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_LoginPrimaryResponse` messages.
+        func initiateReopen(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_InitiateReopenRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_LoginPrimaryResponse>
+
         /// Handle the "SelectLoginMFAFactor" method.
         ///
         /// - Parameters:
@@ -382,6 +466,48 @@ extension Auth_V1_AuthService {
             request: GRPCCore.StreamingServerRequest<Auth_V1_ChangePasswordRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_ChangePasswordResponse>
+
+        /// Handle the "InitiateForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_InitiateForgotPasswordRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_InitiateForgotPasswordResponse` messages.
+        func initiateForgotPassword(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_InitiateForgotPasswordRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_InitiateForgotPasswordResponse>
+
+        /// Handle the "VerifyForgotPasswordOTPs" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_VerifyForgotPasswordOTPsRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_VerifyForgotPasswordOTPsResponse` messages.
+        func verifyForgotPasswordOTPs(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_VerifyForgotPasswordOTPsResponse>
+
+        /// Handle the "ResetForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_ResetForgotPasswordRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_ResetForgotPasswordResponse` messages.
+        func resetForgotPassword(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_ResetForgotPasswordRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_ResetForgotPasswordResponse>
 
         /// Handle the "BeginWebAuthnRegistration" method.
         ///
@@ -438,6 +564,20 @@ extension Auth_V1_AuthService {
             request: GRPCCore.StreamingServerRequest<Auth_V1_WebAuthnFinishLoginRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_AuthTokens>
+
+        /// Handle the "GetMyProfile" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_GetMyProfileRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_GetMyProfileResponse` messages.
+        func getMyProfile(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_GetMyProfileRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_GetMyProfileResponse>
 
         /// Handle the "RefreshToken" method.
         ///
@@ -560,6 +700,20 @@ extension Auth_V1_AuthService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Auth_V1_LoginPrimaryResponse>
 
+        /// Handle the "InitiateReopen" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_InitiateReopenRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_LoginPrimaryResponse` message.
+        func initiateReopen(
+            request: GRPCCore.ServerRequest<Auth_V1_InitiateReopenRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_LoginPrimaryResponse>
+
         /// Handle the "SelectLoginMFAFactor" method.
         ///
         /// - Parameters:
@@ -601,6 +755,48 @@ extension Auth_V1_AuthService {
             request: GRPCCore.ServerRequest<Auth_V1_ChangePasswordRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Auth_V1_ChangePasswordResponse>
+
+        /// Handle the "InitiateForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_InitiateForgotPasswordRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_InitiateForgotPasswordResponse` message.
+        func initiateForgotPassword(
+            request: GRPCCore.ServerRequest<Auth_V1_InitiateForgotPasswordRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_InitiateForgotPasswordResponse>
+
+        /// Handle the "VerifyForgotPasswordOTPs" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_VerifyForgotPasswordOTPsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_VerifyForgotPasswordOTPsResponse` message.
+        func verifyForgotPasswordOTPs(
+            request: GRPCCore.ServerRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_VerifyForgotPasswordOTPsResponse>
+
+        /// Handle the "ResetForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_ResetForgotPasswordRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_ResetForgotPasswordResponse` message.
+        func resetForgotPassword(
+            request: GRPCCore.ServerRequest<Auth_V1_ResetForgotPasswordRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_ResetForgotPasswordResponse>
 
         /// Handle the "BeginWebAuthnRegistration" method.
         ///
@@ -657,6 +853,20 @@ extension Auth_V1_AuthService {
             request: GRPCCore.ServerRequest<Auth_V1_WebAuthnFinishLoginRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Auth_V1_AuthTokens>
+
+        /// Handle the "GetMyProfile" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetMyProfileRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_GetMyProfileResponse` message.
+        func getMyProfile(
+            request: GRPCCore.ServerRequest<Auth_V1_GetMyProfileRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_GetMyProfileResponse>
 
         /// Handle the "RefreshToken" method.
         ///
@@ -777,6 +987,20 @@ extension Auth_V1_AuthService {
             context: GRPCCore.ServerContext
         ) async throws -> Auth_V1_LoginPrimaryResponse
 
+        /// Handle the "InitiateReopen" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_InitiateReopenRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_LoginPrimaryResponse` to respond with.
+        func initiateReopen(
+            request: Auth_V1_InitiateReopenRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_LoginPrimaryResponse
+
         /// Handle the "SelectLoginMFAFactor" method.
         ///
         /// - Parameters:
@@ -818,6 +1042,48 @@ extension Auth_V1_AuthService {
             request: Auth_V1_ChangePasswordRequest,
             context: GRPCCore.ServerContext
         ) async throws -> Auth_V1_ChangePasswordResponse
+
+        /// Handle the "InitiateForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_InitiateForgotPasswordRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_InitiateForgotPasswordResponse` to respond with.
+        func initiateForgotPassword(
+            request: Auth_V1_InitiateForgotPasswordRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_InitiateForgotPasswordResponse
+
+        /// Handle the "VerifyForgotPasswordOTPs" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_VerifyForgotPasswordOTPsRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_VerifyForgotPasswordOTPsResponse` to respond with.
+        func verifyForgotPasswordOTPs(
+            request: Auth_V1_VerifyForgotPasswordOTPsRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_VerifyForgotPasswordOTPsResponse
+
+        /// Handle the "ResetForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_ResetForgotPasswordRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_ResetForgotPasswordResponse` to respond with.
+        func resetForgotPassword(
+            request: Auth_V1_ResetForgotPasswordRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_ResetForgotPasswordResponse
 
         /// Handle the "BeginWebAuthnRegistration" method.
         ///
@@ -874,6 +1140,20 @@ extension Auth_V1_AuthService {
             request: Auth_V1_WebAuthnFinishLoginRequest,
             context: GRPCCore.ServerContext
         ) async throws -> Auth_V1_AuthTokens
+
+        /// Handle the "GetMyProfile" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_GetMyProfileRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_GetMyProfileResponse` to respond with.
+        func getMyProfile(
+            request: Auth_V1_GetMyProfileRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_GetMyProfileResponse
 
         /// Handle the "RefreshToken" method.
         ///
@@ -976,6 +1256,17 @@ extension Auth_V1_AuthService.StreamingServiceProtocol {
             }
         )
         router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.InitiateReopen.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_InitiateReopenRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_LoginPrimaryResponse>(),
+            handler: { request, context in
+                try await self.initiateReopen(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
             forMethod: Auth_V1_AuthService.Method.SelectLoginMFAFactor.descriptor,
             deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_SelectLoginMFAFactorRequest>(),
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_SelectLoginMFAFactorResponse>(),
@@ -1003,6 +1294,39 @@ extension Auth_V1_AuthService.StreamingServiceProtocol {
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_ChangePasswordResponse>(),
             handler: { request, context in
                 try await self.changePassword(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.InitiateForgotPassword.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_InitiateForgotPasswordRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_InitiateForgotPasswordResponse>(),
+            handler: { request, context in
+                try await self.initiateForgotPassword(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.VerifyForgotPasswordOTPs.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_VerifyForgotPasswordOTPsRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_VerifyForgotPasswordOTPsResponse>(),
+            handler: { request, context in
+                try await self.verifyForgotPasswordOTPs(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.ResetForgotPassword.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_ResetForgotPasswordRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_ResetForgotPasswordResponse>(),
+            handler: { request, context in
+                try await self.resetForgotPassword(
                     request: request,
                     context: context
                 )
@@ -1047,6 +1371,17 @@ extension Auth_V1_AuthService.StreamingServiceProtocol {
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_AuthTokens>(),
             handler: { request, context in
                 try await self.finishWebAuthnLogin(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.GetMyProfile.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_GetMyProfileRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetMyProfileResponse>(),
+            handler: { request, context in
+                try await self.getMyProfile(
                     request: request,
                     context: context
                 )
@@ -1146,6 +1481,17 @@ extension Auth_V1_AuthService.ServiceProtocol {
         return GRPCCore.StreamingServerResponse(single: response)
     }
 
+    public func initiateReopen(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_InitiateReopenRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_LoginPrimaryResponse> {
+        let response = try await self.initiateReopen(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
     public func selectLoginMFAFactor(
         request: GRPCCore.StreamingServerRequest<Auth_V1_SelectLoginMFAFactorRequest>,
         context: GRPCCore.ServerContext
@@ -1173,6 +1519,39 @@ extension Auth_V1_AuthService.ServiceProtocol {
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_ChangePasswordResponse> {
         let response = try await self.changePassword(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func initiateForgotPassword(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_InitiateForgotPasswordRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_InitiateForgotPasswordResponse> {
+        let response = try await self.initiateForgotPassword(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func verifyForgotPasswordOTPs(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_VerifyForgotPasswordOTPsResponse> {
+        let response = try await self.verifyForgotPasswordOTPs(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func resetForgotPassword(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_ResetForgotPasswordRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_ResetForgotPasswordResponse> {
+        let response = try await self.resetForgotPassword(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -1217,6 +1596,17 @@ extension Auth_V1_AuthService.ServiceProtocol {
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_AuthTokens> {
         let response = try await self.finishWebAuthnLogin(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func getMyProfile(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_GetMyProfileRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_GetMyProfileResponse> {
+        let response = try await self.getMyProfile(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -1327,6 +1717,19 @@ extension Auth_V1_AuthService.SimpleServiceProtocol {
         )
     }
 
+    public func initiateReopen(
+        request: GRPCCore.ServerRequest<Auth_V1_InitiateReopenRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_LoginPrimaryResponse> {
+        return GRPCCore.ServerResponse<Auth_V1_LoginPrimaryResponse>(
+            message: try await self.initiateReopen(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
     public func selectLoginMFAFactor(
         request: GRPCCore.ServerRequest<Auth_V1_SelectLoginMFAFactorRequest>,
         context: GRPCCore.ServerContext
@@ -1359,6 +1762,45 @@ extension Auth_V1_AuthService.SimpleServiceProtocol {
     ) async throws -> GRPCCore.ServerResponse<Auth_V1_ChangePasswordResponse> {
         return GRPCCore.ServerResponse<Auth_V1_ChangePasswordResponse>(
             message: try await self.changePassword(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func initiateForgotPassword(
+        request: GRPCCore.ServerRequest<Auth_V1_InitiateForgotPasswordRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_InitiateForgotPasswordResponse> {
+        return GRPCCore.ServerResponse<Auth_V1_InitiateForgotPasswordResponse>(
+            message: try await self.initiateForgotPassword(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func verifyForgotPasswordOTPs(
+        request: GRPCCore.ServerRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_VerifyForgotPasswordOTPsResponse> {
+        return GRPCCore.ServerResponse<Auth_V1_VerifyForgotPasswordOTPsResponse>(
+            message: try await self.verifyForgotPasswordOTPs(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func resetForgotPassword(
+        request: GRPCCore.ServerRequest<Auth_V1_ResetForgotPasswordRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_ResetForgotPasswordResponse> {
+        return GRPCCore.ServerResponse<Auth_V1_ResetForgotPasswordResponse>(
+            message: try await self.resetForgotPassword(
                 request: request.message,
                 context: context
             ),
@@ -1411,6 +1853,19 @@ extension Auth_V1_AuthService.SimpleServiceProtocol {
     ) async throws -> GRPCCore.ServerResponse<Auth_V1_AuthTokens> {
         return GRPCCore.ServerResponse<Auth_V1_AuthTokens>(
             message: try await self.finishWebAuthnLogin(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func getMyProfile(
+        request: GRPCCore.ServerRequest<Auth_V1_GetMyProfileRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_GetMyProfileResponse> {
+        return GRPCCore.ServerResponse<Auth_V1_GetMyProfileResponse>(
+            message: try await self.getMyProfile(
                 request: request.message,
                 context: context
             ),
@@ -1568,6 +2023,25 @@ extension Auth_V1_AuthService {
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_LoginPrimaryResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
+        /// Call the "InitiateReopen" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_InitiateReopenRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_InitiateReopenRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_LoginPrimaryResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func initiateReopen<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_InitiateReopenRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_InitiateReopenRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_LoginPrimaryResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_LoginPrimaryResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
         /// Call the "SelectLoginMFAFactor" method.
         ///
         /// - Parameters:
@@ -1623,6 +2097,63 @@ extension Auth_V1_AuthService {
             deserializer: some GRPCCore.MessageDeserializer<Auth_V1_ChangePasswordResponse>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ChangePasswordResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "InitiateForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_InitiateForgotPasswordRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_InitiateForgotPasswordRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_InitiateForgotPasswordResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func initiateForgotPassword<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_InitiateForgotPasswordRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_InitiateForgotPasswordRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_InitiateForgotPasswordResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_InitiateForgotPasswordResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "VerifyForgotPasswordOTPs" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_VerifyForgotPasswordOTPsRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_VerifyForgotPasswordOTPsRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_VerifyForgotPasswordOTPsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func verifyForgotPasswordOTPs<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_VerifyForgotPasswordOTPsResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_VerifyForgotPasswordOTPsResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "ResetForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_ResetForgotPasswordRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_ResetForgotPasswordRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_ResetForgotPasswordResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func resetForgotPassword<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_ResetForgotPasswordRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_ResetForgotPasswordRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_ResetForgotPasswordResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ResetForgotPasswordResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
         /// Call the "BeginWebAuthnRegistration" method.
@@ -1699,6 +2230,25 @@ extension Auth_V1_AuthService {
             deserializer: some GRPCCore.MessageDeserializer<Auth_V1_AuthTokens>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_AuthTokens>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "GetMyProfile" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetMyProfileRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetMyProfileRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_GetMyProfileResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func getMyProfile<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetMyProfileRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetMyProfileRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_GetMyProfileResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetMyProfileResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
         /// Call the "RefreshToken" method.
@@ -1936,6 +2486,36 @@ extension Auth_V1_AuthService {
             )
         }
 
+        /// Call the "InitiateReopen" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_InitiateReopenRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_InitiateReopenRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_LoginPrimaryResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func initiateReopen<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_InitiateReopenRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_InitiateReopenRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_LoginPrimaryResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_LoginPrimaryResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.InitiateReopen.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
         /// Call the "SelectLoginMFAFactor" method.
         ///
         /// - Parameters:
@@ -2019,6 +2599,96 @@ extension Auth_V1_AuthService {
             try await self.client.unary(
                 request: request,
                 descriptor: Auth_V1_AuthService.Method.ChangePassword.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "InitiateForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_InitiateForgotPasswordRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_InitiateForgotPasswordRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_InitiateForgotPasswordResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func initiateForgotPassword<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_InitiateForgotPasswordRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_InitiateForgotPasswordRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_InitiateForgotPasswordResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_InitiateForgotPasswordResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.InitiateForgotPassword.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "VerifyForgotPasswordOTPs" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_VerifyForgotPasswordOTPsRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_VerifyForgotPasswordOTPsRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_VerifyForgotPasswordOTPsResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func verifyForgotPasswordOTPs<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_VerifyForgotPasswordOTPsResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_VerifyForgotPasswordOTPsResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.VerifyForgotPasswordOTPs.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "ResetForgotPassword" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_ResetForgotPasswordRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_ResetForgotPasswordRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_ResetForgotPasswordResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func resetForgotPassword<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_ResetForgotPasswordRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_ResetForgotPasswordRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_ResetForgotPasswordResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ResetForgotPasswordResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.ResetForgotPassword.descriptor,
                 serializer: serializer,
                 deserializer: deserializer,
                 options: options,
@@ -2139,6 +2809,36 @@ extension Auth_V1_AuthService {
             try await self.client.unary(
                 request: request,
                 descriptor: Auth_V1_AuthService.Method.FinishWebAuthnLogin.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "GetMyProfile" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetMyProfileRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetMyProfileRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_GetMyProfileResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func getMyProfile<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetMyProfileRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetMyProfileRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_GetMyProfileResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetMyProfileResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.GetMyProfile.descriptor,
                 serializer: serializer,
                 deserializer: deserializer,
                 options: options,
@@ -2361,6 +3061,31 @@ extension Auth_V1_AuthService.ClientProtocol {
         )
     }
 
+    /// Call the "InitiateReopen" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_InitiateReopenRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func initiateReopen<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_InitiateReopenRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_LoginPrimaryResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.initiateReopen(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_InitiateReopenRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_LoginPrimaryResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
     /// Call the "SelectLoginMFAFactor" method.
     ///
     /// - Parameters:
@@ -2431,6 +3156,81 @@ extension Auth_V1_AuthService.ClientProtocol {
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_ChangePasswordRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_ChangePasswordResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "InitiateForgotPassword" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_InitiateForgotPasswordRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func initiateForgotPassword<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_InitiateForgotPasswordRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_InitiateForgotPasswordResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.initiateForgotPassword(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_InitiateForgotPasswordRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_InitiateForgotPasswordResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "VerifyForgotPasswordOTPs" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_VerifyForgotPasswordOTPsRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func verifyForgotPasswordOTPs<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_VerifyForgotPasswordOTPsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.verifyForgotPasswordOTPs(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_VerifyForgotPasswordOTPsRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_VerifyForgotPasswordOTPsResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "ResetForgotPassword" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_ResetForgotPasswordRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func resetForgotPassword<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_ResetForgotPasswordRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ResetForgotPasswordResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.resetForgotPassword(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_ResetForgotPasswordRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_ResetForgotPasswordResponse>(),
             options: options,
             onResponse: handleResponse
         )
@@ -2531,6 +3331,31 @@ extension Auth_V1_AuthService.ClientProtocol {
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_WebAuthnFinishLoginRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_AuthTokens>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetMyProfile" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_GetMyProfileRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getMyProfile<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_GetMyProfileRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetMyProfileResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.getMyProfile(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetMyProfileRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_GetMyProfileResponse>(),
             options: options,
             onResponse: handleResponse
         )
@@ -2764,6 +3589,35 @@ extension Auth_V1_AuthService.ClientProtocol {
         )
     }
 
+    /// Call the "InitiateReopen" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func initiateReopen<Result>(
+        _ message: Auth_V1_InitiateReopenRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_LoginPrimaryResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_InitiateReopenRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.initiateReopen(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
     /// Call the "SelectLoginMFAFactor" method.
     ///
     /// - Parameters:
@@ -2845,6 +3699,93 @@ extension Auth_V1_AuthService.ClientProtocol {
             metadata: metadata
         )
         return try await self.changePassword(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "InitiateForgotPassword" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func initiateForgotPassword<Result>(
+        _ message: Auth_V1_InitiateForgotPasswordRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_InitiateForgotPasswordResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_InitiateForgotPasswordRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.initiateForgotPassword(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "VerifyForgotPasswordOTPs" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func verifyForgotPasswordOTPs<Result>(
+        _ message: Auth_V1_VerifyForgotPasswordOTPsRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_VerifyForgotPasswordOTPsResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_VerifyForgotPasswordOTPsRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.verifyForgotPasswordOTPs(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "ResetForgotPassword" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func resetForgotPassword<Result>(
+        _ message: Auth_V1_ResetForgotPasswordRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ResetForgotPasswordResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_ResetForgotPasswordRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.resetForgotPassword(
             request: request,
             options: options,
             onResponse: handleResponse
@@ -2961,6 +3902,35 @@ extension Auth_V1_AuthService.ClientProtocol {
             metadata: metadata
         )
         return try await self.finishWebAuthnLogin(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetMyProfile" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getMyProfile<Result>(
+        _ message: Auth_V1_GetMyProfileRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetMyProfileResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_GetMyProfileRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.getMyProfile(
             request: request,
             options: options,
             onResponse: handleResponse
