@@ -254,6 +254,19 @@ public enum Auth_V1_AuthService: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "SearchBorrowerSignupStatus" metadata.
+        public enum SearchBorrowerSignupStatus: Sendable {
+            /// Request type for "SearchBorrowerSignupStatus".
+            public typealias Input = Auth_V1_SearchBorrowerSignupStatusRequest
+            /// Response type for "SearchBorrowerSignupStatus".
+            public typealias Output = Auth_V1_SearchBorrowerSignupStatusResponse
+            /// Descriptor for "SearchBorrowerSignupStatus".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "SearchBorrowerSignupStatus",
+                type: .unary
+            )
+        }
         /// Namespace for "RefreshToken" metadata.
         public enum RefreshToken: Sendable {
             /// Request type for "RefreshToken".
@@ -300,6 +313,7 @@ public enum Auth_V1_AuthService: Sendable {
             BeginWebAuthnLogin.descriptor,
             FinishWebAuthnLogin.descriptor,
             GetMyProfile.descriptor,
+            SearchBorrowerSignupStatus.descriptor,
             RefreshToken.descriptor,
             Logout.descriptor
         ]
@@ -578,6 +592,20 @@ extension Auth_V1_AuthService {
             request: GRPCCore.StreamingServerRequest<Auth_V1_GetMyProfileRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_GetMyProfileResponse>
+
+        /// Handle the "SearchBorrowerSignupStatus" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_SearchBorrowerSignupStatusRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_SearchBorrowerSignupStatusResponse` messages.
+        func searchBorrowerSignupStatus(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_SearchBorrowerSignupStatusRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_SearchBorrowerSignupStatusResponse>
 
         /// Handle the "RefreshToken" method.
         ///
@@ -868,6 +896,20 @@ extension Auth_V1_AuthService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Auth_V1_GetMyProfileResponse>
 
+        /// Handle the "SearchBorrowerSignupStatus" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_SearchBorrowerSignupStatusRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_SearchBorrowerSignupStatusResponse` message.
+        func searchBorrowerSignupStatus(
+            request: GRPCCore.ServerRequest<Auth_V1_SearchBorrowerSignupStatusRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_SearchBorrowerSignupStatusResponse>
+
         /// Handle the "RefreshToken" method.
         ///
         /// - Parameters:
@@ -1155,6 +1197,20 @@ extension Auth_V1_AuthService {
             context: GRPCCore.ServerContext
         ) async throws -> Auth_V1_GetMyProfileResponse
 
+        /// Handle the "SearchBorrowerSignupStatus" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_SearchBorrowerSignupStatusRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_SearchBorrowerSignupStatusResponse` to respond with.
+        func searchBorrowerSignupStatus(
+            request: Auth_V1_SearchBorrowerSignupStatusRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_SearchBorrowerSignupStatusResponse
+
         /// Handle the "RefreshToken" method.
         ///
         /// - Parameters:
@@ -1388,6 +1444,17 @@ extension Auth_V1_AuthService.StreamingServiceProtocol {
             }
         )
         router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.SearchBorrowerSignupStatus.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_SearchBorrowerSignupStatusRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_SearchBorrowerSignupStatusResponse>(),
+            handler: { request, context in
+                try await self.searchBorrowerSignupStatus(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
             forMethod: Auth_V1_AuthService.Method.RefreshToken.descriptor,
             deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_RefreshTokenRequest>(),
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_AuthTokens>(),
@@ -1607,6 +1674,17 @@ extension Auth_V1_AuthService.ServiceProtocol {
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_GetMyProfileResponse> {
         let response = try await self.getMyProfile(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func searchBorrowerSignupStatus(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_SearchBorrowerSignupStatusRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_SearchBorrowerSignupStatusResponse> {
+        let response = try await self.searchBorrowerSignupStatus(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -1866,6 +1944,19 @@ extension Auth_V1_AuthService.SimpleServiceProtocol {
     ) async throws -> GRPCCore.ServerResponse<Auth_V1_GetMyProfileResponse> {
         return GRPCCore.ServerResponse<Auth_V1_GetMyProfileResponse>(
             message: try await self.getMyProfile(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func searchBorrowerSignupStatus(
+        request: GRPCCore.ServerRequest<Auth_V1_SearchBorrowerSignupStatusRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_SearchBorrowerSignupStatusResponse> {
+        return GRPCCore.ServerResponse<Auth_V1_SearchBorrowerSignupStatusResponse>(
+            message: try await self.searchBorrowerSignupStatus(
                 request: request.message,
                 context: context
             ),
@@ -2249,6 +2340,25 @@ extension Auth_V1_AuthService {
             deserializer: some GRPCCore.MessageDeserializer<Auth_V1_GetMyProfileResponse>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetMyProfileResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "SearchBorrowerSignupStatus" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_SearchBorrowerSignupStatusRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_SearchBorrowerSignupStatusRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_SearchBorrowerSignupStatusResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func searchBorrowerSignupStatus<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_SearchBorrowerSignupStatusRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_SearchBorrowerSignupStatusRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_SearchBorrowerSignupStatusResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_SearchBorrowerSignupStatusResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
         /// Call the "RefreshToken" method.
@@ -2846,6 +2956,36 @@ extension Auth_V1_AuthService {
             )
         }
 
+        /// Call the "SearchBorrowerSignupStatus" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_SearchBorrowerSignupStatusRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_SearchBorrowerSignupStatusRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_SearchBorrowerSignupStatusResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func searchBorrowerSignupStatus<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_SearchBorrowerSignupStatusRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_SearchBorrowerSignupStatusRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_SearchBorrowerSignupStatusResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_SearchBorrowerSignupStatusResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.SearchBorrowerSignupStatus.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
         /// Call the "RefreshToken" method.
         ///
         /// - Parameters:
@@ -3356,6 +3496,31 @@ extension Auth_V1_AuthService.ClientProtocol {
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetMyProfileRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_GetMyProfileResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "SearchBorrowerSignupStatus" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_SearchBorrowerSignupStatusRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func searchBorrowerSignupStatus<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_SearchBorrowerSignupStatusRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_SearchBorrowerSignupStatusResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.searchBorrowerSignupStatus(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_SearchBorrowerSignupStatusRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_SearchBorrowerSignupStatusResponse>(),
             options: options,
             onResponse: handleResponse
         )
@@ -3931,6 +4096,35 @@ extension Auth_V1_AuthService.ClientProtocol {
             metadata: metadata
         )
         return try await self.getMyProfile(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "SearchBorrowerSignupStatus" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func searchBorrowerSignupStatus<Result>(
+        _ message: Auth_V1_SearchBorrowerSignupStatusRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_SearchBorrowerSignupStatusResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_SearchBorrowerSignupStatusRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.searchBorrowerSignupStatus(
             request: request,
             options: options,
             onResponse: handleResponse

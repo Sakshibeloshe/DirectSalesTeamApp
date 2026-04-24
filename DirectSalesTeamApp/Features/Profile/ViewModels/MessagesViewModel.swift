@@ -5,6 +5,7 @@ import SwiftUI
 import Combine
 
 @MainActor
+@available(iOS 18.0, *)
 final class MessagesViewModel: ObservableObject {
 
     @Published var threads: [MessageThread] = []
@@ -13,23 +14,142 @@ final class MessagesViewModel: ObservableObject {
     @Published var errorMessage: String? = nil
     @Published var showComposeSheet: Bool = false
 
+    private let chatService: ChatServiceProtocol
+    private var chatRooms: [ChatRoom] = []
+    private var messageStreamTasks: [String: Task<Void, Never>] = [:]
+
+    // TODO: Replace with real data from loan service
     let officerDirectory: [ThreadParticipant] = MockDSTService.loanOfficerDirectory()
     let connectableLeads: [LeadMessagingConnection] = MockDSTService.connectableLeads()
 
     var totalUnread: Int { threads.reduce(0) { $0 + $1.unreadCount } }
     var pendingConnectionCount: Int { max(connectableLeads.count - threads.filter { $0.participant.role != .system }.count, 0) }
 
-    init() {
+    init(chatService: ChatServiceProtocol = ChatService()) {
+        self.chatService = chatService
         Task { await loadThreads() }
+    }
+
+    deinit {
+        messageStreamTasks.values.forEach { $0.cancel() }
     }
 
     func loadThreads() async {
         isLoading = true
-        try? await Task.sleep(nanoseconds: 300_000_000)
-        threads = MockDSTService.messageThreads().sorted {
-            ($0.lastMessage?.sentAt ?? .distantPast) > ($1.lastMessage?.sentAt ?? .distantPast)
+        errorMessage = nil
+
+        do {
+            let rooms = try await chatService.listMyChatRooms(limit: 50, offset: 0)
+            chatRooms = rooms
+
+            // Convert ChatRooms to MessageThreads for UI compatibility
+            threads = rooms.compactMap { room in
+                convertToMessageThread(room: room)
+            }.sorted {
+                ($0.lastMessage?.sentAt ?? .distantPast) > ($1.lastMessage?.sentAt ?? .distantPast)
+            }
+
+            // Start streaming for each room
+            for room in rooms {
+                startStreaming(for: room)
+            }
+
+            isLoading = false
+        } catch {
+            errorMessage = error.localizedDescription
+            isLoading = false
         }
-        isLoading = false
+    }
+
+    private func startStreaming(for room: ChatRoom) {
+        let task = Task {
+            let stream = chatService.subscribeToRoomMessages(roomID: room.id)
+
+            do {
+                for try await event in stream {
+                    if Task.isCancelled { break }
+
+                    if !event.isHeartbeat, let newMessage = event.message {
+                        await MainActor.run {
+                            // Update the chat room with new message
+                            if let idx = self.chatRooms.firstIndex(where: { $0.id == room.id }) {
+                                var updatedRoom = self.chatRooms[idx]
+                                // Update latest message
+                                let updatedMessage = newMessage
+                                self.chatRooms[idx] = ChatRoom(
+                                    id: updatedRoom.id,
+                                    roomType: updatedRoom.roomType,
+                                    userAID: updatedRoom.userAID,
+                                    userBID: updatedRoom.userBID,
+                                    createdByUserID: updatedRoom.createdByUserID,
+                                    contextApplicationID: updatedRoom.contextApplicationID,
+                                    createdAt: updatedRoom.createdAt,
+                                    updatedAt: Date(),
+                                    latestMessage: updatedMessage
+                                )
+
+                                // Update thread
+                                if let threadIdx = self.threads.firstIndex(where: { $0.id == UUID(uuidString: room.id) ?? UUID() }) {
+                                    let newChatMessage = self.convertToChatMessage(protoMessage: newMessage, threadId: self.threads[threadIdx].id)
+                                    var updatedThread = self.threads[threadIdx]
+                                    updatedThread = MessageThread(
+                                        id: updatedThread.id,
+                                        participant: updatedThread.participant,
+                                        messages: updatedThread.messages + [newChatMessage],
+                                        linkedApplicationRef: updatedThread.linkedApplicationRef,
+                                        linkedLeadName: updatedThread.linkedLeadName
+                                    )
+                                    self.threads[threadIdx] = updatedThread
+                                    self.moveThreadToTop(updatedThread.id)
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+        messageStreamTasks[room.id] = task
+    }
+
+    private func convertToMessageThread(room: ChatRoom) -> MessageThread? {
+        guard let roomUUID = UUID(uuidString: room.id) else { return nil }
+
+        // Find participant info from officer directory or create placeholder
+        let participant = officerDirectory.first { $0.id.uuidString == room.userAID || $0.id.uuidString == room.userBID }
+            ?? ThreadParticipant(
+                id: UUID(uuidString: room.otherUserID(currentUserID: "")) ?? UUID(),
+                name: "User",
+                role: .loanOfficer
+            )
+
+        // Convert messages
+        let messages: [ChatMessage] = []
+        // TODO: Load messages for this room
+
+        return MessageThread(
+            id: roomUUID,
+            participant: participant,
+            messages: messages,
+            linkedApplicationRef: room.contextApplicationID,
+            linkedLeadName: nil // TODO: Get from loan service
+        )
+    }
+
+    private func convertToChatMessage(protoMessage: ChatMessage, threadId: UUID) -> ChatMessage {
+        return ChatMessage(
+            id: UUID(uuidString: protoMessage.id) ?? UUID(),
+            threadId: threadId,
+            senderId: UUID(uuidString: protoMessage.senderUserID) ?? UUID(),
+            senderRole: .dstAgent, // TODO: Determine role from proto
+            content: protoMessage.body,
+            sentAt: protoMessage.createdAt,
+            isRead: true,
+            attachmentRef: nil
+        )
     }
 
     func selectThread(_ thread: MessageThread) {
@@ -79,45 +199,60 @@ final class MessagesViewModel: ObservableObject {
     }
 
     func createThread(lead: LeadMessagingConnection, participant: ThreadParticipant, openingMessage: String) {
-        let threadId = UUID()
-        let systemMessage = ChatMessage(
-            id: UUID(),
-            threadId: threadId,
-            senderId: UUID(),
-            senderRole: .system,
-            content: "DST connected \(lead.leadName) (\(lead.applicationRef)) with \(participant.name).",
-            sentAt: Date().addingTimeInterval(-60),
-            isRead: true,
-            attachmentRef: nil
-        )
-
-        var messages = [systemMessage]
-        let trimmed = openingMessage.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if !trimmed.isEmpty {
-            messages.append(
-                ChatMessage(
-                    id: UUID(),
-                    threadId: threadId,
-                    senderId: UUID(),
-                    senderRole: .dstAgent,
-                    content: trimmed,
-                    sentAt: Date(),
-                    isRead: true,
-                    attachmentRef: nil
+        Task {
+            do {
+                let room = try await chatService.createOrGetDirectRoom(
+                    targetUserID: participant.id.uuidString,
+                    contextApplicationID: lead.applicationRef
                 )
-            )
+
+                if let messageThread = convertToMessageThread(room: room) {
+                    await MainActor.run {
+                        // Add opening message if provided
+                        var finalThread = messageThread
+                        let trimmed = openingMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+
+                        if !trimmed.isEmpty {
+                            let newMessage = ChatMessage(
+                                id: UUID(),
+                                threadId: finalThread.id,
+                                senderId: UUID(),
+                                senderRole: .dstAgent,
+                                content: trimmed,
+                                sentAt: Date(),
+                                isRead: true,
+                                attachmentRef: nil
+                            )
+                            finalThread = MessageThread(
+                                id: finalThread.id,
+                                participant: finalThread.participant,
+                                messages: [newMessage],
+                                linkedApplicationRef: finalThread.linkedApplicationRef,
+                                linkedLeadName: lead.leadName
+                            )
+
+                            // Send the message via chat service
+                            Task {
+                                try? await chatService.sendMessage(
+                                    roomID: room.id,
+                                    body: trimmed,
+                                    messageType: .text,
+                                    metadataJSON: nil
+                                )
+                            }
+                        }
+
+                        threads.insert(finalThread, at: 0)
+                        chatRooms.append(room)
+                        startStreaming(for: room)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    errorMessage = error.localizedDescription
+                }
+            }
         }
-
-        let thread = MessageThread(
-            id: threadId,
-            participant: participant,
-            messages: messages,
-            linkedApplicationRef: lead.applicationRef,
-            linkedLeadName: lead.leadName
-        )
-
-        threads.insert(thread, at: 0)
     }
 
     private func moveThreadToTop(_ threadId: UUID) {
@@ -125,23 +260,41 @@ final class MessagesViewModel: ObservableObject {
         let thread = threads.remove(at: index)
         threads.insert(thread, at: 0)
     }
+
+    func refresh() {
+        Task { await loadThreads() }
+    }
 }
 
 @MainActor
+@available(iOS 18.0, *)
 final class ChatViewModel: ObservableObject {
 
     let thread: MessageThread
     private let onMessagesUpdated: ([ChatMessage]) -> Void
+    private let chatService: ChatServiceProtocol
+    private let roomID: String
+    private var messageStreamTask: Task<Void, Never>?
 
     @Published var messages: [ChatMessage]
     @Published var draftText: String = ""
+    @Published var isLoading: Bool = false
+    @Published var errorMessage: String? = nil
 
     private let agentId = UUID()
 
-    init(thread: MessageThread, onMessagesUpdated: @escaping ([ChatMessage]) -> Void = { _ in }) {
+    init(thread: MessageThread, chatService: ChatServiceProtocol = ChatService(), onMessagesUpdated: @escaping ([ChatMessage]) -> Void = { _ in }) {
         self.thread = thread
+        self.chatService = chatService
         self.onMessagesUpdated = onMessagesUpdated
         self.messages = thread.messages
+        self.roomID = thread.id.uuidString
+        loadMessages()
+        startStreaming()
+    }
+
+    deinit {
+        messageStreamTask?.cancel()
     }
 
     var navigationTitle: String { thread.participant.name }
@@ -176,43 +329,123 @@ final class ChatViewModel: ObservableObject {
         return sorted.map { (date: $0.key, messages: $0.value.sorted { $0.sentAt < $1.sentAt }) }
     }
 
+    private func loadMessages() {
+        isLoading = true
+        errorMessage = nil
+
+        Task {
+            do {
+                let protoMessages = try await chatService.listRoomMessages(
+                    roomID: roomID,
+                    limit: 100,
+                    offset: 0
+                )
+                let convertedMessages = protoMessages.map { proto in
+                    convertToChatMessage(protoMessage: proto, threadId: thread.id)
+                }
+                await MainActor.run {
+                    self.messages = convertedMessages
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                    self.isLoading = false
+                }
+            }
+        }
+    }
+
+    private func startStreaming() {
+        messageStreamTask = Task {
+            let stream = chatService.subscribeToRoomMessages(roomID: roomID)
+
+            do {
+                for try await event in stream {
+                    if Task.isCancelled { break }
+
+                    if !event.isHeartbeat, let newMessage = event.message {
+                        await MainActor.run {
+                            let convertedMessage = self.convertToChatMessage(protoMessage: newMessage, threadId: self.thread.id)
+                            if !self.messages.contains(where: { $0.id == convertedMessage.id }) {
+                                self.messages.append(convertedMessage)
+                            }
+                        }
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
+        }
+    }
+
+    private func convertToChatMessage(protoMessage: ChatMessage, threadId: UUID) -> ChatMessage {
+        return ChatMessage(
+            id: UUID(uuidString: protoMessage.id) ?? UUID(),
+            threadId: threadId,
+            senderId: UUID(uuidString: protoMessage.senderUserID) ?? UUID(),
+            senderRole: .dstAgent, // TODO: Determine role from proto
+            content: protoMessage.body,
+            sentAt: protoMessage.createdAt,
+            isRead: true,
+            attachmentRef: nil
+        )
+    }
+
     func sendMessage() {
         guard canSend else { return }
         let text = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
         draftText = ""
 
-        let newMessage = ChatMessage(
-            id: UUID(),
-            threadId: thread.id,
-            senderId: agentId,
-            senderRole: .dstAgent,
-            content: text,
-            sentAt: Date(),
-            isRead: true,
-            attachmentRef: nil
-        )
-
-        withAnimation(.easeOut(duration: 0.2)) {
-            messages.append(newMessage)
+        Task {
+            do {
+                let sentMessage = try await chatService.sendMessage(
+                    roomID: roomID,
+                    body: text,
+                    messageType: .text,
+                    metadataJSON: nil
+                )
+                let convertedMessage = convertToChatMessage(protoMessage: sentMessage, threadId: thread.id)
+                await MainActor.run {
+                    if !self.messages.contains(where: { $0.id == convertedMessage.id }) {
+                        self.messages.append(convertedMessage)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                    self.draftText = text // Restore text on error
+                }
+            }
         }
-        onMessagesUpdated(messages)
     }
 
     func sendAttachment(fileName: String) {
-        let newMessage = ChatMessage(
-            id: UUID(),
-            threadId: thread.id,
-            senderId: agentId,
-            senderRole: .dstAgent,
-            content: fileName,
-            sentAt: Date(),
-            isRead: true,
-            attachmentRef: fileName
-        )
-
-        withAnimation(.easeOut(duration: 0.2)) {
-            messages.append(newMessage)
+        Task {
+            do {
+                let sentMessage = try await chatService.sendMessage(
+                    roomID: roomID,
+                    body: fileName,
+                    messageType: .text,
+                    metadataJSON: "{\"attachment\": \"\(fileName)\"}"
+                )
+                let convertedMessage = convertToChatMessage(protoMessage: sentMessage, threadId: thread.id)
+                await MainActor.run {
+                    if !self.messages.contains(where: { $0.id == convertedMessage.id }) {
+                        self.messages.append(convertedMessage)
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = error.localizedDescription
+                }
+            }
         }
-        onMessagesUpdated(messages)
+    }
+
+    func refresh() {
+        loadMessages()
     }
 }

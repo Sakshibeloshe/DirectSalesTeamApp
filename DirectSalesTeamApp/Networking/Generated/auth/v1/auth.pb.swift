@@ -875,6 +875,64 @@ public struct Auth_V1_GetMyProfileResponse: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
+public struct Auth_V1_SearchBorrowerSignupStatusRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var query: String = String()
+
+  public var limit: Int32 = 0
+
+  public var offset: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_BorrowerSignupStatusItem: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var userID: String = String()
+
+  public var email: String = String()
+
+  public var phone: String = String()
+
+  public var isEmailVerified: Bool = false
+
+  public var isPhoneVerified: Bool = false
+
+  public var isActive: Bool = false
+
+  public var onboardingCompleted: Bool = false
+
+  public var kycCompleted: Bool = false
+
+  public var borrowerProfileID: String = String()
+
+  public var signupStage: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+public struct Auth_V1_SearchBorrowerSignupStatusResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var items: [Auth_V1_BorrowerSignupStatusItem] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Auth_V1_RefreshTokenRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2674,6 +2732,151 @@ extension Auth_V1_GetMyProfileResponse: SwiftProtobuf.Message, SwiftProtobuf._Me
       }
       if !storagesAreEqual {return false}
     }
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_SearchBorrowerSignupStatusRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SearchBorrowerSignupStatusRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}query\0\u{1}limit\0\u{1}offset\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.query) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.limit) }()
+      case 3: try { try decoder.decodeSingularInt32Field(value: &self.offset) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.query.isEmpty {
+      try visitor.visitSingularStringField(value: self.query, fieldNumber: 1)
+    }
+    if self.limit != 0 {
+      try visitor.visitSingularInt32Field(value: self.limit, fieldNumber: 2)
+    }
+    if self.offset != 0 {
+      try visitor.visitSingularInt32Field(value: self.offset, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_SearchBorrowerSignupStatusRequest, rhs: Auth_V1_SearchBorrowerSignupStatusRequest) -> Bool {
+    if lhs.query != rhs.query {return false}
+    if lhs.limit != rhs.limit {return false}
+    if lhs.offset != rhs.offset {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_BorrowerSignupStatusItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".BorrowerSignupStatusItem"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}user_id\0\u{1}email\0\u{1}phone\0\u{3}is_email_verified\0\u{3}is_phone_verified\0\u{3}is_active\0\u{3}onboarding_completed\0\u{3}kyc_completed\0\u{3}borrower_profile_id\0\u{3}signup_stage\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.userID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.email) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.phone) }()
+      case 4: try { try decoder.decodeSingularBoolField(value: &self.isEmailVerified) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.isPhoneVerified) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.isActive) }()
+      case 7: try { try decoder.decodeSingularBoolField(value: &self.onboardingCompleted) }()
+      case 8: try { try decoder.decodeSingularBoolField(value: &self.kycCompleted) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.borrowerProfileID) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.signupStage) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.userID.isEmpty {
+      try visitor.visitSingularStringField(value: self.userID, fieldNumber: 1)
+    }
+    if !self.email.isEmpty {
+      try visitor.visitSingularStringField(value: self.email, fieldNumber: 2)
+    }
+    if !self.phone.isEmpty {
+      try visitor.visitSingularStringField(value: self.phone, fieldNumber: 3)
+    }
+    if self.isEmailVerified != false {
+      try visitor.visitSingularBoolField(value: self.isEmailVerified, fieldNumber: 4)
+    }
+    if self.isPhoneVerified != false {
+      try visitor.visitSingularBoolField(value: self.isPhoneVerified, fieldNumber: 5)
+    }
+    if self.isActive != false {
+      try visitor.visitSingularBoolField(value: self.isActive, fieldNumber: 6)
+    }
+    if self.onboardingCompleted != false {
+      try visitor.visitSingularBoolField(value: self.onboardingCompleted, fieldNumber: 7)
+    }
+    if self.kycCompleted != false {
+      try visitor.visitSingularBoolField(value: self.kycCompleted, fieldNumber: 8)
+    }
+    if !self.borrowerProfileID.isEmpty {
+      try visitor.visitSingularStringField(value: self.borrowerProfileID, fieldNumber: 9)
+    }
+    if !self.signupStage.isEmpty {
+      try visitor.visitSingularStringField(value: self.signupStage, fieldNumber: 10)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_BorrowerSignupStatusItem, rhs: Auth_V1_BorrowerSignupStatusItem) -> Bool {
+    if lhs.userID != rhs.userID {return false}
+    if lhs.email != rhs.email {return false}
+    if lhs.phone != rhs.phone {return false}
+    if lhs.isEmailVerified != rhs.isEmailVerified {return false}
+    if lhs.isPhoneVerified != rhs.isPhoneVerified {return false}
+    if lhs.isActive != rhs.isActive {return false}
+    if lhs.onboardingCompleted != rhs.onboardingCompleted {return false}
+    if lhs.kycCompleted != rhs.kycCompleted {return false}
+    if lhs.borrowerProfileID != rhs.borrowerProfileID {return false}
+    if lhs.signupStage != rhs.signupStage {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_SearchBorrowerSignupStatusResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".SearchBorrowerSignupStatusResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}items\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeRepeatedMessageField(value: &self.items) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.items.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.items, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_SearchBorrowerSignupStatusResponse, rhs: Auth_V1_SearchBorrowerSignupStatusResponse) -> Bool {
+    if lhs.items != rhs.items {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
