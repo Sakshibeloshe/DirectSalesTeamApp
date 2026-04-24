@@ -413,9 +413,16 @@ struct QuickLoginView: View {
                         bioError = "Passkey verification failed."
                     }
                 }
-            } catch let error as AuthError where error == .deviceMismatch || error == .sessionExpired {
-                if registerFailedAttempt() {
-                    bioError = error.localizedDescription
+            } catch let error as AuthError {
+                switch error {
+                case .deviceMismatch, .sessionExpired:
+                    if registerFailedAttempt() {
+                        bioError = error.localizedDescription
+                    }
+                default:
+                    if registerFailedAttempt() {
+                        bioError = "Authentication failed. Please try again."
+                    }
                 }
             } catch {
                 // PasskeyManager.PasskeyError.cancelled means user cancelled Face ID
