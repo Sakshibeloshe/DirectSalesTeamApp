@@ -1,340 +1,217 @@
 import SwiftUI
+import GRPCCore
 
 struct AddLeadView: View {
     @ObservedObject var viewModel: LeadsViewModel
     @Environment(\.dismiss) private var dismiss
 
-    @State private var name           = ""
-    @State private var phone          = ""
-    @State private var selectedType   = LoanType.home
-    @State private var amountText     = ""
+    @State private var name = ""
+    @State private var phone = ""
+    @State private var email = ""
+    @State private var selectedType = LoanType.home
+    @State private var amountText = ""
     @State private var showTypePicker = false
-    @State private var didAttemptSubmit = false   // show errors only after first tap
-    @FocusState private var focused: Field?
+    @State private var didAttemptSubmit = false
 
-    enum Field { case name, phone, amount }
+    // Borrower Profile Resolution
+    @State private var borrowerStatus: BorrowerStatus = .unknown
+    @State private var showBorrowerLookupErrorAlert = false
+    @State private var borrowerLookupErrorMessage = ""
+    @State private var showBorrowerSignupPrompt = false
+    @State private var isCheckingBorrower = false
+    private let borrowerLookupService = BorrowerLookupService()
 
-    // MARK: - Validation (live, not just on submit)
+    enum BorrowerStatus {
+        case unknown
+        case checking
+        case found(profileID: String?, name: String)
+        case notFound
+        case error
+
+        var displayText: String {
+            switch self {
+            case .unknown: return ""
+            case .checking: return "Checking if borrower exists..."
+            case .found(_, let name): return "✓ Found existing borrower: \(name)"
+            case .notFound: return "⚠️ Borrower not registered"
+            case .error: return "Unable to verify borrower"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .unknown: return .clear
+            case .checking: return .gray
+            case .found: return .green
+            case .notFound: return .red
+            case .error: return .orange
+            }
+        }
+
+        var icon: String? {
+            switch self {
+            case .unknown, .checking: return nil
+            case .found: return "checkmark.circle.fill"
+            case .notFound: return "exclamationmark.triangle.fill"
+            case .error: return "xmark.circle.fill"
+            }
+        }
+    }
+
+    // MARK: - Validation
     private var nameTrimmed: String { name.trimmingCharacters(in: .whitespaces) }
     private var phoneDigits: String { phone.filter(\.isNumber) }
-
-    private var nameError: String? {
-        guard didAttemptSubmit || !name.isEmpty else { return nil }
-        return nameTrimmed.count < 2 ? "Enter at least 2 characters" : nil
-    }
-    private var phoneError: String? {
-        guard didAttemptSubmit || !phone.isEmpty else { return nil }
-        if phoneDigits.isEmpty { return "Enter a phone number" }
-        return phoneDigits.count != 10 ? "Must be exactly 10 digits (\(phoneDigits.count)/10)" : nil
-    }
-    private var amountError: String? {
-        guard didAttemptSubmit || !amountText.isEmpty else { return nil }
-        return (Double(amountText) ?? 0) <= 0 ? "Enter a valid amount" : nil
-    }
+    private var emailTrimmed: String { email.trimmingCharacters(in: .whitespaces) }
 
     private var formValid: Bool {
         nameTrimmed.count >= 2 &&
         phoneDigits.count == 10 &&
+        (emailTrimmed.isEmpty || emailError == nil) &&
         (Double(amountText) ?? 0) > 0
     }
 
-    // MARK: - Body
+    private var buttonTitle: String {
+        if isCheckingBorrower { return "Checking borrower..." }
+        if formValid { return "Add Lead" }
+        return "Add Lead"
+    }
+
+    private var emailError: String? {
+        if emailTrimmed.isEmpty { return nil }
+        let regex = #"^[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        return emailTrimmed.range(of: regex, options: .regularExpression) == nil
+        ? "Invalid email"
+        : nil
+    }
+
+    // MARK: - UI
     var body: some View {
         NavigationStack {
-            VStack(spacing: 0) {
+            VStack {
+                ScrollView {
+                    VStack(spacing: 16) {
 
+                        TextField("Name", text: $name)
+                        TextField("Phone", text: $phone)
+                            .keyboardType(.numberPad)
+                        TextField("Email", text: $email)
 
-            // ── Scrollable form ──
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: AppSpacing.lg) {
+                        TextField("Amount", text: $amountText)
+                            .keyboardType(.numberPad)
 
-                    // Full Name
-                    formField(
-                        label: "FULL NAME",
-                        placeholder: "e.g. Arjun Mehta",
-                        text: $name,
-                        field: .name,
-                        keyboard: .default,
-                        errorMessage: nameError
-                    )
-                    .onChange(of: name) { _ in
-                        if didAttemptSubmit { /* keep showing errors once triggered */ }
+                        borrowerStatusView
                     }
-
-                    // Phone Number — live digit counter
-                    phoneField
-
-                    // Loan Type
-                    loanTypePicker
-
-                    // Loan Amount
-                    amountField
+                    .padding()
                 }
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.bottom, AppSpacing.md)
-            }
 
-            // ── Sticky bottom button ──
-            bottomButton
-        }
-        .background(Color.surfacePrimary)
-        .navigationTitle("New Lead")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button("Close") { dismiss() }
+                Button(action: submit) {
+                    Text(buttonTitle)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(formValid && !isCheckingBorrower ? Color.blue : Color.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+                .disabled(!formValid || isCheckingBorrower)
+                .padding()
             }
-        }
-        // Dismiss keyboard on drag
-        .gesture(
-            DragGesture(minimumDistance: 10, coordinateSpace: .local)
-                .onChanged { _ in focused = nil }
-        )
+            .navigationTitle("Add Lead")
+            .sheet(isPresented: $showBorrowerSignupPrompt) {
+                borrowerSignupPromptSheet
+            }
+            .alert("Unable to verify borrower", isPresented: $showBorrowerLookupErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(borrowerLookupErrorMessage)
+            }
         }
     }
 
-    // MARK: - Phone field (special: shows digit counter)
-    private var phoneField: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text("PHONE NUMBER")
-                .font(AppFont.captionMed())
-                .foregroundColor(Color.textSecondary)
-                .tracking(0.6)
+    private var borrowerStatusView: some View {
+        HStack {
+            if case .checking = borrowerStatus {
+                ProgressView()
+            } else if let icon = borrowerStatus.icon {
+                Image(systemName: icon)
+            }
 
-            HStack {
-                TextField("10-digit mobile number", text: $phone)
-                    .font(AppFont.body())
-                    .foregroundColor(Color.textPrimary)
-                    .keyboardType(.phonePad)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .focused($focused, equals: .phone)
-                    .onChange(of: phone) { val in
-                        // Cap at 10 digits
-                        let digits = val.filter(\.isNumber)
-                        if digits.count > 10 {
-                            phone = String(digits.prefix(10))
-                        } else {
-                            phone = digits   // strip non-digits as user types
-                        }
+            Text(borrowerStatus.displayText)
+            Spacer()
+        }
+    }
+
+    private var borrowerSignupPromptSheet: some View {
+        NavigationStack {
+            VStack(alignment: .leading, spacing: 14) {
+                Image(systemName: "person.crop.circle.badge.exclamationmark")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.orange)
+                Text("Borrower not registered")
+                    .font(.headline)
+                Text("No borrower account was found for this phone/email. Ask the user to download the Borrower app and complete signup first.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Registration Required")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("OK") {
+                        showBorrowerSignupPrompt = false
                     }
-
-                if !phoneDigits.isEmpty {
-                    Text("\(phoneDigits.count)/10")
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundColor(phoneDigits.count == 10 ? Color.statusSubmitted : Color.textTertiary)
-                        .animation(.easeInOut, value: phoneDigits.count)
                 }
             }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.vertical, 16)
-            .background(fieldBackground(for: .phone, hasError: phoneError != nil))
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-            .overlay(fieldBorder(for: .phone, hasError: phoneError != nil))
-
-            if let err = phoneError {
-                errorLabel(err)
-            }
         }
-    }
-
-    // MARK: - Loan Type Picker
-    private var loanTypePicker: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text("LOAN TYPE")
-                .font(AppFont.captionMed())
-                .foregroundColor(Color.textSecondary)
-                .tracking(0.6)
-
-            Button { showTypePicker = true } label: {
-                HStack {
-                    HStack(spacing: 8) {
-                        Image(systemName: selectedType.icon)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Color.brandBlue)
-                        Text(selectedType.rawValue)
-                            .font(AppFont.body())
-                            .foregroundColor(Color.textPrimary)
-                    }
-                    Spacer()
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(Color.textTertiary)
-                }
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.vertical, 16)
-                .background(Color(hex: "#F0F4FF"))
-                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-            }
-            .buttonStyle(.plain)
-            .confirmationDialog("Select Loan Type", isPresented: $showTypePicker, titleVisibility: .visible) {
-                ForEach(LoanType.allCases, id: \.self) { t in
-                    Button(t.rawValue) { selectedType = t }
-                }
-                Button("Cancel", role: .cancel) {}
-            }
-        }
-    }
-
-    // MARK: - Amount Field
-    private var amountField: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text("LOAN AMOUNT")
-                .font(AppFont.captionMed())
-                .foregroundColor(Color.textSecondary)
-                .tracking(0.6)
-
-            HStack(spacing: 6) {
-                Text("₹")
-                    .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(Color.textSecondary)
-                TextField("0", text: $amountText)
-                    .font(AppFont.body())
-                    .foregroundColor(Color.textPrimary)
-                    .keyboardType(.numberPad)
-                    .focused($focused, equals: .amount)
-            }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.vertical, 16)
-            .background(fieldBackground(for: .amount, hasError: amountError != nil))
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-            .overlay(fieldBorder(for: .amount, hasError: amountError != nil))
-
-            // Live formatted preview
-            if let amt = Double(amountText), amt > 0 {
-                let dummy = Lead(id: UUID(), name: "", phone: "", email: "",
-                                 loanType: selectedType, loanAmount: amt,
-                                 status: .new, createdAt: Date(), updatedAt: Date())
-                HStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(Color.statusSubmitted)
-                    Text("≈ \(dummy.formattedAmount)")
-                        .font(AppFont.caption())
-                        .foregroundColor(Color.statusSubmitted)
-                }
-                .padding(.leading, 4)
-            } else if let err = amountError {
-                errorLabel(err)
-            }
-        }
-    }
-
-    // MARK: - Sticky Bottom Button
-    private var bottomButton: some View {
-        VStack(spacing: 0) {
-            Divider()
-            Button {
-                didAttemptSubmit = true
-                guard formValid else { return }
-                submit()
-            } label: {
-                HStack(spacing: 8) {
-                    if formValid {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 16, weight: .semibold))
-                    }
-                    Text("Add Lead")
-                        .font(.system(size: 16, weight: .semibold))
-                }
-                .foregroundColor(formValid ? .white : Color.textTertiary)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: AppRadius.sm)
-                        .fill(formValid ? Color.brandBlue : Color(UIColor.systemGray5))
-                )
-                .animation(.easeInOut(duration: 0.18), value: formValid)
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.top, 12)
-            .padding(.bottom, max(AppSpacing.md, 8))  // safe area clearance
-        }
-        .background(Color.surfacePrimary)
-    }
-
-    // MARK: - Generic form field
-    private func formField(
-        label: String,
-        placeholder: String,
-        text: Binding<String>,
-        field: Field,
-        keyboard: UIKeyboardType,
-        errorMessage: String?
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 7) {
-            Text(label)
-                .font(AppFont.captionMed())
-                .foregroundColor(Color.textSecondary)
-                .tracking(0.6)
-
-            TextField(placeholder, text: text)
-                .font(AppFont.body())
-                .foregroundColor(Color.textPrimary)
-                .keyboardType(keyboard)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(field == .name ? .words : .never)
-                .focused($focused, equals: field)
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.vertical, 16)
-                .background(fieldBackground(for: field, hasError: errorMessage != nil))
-                .clipShape(RoundedRectangle(cornerRadius: AppRadius.sm))
-                .overlay(fieldBorder(for: field, hasError: errorMessage != nil))
-
-            if let err = errorMessage {
-                errorLabel(err)
-            }
-        }
-    }
-
-    // MARK: - Helpers
-    private func fieldBackground(for field: Field, hasError: Bool) -> Color {
-        if hasError { return Color(hex: "#FFF1F1") }
-        if focused == field { return Color(hex: "#EEF3FF") }
-        return Color(hex: "#F0F4FF")
-    }
-
-    private func fieldBorder(for field: Field, hasError: Bool) -> some View {
-        RoundedRectangle(cornerRadius: AppRadius.sm)
-            .strokeBorder(
-                hasError ? Color.statusRejected.opacity(0.5)
-                    : focused == field ? Color.brandBlue.opacity(0.5)
-                    : Color.clear,
-                lineWidth: 1.5
-            )
-    }
-
-    private func errorLabel(_ text: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: "exclamationmark.circle.fill")
-                .font(.system(size: 11))
-                .foregroundColor(Color.statusRejected)
-            Text(text)
-                .font(AppFont.caption())
-                .foregroundColor(Color.statusRejected)
-        }
-        .padding(.leading, 4)
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        .presentationDetents([.height(280)])
     }
 
     // MARK: - Submit
     private func submit() {
+        guard formValid else { return }
+
+        Task {
+            await verifyBorrowerAndSubmitLead()
+        }
+    }
+
+    @MainActor
+    private func verifyBorrowerAndSubmitLead() async {
         guard let amount = Double(amountText) else { return }
-        let newLead = Lead(
-            id: UUID(),
-            name: nameTrimmed,
-            phone: phoneDigits,
-            email: "",
-            loanType: selectedType,
-            loanAmount: amount,
-            status: .new,
-            createdAt: Date(),
-            updatedAt: Date(),
-            assignedRM: nil,
-            branchCode: nil
-        )
-        viewModel.addLead(newLead)
-        dismiss()
+        borrowerStatus = .checking
+        isCheckingBorrower = true
+        defer { isCheckingBorrower = false }
+
+        do {
+            if let result = try await borrowerLookupService.resolveBorrower(email: emailTrimmed, phone: phoneDigits) {
+                borrowerStatus = .found(profileID: result.borrowerProfileID, name: result.displayName)
+                let lead = Lead(
+                    id: UUID(),
+                    name: nameTrimmed,
+                    phone: phoneDigits,
+                    email: emailTrimmed,
+                    borrowerProfileID: result.borrowerProfileID,
+                    loanType: selectedType,
+                    loanAmount: amount,
+                    status: .new,
+                    createdAt: Date(),
+                    updatedAt: Date()
+                )
+                viewModel.addLead(lead)
+                dismiss()
+            } else {
+                borrowerStatus = .notFound
+                showBorrowerSignupPrompt = true
+            }
+        } catch let rpcError as RPCError where rpcError.code == .cancelled {
+            borrowerStatus = .unknown
+        } catch is CancellationError {
+            borrowerStatus = .unknown
+        } catch {
+            borrowerStatus = .error
+            borrowerLookupErrorMessage = error.localizedDescription
+            showBorrowerLookupErrorAlert = true
+        }
     }
 }

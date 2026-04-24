@@ -79,6 +79,7 @@ struct Lead: Identifiable, Codable, Hashable {
     var name: String
     var phone: String
     var email: String
+    var borrowerProfileID: String?
     var loanType: LoanType
     var loanAmount: Double
     var status: LeadStatus
@@ -86,6 +87,34 @@ struct Lead: Identifiable, Codable, Hashable {
     var updatedAt: Date
     var assignedRM: String?
     var branchCode: String?
+
+    init(
+        id: UUID,
+        name: String,
+        phone: String,
+        email: String,
+        borrowerProfileID: String? = nil,
+        loanType: LoanType,
+        loanAmount: Double,
+        status: LeadStatus,
+        createdAt: Date,
+        updatedAt: Date,
+        assignedRM: String? = nil,
+        branchCode: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.phone = phone
+        self.email = email
+        self.borrowerProfileID = borrowerProfileID
+        self.loanType = loanType
+        self.loanAmount = loanAmount
+        self.status = status
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.assignedRM = assignedRM
+        self.branchCode = branchCode
+    }
 
     var initials: String {
         let parts = name.split(separator: " ")

@@ -25,8 +25,6 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1820EB202F9187ED00906F4E /* DirectSalesTeamApp */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = DirectSalesTeamApp;
 			sourceTree = "<group>";
 		};
