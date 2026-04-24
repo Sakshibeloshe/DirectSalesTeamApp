@@ -189,12 +189,24 @@ public final class ChatGRPCClient: ChatGRPCClientProtocol {
         metadata: Metadata,
         options: CallOptions
     ) async throws -> AsyncThrowingStream<Chat_V1_ChatMessageEvent, Error> {
-        do {
-            let stream = try await client.subscribeRoomMessages(
-                request: .init(message: request, metadata: metadata),
-                options: options
-            )
-            return stream
-        } catch { throw ChatError.from(error) }
+        AsyncThrowingStream { continuation in
+            Task {
+                do {
+                    try await client.subscribeRoomMessages(
+                        request,
+                        metadata: metadata,
+                        options: options,
+                        onResponse: { streamingResponse in
+                            for try await message in streamingResponse.messages {
+                                continuation.yield(message)
+                            }
+                        }
+                    )
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
     }
 }

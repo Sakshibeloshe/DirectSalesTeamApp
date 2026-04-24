@@ -61,9 +61,9 @@ public enum ChatRoomType: String, Equatable {
 
     public init(from proto: Chat_V1_ChatRoomType) {
         switch proto {
-        case .chatRoomTypeUnspecified:
+        case .unspecified:
             self = .unspecified
-        case .chatRoomTypeDirect:
+        case .direct:
             self = .direct
         case .UNRECOGNIZED:
             self = .unspecified
@@ -73,9 +73,9 @@ public enum ChatRoomType: String, Equatable {
     public var protoValue: Chat_V1_ChatRoomType {
         switch self {
         case .unspecified:
-            return .chatRoomTypeUnspecified
+            return .unspecified
         case .direct:
-            return .chatRoomTypeDirect
+            return .direct
         }
     }
 }
@@ -88,9 +88,9 @@ public enum ChatMessageType: String, Equatable {
 
     public init(from proto: Chat_V1_ChatMessageType) {
         switch proto {
-        case .chatMessageTypeUnspecified:
+        case .unspecified:
             self = .unspecified
-        case .chatMessageTypeText:
+        case .text:
             self = .text
         case .UNRECOGNIZED:
             self = .unspecified
@@ -100,16 +100,16 @@ public enum ChatMessageType: String, Equatable {
     public var protoValue: Chat_V1_ChatMessageType {
         switch self {
         case .unspecified:
-            return .chatMessageTypeUnspecified
+            return .unspecified
         case .text:
-            return .chatMessageTypeText
+            return .text
         }
     }
 }
 
-// MARK: - ChatMessage
+// MARK: - ChatDomainMessage
 
-public struct ChatMessage: Identifiable, Equatable {
+public struct ChatDomainMessage: Identifiable, Equatable {
     public let id: String
     public let roomID: String
     public let senderUserID: String
@@ -143,7 +143,7 @@ public struct ChatMessage: Identifiable, Equatable {
         self.senderUserID = proto.senderUserID
         self.messageType = ChatMessageType(from: proto.messageType)
         self.body = proto.body
-        self.metadataJSON = proto.metadataJSON
+        self.metadataJSON = proto.metadataJson
         self.createdAt = ISO8601DateFormatter().date(from: proto.createdAt) ?? Date()
     }
 
@@ -186,7 +186,7 @@ public struct ChatRoom: Identifiable, Equatable {
     public let contextApplicationID: String?
     public let createdAt: Date
     public let updatedAt: Date
-    public let latestMessage: ChatMessage?
+    public let latestMessage: ChatDomainMessage?
 
     public init(
         id: String,
@@ -197,7 +197,7 @@ public struct ChatRoom: Identifiable, Equatable {
         contextApplicationID: String?,
         createdAt: Date,
         updatedAt: Date,
-        latestMessage: ChatMessage?
+        latestMessage: ChatDomainMessage?
     ) {
         self.id = id
         self.roomType = roomType
@@ -220,7 +220,7 @@ public struct ChatRoom: Identifiable, Equatable {
         self.contextApplicationID = proto.contextApplicationID.isEmpty ? nil : proto.contextApplicationID
         self.createdAt = ISO8601DateFormatter().date(from: proto.createdAt) ?? Date()
         self.updatedAt = ISO8601DateFormatter().date(from: proto.updatedAt) ?? Date()
-        self.latestMessage = proto.hasLatestMessage ? ChatMessage(from: proto.latestMessage) : nil
+        self.latestMessage = proto.hasLatestMessage ? ChatDomainMessage(from: proto.latestMessage) : nil
     }
 
     // Get the other user's ID (not the current user)
@@ -248,13 +248,13 @@ public struct ChatRoom: Identifiable, Equatable {
 // MARK: - ChatMessageEvent
 
 public enum ChatMessageEvent: Equatable {
-    case message(ChatMessage)
+    case message(ChatDomainMessage)
     case heartbeat(String)
 
     public init(from proto: Chat_V1_ChatMessageEvent) {
         switch proto.payload {
         case .message(let msg):
-            self = .message(ChatMessage(from: msg))
+            self = .message(ChatDomainMessage(from: msg))
         case .heartbeat(let beat):
             self = .heartbeat(beat)
         case nil:
@@ -269,7 +269,7 @@ public enum ChatMessageEvent: Equatable {
         return false
     }
 
-    public var message: ChatMessage? {
+    public var message: ChatDomainMessage? {
         if case .message(let msg) = self {
             return msg
         }

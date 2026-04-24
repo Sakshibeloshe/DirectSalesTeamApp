@@ -6,6 +6,7 @@
 
 import Foundation
 import GRPCCore
+import SwiftProtobuf
 import Combine
 
 // MARK: - ChatServiceProtocol
@@ -15,8 +16,8 @@ public protocol ChatServiceProtocol: Sendable {
     func listEligibleUsers(query: String, limit: Int, offset: Int) async throws -> [ChatUser]
     func createOrGetDirectRoom(targetUserID: String, contextApplicationID: String?) async throws -> ChatRoom
     func listMyChatRooms(limit: Int, offset: Int) async throws -> [ChatRoom]
-    func listRoomMessages(roomID: String, limit: Int, offset: Int) async throws -> [ChatMessage]
-    func sendMessage(roomID: String, body: String, messageType: ChatMessageType, metadataJSON: String?) async throws -> ChatMessage
+    func listRoomMessages(roomID: String, limit: Int, offset: Int) async throws -> [ChatDomainMessage]
+    func sendMessage(roomID: String, body: String, messageType: ChatMessageType, metadataJSON: String?) async throws -> ChatDomainMessage
     func subscribeToRoomMessages(roomID: String, afterMessageID: String?) -> AsyncThrowingStream<ChatMessageEvent, Error>
 }
 
@@ -26,14 +27,11 @@ public protocol ChatServiceProtocol: Sendable {
 public final class ChatService: ChatServiceProtocol {
 
     private let grpcClient: ChatGRPCClientProtocol
-    private let callOptionsFactory: AuthCallOptionsFactory
 
     public init(
-        grpcClient: ChatGRPCClientProtocol = ChatGRPCClient(),
-        callOptionsFactory: AuthCallOptionsFactory = AuthCallOptionsFactory()
+        grpcClient: ChatGRPCClientProtocol = ChatGRPCClient()
     ) {
         self.grpcClient = grpcClient
-        self.callOptionsFactory = callOptionsFactory
     }
 
     // MARK: - User Discovery
@@ -49,9 +47,11 @@ public final class ChatService: ChatServiceProtocol {
             $0.offset = Int32(offset)
         }
 
-        let options = try callOptionsFactory.makeCallOptions()
+        let accessToken = try TokenStore.shared.accessToken() ?? ""
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: accessToken)
         let response = try await grpcClient.listChatEligibleUsers(
             request: request,
+            metadata: metadata,
             options: options
         )
 
@@ -71,9 +71,11 @@ public final class ChatService: ChatServiceProtocol {
             }
         }
 
-        let options = try callOptionsFactory.makeCallOptions()
+        let accessToken = try TokenStore.shared.accessToken() ?? ""
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: accessToken)
         let response = try await grpcClient.createOrGetDirectRoom(
             request: request,
+            metadata: metadata,
             options: options
         )
 
@@ -89,9 +91,11 @@ public final class ChatService: ChatServiceProtocol {
             $0.offset = Int32(offset)
         }
 
-        let options = try callOptionsFactory.makeCallOptions()
+        let accessToken = try TokenStore.shared.accessToken() ?? ""
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: accessToken)
         let response = try await grpcClient.listMyChatRooms(
             request: request,
+            metadata: metadata,
             options: options
         )
 
@@ -104,20 +108,22 @@ public final class ChatService: ChatServiceProtocol {
         roomID: String,
         limit: Int = 50,
         offset: Int = 0
-    ) async throws -> [ChatMessage] {
+    ) async throws -> [ChatDomainMessage] {
         let request = Chat_V1_ListRoomMessagesRequest.with {
             $0.roomID = roomID
             $0.limit = Int32(limit)
             $0.offset = Int32(offset)
         }
 
-        let options = try callOptionsFactory.makeCallOptions()
+        let accessToken = try TokenStore.shared.accessToken() ?? ""
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: accessToken)
         let response = try await grpcClient.listRoomMessages(
             request: request,
+            metadata: metadata,
             options: options
         )
 
-        return response.items.map { ChatMessage(from: $0) }
+        return response.items.map { ChatDomainMessage(from: $0) }
     }
 
     public func sendMessage(
@@ -125,23 +131,25 @@ public final class ChatService: ChatServiceProtocol {
         body: String,
         messageType: ChatMessageType = .text,
         metadataJSON: String? = nil
-    ) async throws -> ChatMessage {
+    ) async throws -> ChatDomainMessage {
         let request = Chat_V1_SendMessageRequest.with {
             $0.roomID = roomID
             $0.messageType = messageType.protoValue
             $0.body = body
             if let metadata = metadataJSON {
-                $0.metadataJSON = metadata
+                $0.metadataJson = metadata
             }
         }
 
-        let options = try callOptionsFactory.makeCallOptions()
+        let accessToken = try TokenStore.shared.accessToken() ?? ""
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: accessToken)
         let response = try await grpcClient.sendMessage(
             request: request,
+            metadata: metadata,
             options: options
         )
 
-        return ChatMessage(from: response.message)
+        return ChatDomainMessage(from: response.message)
     }
 
     // MARK: - Streaming
@@ -160,9 +168,11 @@ public final class ChatService: ChatServiceProtocol {
                         }
                     }
 
-                    let options = try callOptionsFactory.makeCallOptions()
+                    let accessToken = try TokenStore.shared.accessToken() ?? ""
+                    let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: accessToken)
                     let protoStream = try await grpcClient.subscribeRoomMessages(
                         request: request,
+                        metadata: metadata,
                         options: options
                     )
 

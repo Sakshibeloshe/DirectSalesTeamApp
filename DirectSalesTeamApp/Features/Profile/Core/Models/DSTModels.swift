@@ -114,6 +114,21 @@ enum ParticipantRole: String, Codable {
         case .dstAgent: return .primary
         }
     }
+
+    static func from(protoRole: String) -> ParticipantRole {
+        switch protoRole.lowercased() {
+        case "dst", "dst_agent", "directsales":
+            return .dstAgent
+        case "officer", "loan_officer":
+            return .loanOfficer
+        case "manager":
+            return .manager
+        case "borrower":
+            return .loanOfficer // Map borrowers to loan officer role for chat display
+        default:
+            return .system
+        }
+    }
 }
 
 struct ChatMessage: Identifiable, Codable {
