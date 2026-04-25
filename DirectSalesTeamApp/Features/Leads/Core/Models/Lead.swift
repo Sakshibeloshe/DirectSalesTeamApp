@@ -75,7 +75,8 @@ enum LoanType: String, CaseIterable, Codable, Hashable {
 
 // MARK: - Lead Model
 struct Lead: Identifiable, Codable, Hashable {
-    let id: UUID
+    let id: String
+    var applicationID: String?
     var name: String
     var phone: String
     var email: String
@@ -89,7 +90,8 @@ struct Lead: Identifiable, Codable, Hashable {
     var branchCode: String?
 
     init(
-        id: UUID,
+        id: String,
+        applicationID: String? = nil,
         name: String,
         phone: String,
         email: String,
@@ -103,6 +105,7 @@ struct Lead: Identifiable, Codable, Hashable {
         branchCode: String? = nil
     ) {
         self.id = id
+        self.applicationID = applicationID
         self.name = name
         self.phone = phone
         self.email = email
@@ -158,7 +161,7 @@ struct Lead: Identifiable, Codable, Hashable {
 
 // MARK: - Filter Model
 struct LeadFilter: Identifiable, Equatable {
-    let id: UUID = UUID()
+    let id: String = UUID().uuidString
     let title: String
     let status: LeadStatus?
 

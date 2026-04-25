@@ -2,12 +2,12 @@ import SwiftUI
 
 struct LeadDetailView: View {
     let lead: Lead
-    var onStatusUpdate: ((UUID, LeadStatus) -> Void)?
+    var onStatusUpdate: ((String, LeadStatus) -> Void)?
 
     @StateObject private var vm: LeadDetailViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(lead: Lead, onStatusUpdate: ((UUID, LeadStatus) -> Void)? = nil) {
+    init(lead: Lead, onStatusUpdate: ((String, LeadStatus) -> Void)? = nil) {
         self.lead = lead
         self.onStatusUpdate = onStatusUpdate
         _vm = StateObject(wrappedValue: LeadDetailViewModel(

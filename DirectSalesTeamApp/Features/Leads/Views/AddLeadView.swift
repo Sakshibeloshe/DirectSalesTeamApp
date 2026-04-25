@@ -187,7 +187,7 @@ struct AddLeadView: View {
             if let result = try await borrowerLookupService.resolveBorrower(email: emailTrimmed, phone: phoneDigits) {
                 borrowerStatus = .found(profileID: result.borrowerProfileID, name: result.displayName)
                 let lead = Lead(
-                    id: UUID(),
+                    id: UUID().uuidString,
                     name: nameTrimmed,
                     phone: phoneDigits,
                     email: emailTrimmed,

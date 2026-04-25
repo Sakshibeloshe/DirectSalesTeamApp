@@ -8,6 +8,7 @@ import SwiftUI
 struct ProfileView: View {
 
     @StateObject private var vm = ProfileViewModel()
+    @EnvironmentObject private var session: SessionStore
 
     var body: some View {
         NavigationStack {
@@ -44,7 +45,10 @@ struct ProfileView: View {
                 TermsView()
             }
             .confirmationDialog("Log out of DST Agent?", isPresented: $vm.showLogoutConfirm, titleVisibility: .visible) {
-                Button("Log Out", role: .destructive) { vm.logout() }
+                Button("Log Out", role: .destructive) {
+                    vm.showLogoutConfirm = false
+                    session.logout()
+                }
                 Button("Cancel", role: .cancel) {}
             }
         }

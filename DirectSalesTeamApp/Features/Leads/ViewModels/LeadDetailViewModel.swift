@@ -5,7 +5,7 @@ import Combine
 final class LeadDetailViewModel: ObservableObject {
 
     let lead: Lead
-    var onStatusUpdate: ((UUID, LeadStatus) -> Void)?
+    var onStatusUpdate: ((String, LeadStatus) -> Void)?
 
     @Published var documents: [LeadDocument]
     @Published var timeline: [TimelineEvent]
@@ -19,7 +19,7 @@ final class LeadDetailViewModel: ObservableObject {
     var missingCount: Int  { documents.filter { !$0.status.isUploaded }.count }
     var canSubmit: Bool    { missingCount == 0 }
 
-    init(lead: Lead, onStatusUpdate: ((UUID, LeadStatus) -> Void)? = nil) {
+    init(lead: Lead, onStatusUpdate: ((String, LeadStatus) -> Void)? = nil) {
         self.lead = lead
         self.onStatusUpdate = onStatusUpdate
         self.documents = LeadDocument.defaultDocuments(for: lead.loanType)

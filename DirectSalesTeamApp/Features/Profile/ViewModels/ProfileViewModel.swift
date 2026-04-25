@@ -82,11 +82,6 @@ final class ProfileViewModel: ObservableObject {
 
     func confirmLogout() { showLogoutConfirm = true }
 
-    func logout() {
-        // TODO: Clear keychain tokens, navigate to login
-        showLogoutConfirm = false
-    }
-
     func saveNotificationSettings() {
         // TODO: PATCH /api/agent/notification-settings
     }

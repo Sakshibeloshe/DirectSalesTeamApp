@@ -92,33 +92,57 @@ final class LeadsViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    func updateLeadStatus(id: UUID, status: LeadStatus) {
-        guard let idx = leads.firstIndex(where: { $0.id == id }) else { return }
-        leads[idx].status = status
-        leads[idx].updatedAt = Date()
-    }
-
-    func deleteLead(_ lead: Lead) {
-        guard lead.status == .submitted else {
-            errorMessage = "Only submitted leads can be deleted."
-            return
-        }
-
-        // Optimistic UI Update: directly remove from both arrays immediately with animation
-        withAnimation {
-            self.leads.removeAll { $0.id == lead.id }
-            self.filteredLeads.removeAll { $0.id == lead.id }
-        }
-
-        service.deleteLead(lead)
+    func updateLeadStatus(id: String, status: LeadStatus) {
+        guard var lead = leads.first(where: { $0.id == id }) else { return }
+        lead.status = status
+        lead.updatedAt = Date()
+        
+        service.updateLead(lead)
             .receive(on: RunLoop.main)
             .sink { [weak self] completion in
                 if case .failure(let err) = completion {
                     self?.errorMessage = err.localizedDescription
-                    // Intentionally omitting rollback logic for simplicity based on current implementation
                 }
-            } receiveValue: { _ in
-                // Successfully deleted
+            } receiveValue: { [weak self] updatedLead in
+                guard let self = self else { return }
+                if let idx = self.leads.firstIndex(where: { $0.id == id }) {
+                    self.leads[idx] = updatedLead
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func deleteLead(_ lead: Lead) {
+        // Allow deletion if it's a local lead or if it's a submitted backend lead
+        let isLocal = lead.applicationID == nil || lead.applicationID?.isEmpty == true
+        guard isLocal || lead.status == .submitted else {
+            errorMessage = "Only submitted or local leads can be deleted."
+            return
+        }
+
+        isLoading = true
+        errorMessage = nil
+
+        service.deleteLead(lead)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] completion in
+                self?.isLoading = false
+                if case .failure(let err) = completion {
+                    self?.errorMessage = err.localizedDescription
+                    // If backend fails, we should probably re-add it or reload to be safe
+                    self?.loadLeads()
+                }
+            } receiveValue: { [weak self] _ in
+                guard let self = self else { return }
+                withAnimation {
+                    self.leads.removeAll { $0.id == lead.id }
+                    self.filteredLeads.removeAll { $0.id == lead.id }
+                }
+                // Re-sync from backend to ensure cancelled leads never reappear.
+                // We add a slight delay to allow backend to process the cancellation
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.loadLeads()
+                }
             }
             .store(in: &cancellables)
     }

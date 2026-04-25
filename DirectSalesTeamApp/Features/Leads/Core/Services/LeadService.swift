@@ -33,6 +33,8 @@ final class BackendLeadService: LeadServiceProtocol {
     private let tokenStore: TokenStore
     private let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
     private let leadMetadataStore = LeadMetadataStore()
+    private let deletedLeadStore = DeletedLeadStore()
+    private let localLeadStore = LocalLeadStore()
 
     init(
         tokenStore: TokenStore = .shared,
@@ -46,11 +48,32 @@ final class BackendLeadService: LeadServiceProtocol {
         Future { promise in
             Task {
                 do {
+                    // Fetch local leads
+                    let localLeads = self.localLeadStore.all()
+                    
+                    // Fetch remote apps
                     let apps = try await self.listLoanApplications()
-                    let leads = apps
-                        .filter { $0.status != .cancelled }
+                    let remoteLeads = apps
+                        .filter { $0.status != .cancelled && !self.deletedLeadStore.contains(applicationID: $0.id) }
                         .compactMap { self.mapLoanApplicationToLead($0) }
-                    promise(.success(leads.sorted(by: { $0.createdAt > $1.createdAt })))
+                    
+                    // Merge based on ID (remote takes precedence if conflict, though unlikely)
+                    var merged = remoteLeads
+                    let remoteIDs = Set(remoteLeads.compactMap { $0.applicationID })
+                    
+                    for local in localLeads {
+                        // Only add local if it's not already converted (has no applicationID)
+                        // or if its applicationID is not in the remote list
+                        if let appID = local.applicationID, !appID.isEmpty {
+                            if !remoteIDs.contains(appID) {
+                                merged.append(local)
+                            }
+                        } else {
+                            merged.append(local)
+                        }
+                    }
+                    
+                    promise(.success(merged.sorted(by: { $0.createdAt > $1.createdAt })))
                 } catch {
                     promise(.failure(error))
                 }
@@ -61,64 +84,110 @@ final class BackendLeadService: LeadServiceProtocol {
 
     func addLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
         Future { promise in
-            Task {
-                do {
-                    guard let borrowerProfileID = lead.borrowerProfileID, !borrowerProfileID.isEmpty else {
-                        throw LeadAPIError.missingBorrowerProfile
-                    }
-
-                    let branchID = try await self.getDstBranchID()
-                    let products = try await self.listLoanProducts()
-                    guard let product = self.selectProduct(for: lead.loanType, products: products) else {
-                        throw LeadAPIError.missingLoanProduct
-                    }
-
-                    let created = try await self.createLoanApplication(
-                        borrowerProfileID: borrowerProfileID,
-                        productID: product.id,
-                        branchID: branchID,
-                        amount: lead.loanAmount,
-                        tenureMonths: 60
-                    )
-
-                    guard var mapped = self.mapLoanApplicationToLead(created) else {
-                        throw LeadAPIError.invalidResponse
-                    }
-                    // Backend loan application payload does not currently include lead-entered
-                    // contact fields. Preserve user-entered values for the newly created item.
-                    mapped.name = lead.name
-                    mapped.phone = lead.phone
-                    mapped.email = lead.email
-                    self.leadMetadataStore.save(
-                        applicationID: created.id,
-                        name: lead.name,
-                        phone: lead.phone,
-                        email: lead.email
-                    )
-                    promise(.success(mapped))
-                } catch {
-                    promise(.failure(error))
-                }
-            }
+            // For now, leads are stored locally.
+            // They are only pushed to backend when status becomes .submitted
+            self.localLeadStore.save(lead)
+            promise(.success(lead))
         }
         .eraseToAnyPublisher()
     }
 
     func updateLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
-        Just(lead)
-            .setFailureType(to: Error.self)
+        // If the lead status is .submitted and it's currently local-only (no applicationID),
+        // we push it to the backend now.
+        if lead.status == .submitted && (lead.applicationID == nil || lead.applicationID?.isEmpty == true) {
+            return Future { promise in
+                Task {
+                    do {
+                        guard let borrowerProfileID = lead.borrowerProfileID, !borrowerProfileID.isEmpty else {
+                            throw LeadAPIError.missingBorrowerProfile
+                        }
+
+                        let branchID = try await self.getDstBranchID()
+                        let products = try await self.listLoanProducts()
+                        guard let product = self.selectProduct(for: lead.loanType, products: products) else {
+                            throw LeadAPIError.missingLoanProduct
+                        }
+
+                        let created = try await self.createLoanApplication(
+                            borrowerProfileID: borrowerProfileID,
+                            productID: product.id,
+                            branchID: branchID,
+                            amount: lead.loanAmount,
+                            tenureMonths: 60
+                        )
+
+                        guard var mapped = self.mapLoanApplicationToLead(created) else {
+                            throw LeadAPIError.invalidResponse
+                        }
+                        
+                        // Preserve UI metadata
+                        mapped.name = lead.name
+                        mapped.phone = lead.phone
+                        mapped.email = lead.email
+                        
+                        self.leadMetadataStore.save(
+                            applicationID: created.id,
+                            name: lead.name,
+                            phone: lead.phone,
+                            email: lead.email
+                        )
+                        
+                        // Clear from local store as it's now in the backend
+                        self.localLeadStore.remove(id: lead.id)
+                        
+                        promise(.success(mapped))
+                    } catch {
+                        promise(.failure(error))
+                    }
+                }
+            }
             .eraseToAnyPublisher()
+        } else {
+            // Internal updates to status if remote
+            if let applicationID = lead.applicationID, !applicationID.isEmpty {
+                return Future { promise in
+                    Task {
+                        do {
+                            try await self.updateLoanApplicationStatus(applicationID: applicationID, status: self.mapLoanApplicationStatus(from: lead.status))
+                            promise(.success(lead))
+                        } catch {
+                            promise(.failure(error))
+                        }
+                    }
+                }
+                .eraseToAnyPublisher()
+            }
+            
+            // Otherwise just update local store
+            localLeadStore.save(lead)
+            return Just(lead)
+                .setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
+        }
     }
 
     func deleteLead(_ lead: Lead) -> AnyPublisher<Void, Error> {
+        // Local-only leads can always be deleted
+        let applicationID = lead.applicationID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if applicationID.isEmpty {
+            localLeadStore.remove(id: lead.id)
+            return Just(())
+                .setFailureType(to: Error.self)
+                .eraseToAnyPublisher()
+        }
+
+        // Remote leads can only be deleted if they are submitted (as a proxy for "cancellable")
         guard lead.status == .submitted else {
             return Fail(error: LeadDeletionError.onlySubmittedCanBeDeleted).eraseToAnyPublisher()
         }
+
         return Future { promise in
             Task {
                 do {
-                    try await self.cancelLoanApplication(applicationID: lead.id.uuidString)
-                    self.leadMetadataStore.remove(applicationID: lead.id.uuidString)
+                    try await self.cancelLoanApplication(applicationID: applicationID)
+                    self.leadMetadataStore.remove(applicationID: applicationID)
+                    self.deletedLeadStore.save(applicationID: applicationID)
                     promise(.success(()))
                 } catch {
                     promise(.failure(error))
@@ -177,9 +246,13 @@ final class BackendLeadService: LeadServiceProtocol {
     }
 
     private func cancelLoanApplication(applicationID: String) async throws {
+        try await self.updateLoanApplicationStatus(applicationID: applicationID, status: .cancelled)
+    }
+
+    private func updateLoanApplicationStatus(applicationID: String, status: Loan_LoanApplicationStatus) async throws {
         var request = Loan_UpdateLoanApplicationStatusRequest()
         request.applicationID = applicationID
-        request.status = .cancelled
+        request.status = status
         request.escalationReason = ""
         _ = try await unaryLoanCall(
             method: "UpdateLoanApplicationStatus",
@@ -208,6 +281,17 @@ final class BackendLeadService: LeadServiceProtocol {
         throw LeadAPIError.missingBranch
     }
 
+    private func mapLoanApplicationStatus(from status: LeadStatus) -> Loan_LoanApplicationStatus {
+        switch status {
+        case .new:         return .draft
+        case .docsPending: return .underReview
+        case .submitted:   return .submitted
+        case .rejected:    return .rejected
+        case .approved:    return .approved
+        case .disbursed:   return .disbursed
+        }
+    }
+
     private func selectProduct(for loanType: LoanType, products: [Loan_LoanProductItem]) -> Loan_LoanProductItem? {
         let category: Loan_LoanProductCategory
         switch loanType {
@@ -227,7 +311,7 @@ final class BackendLeadService: LeadServiceProtocol {
     }
 
     private func mapLoanApplicationToLead(_ application: Loan_LoanApplication) -> Lead? {
-        let id = UUID(uuidString: application.id) ?? UUID()
+        let id = application.id
         let amount = Double(application.requestedAmount) ?? 0
         guard amount > 0 else { return nil }
 
@@ -237,6 +321,7 @@ final class BackendLeadService: LeadServiceProtocol {
 
         return Lead(
             id: id,
+            applicationID: application.id,
             name: cached?.name ?? "Borrower \(application.primaryBorrowerProfileID.prefix(6))",
             phone: cached?.phone ?? "",
             email: cached?.email ?? "",
@@ -326,42 +411,48 @@ enum LeadAPIError: LocalizedError {
 // MARK: - Mock Service
 final class MockLeadService: LeadServiceProtocol {
     static let shared = MockLeadService()
+    private let store = LocalLeadStore(key: "dst.leads.mock.list")
 
-    private let mockLeads: [Lead] = [
-        Lead(id: UUID(), name: "Arjun Mehta",   phone: "9876543210", email: "arjun@email.com",   loanType: .home,      loanAmount: 3_500_000, status: .new,         createdAt: Date().addingTimeInterval(-7200),  updatedAt: Date(), assignedRM: "Priya S", branchCode: "MYS01"),
-        Lead(id: UUID(), name: "Priya Sharma",  phone: "9845001234", email: "priya@email.com",   loanType: .personal,  loanAmount:   800_000, status: .docsPending, createdAt: Date().addingTimeInterval(-86400), updatedAt: Date(), assignedRM: nil,       branchCode: "MYS01"),
-        Lead(id: UUID(), name: "Rohit Verma",   phone: "9900112233", email: "rohit@email.com",   loanType: .business,  loanAmount: 5_000_000, status: .submitted,   createdAt: Date().addingTimeInterval(-172800),updatedAt: Date(), assignedRM: "Priya S", branchCode: "MYS02"),
-        Lead(id: UUID(), name: "Kavitha Nair",  phone: "9844556677", email: "kavitha@email.com", loanType: .home,      loanAmount: 6_000_000, status: .rejected,    createdAt: Date().addingTimeInterval(-259200),updatedAt: Date(), assignedRM: "Vikram R", branchCode: "MYS01"),
-        Lead(id: UUID(), name: "Siddharth Rao", phone: "7760001234", email: "sid@email.com",     loanType: .auto,      loanAmount: 1_200_000, status: .new,         createdAt: Date().addingTimeInterval(-3600),  updatedAt: Date(), assignedRM: nil,        branchCode: "MYS03"),
-        Lead(id: UUID(), name: "Meera Patel",   phone: "9741236547", email: "meera@email.com",   loanType: .personal,  loanAmount:   500_000, status: .docsPending, createdAt: Date().addingTimeInterval(-14400), updatedAt: Date(), assignedRM: "Priya S",  branchCode: "MYS01"),
-        Lead(id: UUID(), name: "Kiran Hegde",   phone: "9632147852", email: "kiran@email.com",   loanType: .education, loanAmount: 1_500_000, status: .approved,    createdAt: Date().addingTimeInterval(-432000),updatedAt: Date(), assignedRM: "Vikram R", branchCode: "MYS02"),
-        Lead(id: UUID(), name: "Deepa Nanda",   phone: "8867452130", email: "deepa@email.com",   loanType: .home,      loanAmount: 4_200_000, status: .disbursed,   createdAt: Date().addingTimeInterval(-604800),updatedAt: Date(), assignedRM: "Priya S",  branchCode: "MYS01"),
-    ]
+    private init() {
+        if store.all().isEmpty {
+             let initials: [Lead] = [
+                Lead(id: UUID().uuidString, name: "Arjun Mehta",   phone: "9876543210", email: "arjun@email.com",   loanType: .home,      loanAmount: 3_500_000, status: .new,         createdAt: Date().addingTimeInterval(-7200),  updatedAt: Date(), assignedRM: "Priya S", branchCode: "MYS01"),
+                Lead(id: UUID().uuidString, name: "Priya Sharma",  phone: "9845001234", email: "priya@email.com",   loanType: .personal,  loanAmount:   800_000, status: .docsPending, createdAt: Date().addingTimeInterval(-86400), updatedAt: Date(), assignedRM: nil,       branchCode: "MYS01"),
+                Lead(id: UUID().uuidString, name: "Rohit Verma",   phone: "9900112233", email: "rohit@email.com",   loanType: .business,  loanAmount: 5_000_000, status: .submitted,   createdAt: Date().addingTimeInterval(-172800),updatedAt: Date(), assignedRM: "Priya S", branchCode: "MYS02"),
+                Lead(id: UUID().uuidString, name: "Kavitha Nair",  phone: "9844556677", email: "kavitha@email.com", loanType: .home,      loanAmount: 6_000_000, status: .rejected,    createdAt: Date().addingTimeInterval(-259200),updatedAt: Date(), assignedRM: "Vikram R", branchCode: "MYS01"),
+                Lead(id: UUID().uuidString, name: "Siddharth Rao", phone: "7760001234", email: "sid@email.com",     loanType: .auto,      loanAmount: 1_200_000, status: .new,         createdAt: Date().addingTimeInterval(-3600),  updatedAt: Date(), assignedRM: nil,        branchCode: "MYS03"),
+                Lead(id: UUID().uuidString, name: "Meera Patel",   phone: "9741236547", email: "meera@email.com",   loanType: .personal,  loanAmount:   500_000, status: .docsPending, createdAt: Date().addingTimeInterval(-14400), updatedAt: Date(), assignedRM: "Priya S",  branchCode: "MYS01"),
+                Lead(id: UUID().uuidString, name: "Kiran Hegde",   phone: "9632147852", email: "kiran@email.com",   loanType: .education, loanAmount: 1_500_000, status: .approved,    createdAt: Date().addingTimeInterval(-432000),updatedAt: Date(), assignedRM: "Vikram R", branchCode: "MYS02"),
+                Lead(id: UUID().uuidString, name: "Deepa Nanda",   phone: "8867452130", email: "deepa@email.com",   loanType: .home,      loanAmount: 4_200_000, status: .disbursed,   createdAt: Date().addingTimeInterval(-604800),updatedAt: Date(), assignedRM: "Priya S",  branchCode: "MYS01"),
+            ]
+            initials.forEach { store.save($0) }
+        }
+    }
 
     func fetchLeads() -> AnyPublisher<[Lead], Error> {
-        Just(mockLeads)
+        Just(store.all())
             .delay(for: .milliseconds(400), scheduler: RunLoop.main)
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }
 
     func addLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
-        Just(lead)
+        store.save(lead)
+        return Just(lead)
             .delay(for: .milliseconds(300), scheduler: RunLoop.main)
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }
 
     func updateLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
-        Just(lead)
+        store.save(lead)
+        return Just(lead)
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }
 
     func deleteLead(_ lead: Lead) -> AnyPublisher<Void, Error> {
-        guard lead.status == .submitted else {
-            return Fail(error: LeadDeletionError.onlySubmittedCanBeDeleted).eraseToAnyPublisher()
-        }
+        store.remove(id: lead.id)
         return Just(())
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
@@ -780,6 +871,80 @@ private final class LeadMetadataStore {
 
     private func persist(_ value: [String: StoredLeadMetadata]) {
         if let data = try? JSONEncoder().encode(value) {
+            defaults.set(data, forKey: key)
+        }
+    }
+}
+
+private final class DeletedLeadStore {
+    private let key = "dst.deleted.application.ids"
+    private let defaults: UserDefaults
+
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+    }
+
+    func contains(applicationID: String) -> Bool {
+        guard !applicationID.isEmpty else { return false }
+        return all().contains(applicationID)
+    }
+
+    func save(applicationID: String) {
+        guard !applicationID.isEmpty else { return }
+        var ids = all()
+        ids.insert(applicationID)
+        persist(ids)
+    }
+
+    func remove(applicationID: String) {
+        guard !applicationID.isEmpty else { return }
+        var ids = all()
+        ids.remove(applicationID)
+        persist(ids)
+    }
+
+    private func all() -> Set<String> {
+        let ids = defaults.stringArray(forKey: key) ?? []
+        return Set(ids)
+    }
+
+    private func persist(_ value: Set<String>) {
+        defaults.set(Array(value), forKey: key)
+    }
+}
+
+private final class LocalLeadStore {
+    private let key: String
+    private let defaults: UserDefaults
+
+    init(key: String = "dst.leads.local.list", defaults: UserDefaults = .standard) {
+        self.key = key
+        self.defaults = defaults
+    }
+
+    func all() -> [Lead] {
+        guard let data = defaults.data(forKey: key) else { return [] }
+        return (try? JSONDecoder().decode([Lead].self, from: data)) ?? []
+    }
+
+    func save(_ lead: Lead) {
+        var existing = all()
+        if let idx = existing.firstIndex(where: { $0.id == lead.id }) {
+            existing[idx] = lead
+        } else {
+            existing.append(lead)
+        }
+        persist(existing)
+    }
+
+    func remove(id: String) {
+        var existing = all()
+        existing.removeAll { $0.id == id }
+        persist(existing)
+    }
+
+    private func persist(_ leads: [Lead]) {
+        if let data = try? JSONEncoder().encode(leads) {
             defaults.set(data, forKey: key)
         }
     }
