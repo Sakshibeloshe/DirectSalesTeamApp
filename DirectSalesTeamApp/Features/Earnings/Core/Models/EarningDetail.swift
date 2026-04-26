@@ -15,7 +15,7 @@ struct EarningDetail {
     let loanAmount: Double
     let commission: Double
     let commissionRate: Double
-    let status: PaymentStatus
+    let status: EarningPaymentStatus
     let disbursementDate: Date
     
     let breakdown: [CommissionComponent]
@@ -39,6 +39,6 @@ struct TimelineStep {
     let isCompleted: Bool
 }
 
-enum PaymentStatus {
+enum EarningPaymentStatus {
     case paid, pending, processing
 }

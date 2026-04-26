@@ -1,19 +1,29 @@
 import SwiftUI
 
+@available(iOS 18.0, *)
 struct LeadDetailView: View {
     let lead: Lead
     var onStatusUpdate: ((String, LeadStatus) -> Void)?
+    var onLeadSave: ((Lead) -> Void)?      // called when KYC state changes
 
     @StateObject private var vm: LeadDetailViewModel
+    @StateObject private var loanAppVM: LoanApplicationViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(lead: Lead, onStatusUpdate: ((String, LeadStatus) -> Void)? = nil) {
+    init(lead: Lead, onStatusUpdate: ((String, LeadStatus) -> Void)? = nil, onLeadSave: ((Lead) -> Void)? = nil) {
         self.lead = lead
         self.onStatusUpdate = onStatusUpdate
-        _vm = StateObject(wrappedValue: LeadDetailViewModel(
-            lead: lead,
-            onStatusUpdate: onStatusUpdate
-        ))
+        self.onLeadSave = onLeadSave
+        
+        let detailVM = LeadDetailViewModel(lead: lead, onStatusUpdate: onStatusUpdate)
+        _vm = StateObject(wrappedValue: detailVM)
+        
+        let appVM = LoanApplicationViewModel(lead: lead)
+        appVM.onDocumentUploaded = { [weak detailVM] docID, fileName, mediaFileID in
+            detailVM?.markDocumentUploaded(id: docID, fileName: fileName, mediaFileID: mediaFileID)
+            detailVM?.verifyUploadedDocument(id: docID)
+        }
+        _loanAppVM = StateObject(wrappedValue: appVM)
     }
 
     var body: some View {
@@ -33,7 +43,7 @@ struct LeadDetailView: View {
                         .padding(.horizontal, AppSpacing.md)
 
                     // ── 3. Documents ──
-                    DocumentSectionView(vm: vm)
+                    DocumentSectionView(vm: vm, loanAppVM: loanAppVM)
                         .padding(.horizontal, AppSpacing.md)
 
                     // ── 4. Timeline ──
@@ -66,6 +76,23 @@ struct LeadDetailView: View {
                 }
             }
         }
+        .onAppear {
+            Task {
+                await loanAppVM.fetchLoanProducts()
+                await loanAppVM.fetchBranches()
+            }
+            loanAppVM.onLeadUpdated = { [weak vm] updatedLead in
+                // Persist to backend/local store
+                onLeadSave?(updatedLead)
+                // Sync document states in detail VM
+                vm?.syncKYCDocuments(
+                    aadhaarVerified: updatedLead.isAadhaarKycVerified,
+                    panVerified: updatedLead.isPanKycVerified,
+                    name: updatedLead.aadhaarVerifiedName,
+                    dob: updatedLead.aadhaarVerifiedDOB
+                )
+            }
+        }
         .sheet(isPresented: $vm.showEligibility) {
             EligibilityCheckView(vm: vm)
                 .presentationDetents([.large])
@@ -74,6 +101,14 @@ struct LeadDetailView: View {
             Button("Done") { dismiss() }
         } message: {
             Text("The application for \(lead.name) has been submitted for review.")
+        }
+        .alert("Submission Failed", isPresented: Binding(
+            get: { loanAppVM.submissionError != nil },
+            set: { if !$0 { loanAppVM.submissionError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(loanAppVM.submissionError ?? "")
         }
     }
 
@@ -218,8 +253,67 @@ struct LeadDetailView: View {
     private var bottomBar: some View {
         VStack(spacing: 0) {
             Divider()
+            
+            if vm.canSubmit {
+                if !loanAppVM.loanProducts.isEmpty || !loanAppVM.branches.isEmpty {
+                    VStack(alignment: .leading, spacing: AppSpacing.xs) {
+                        Text("Application Details")
+                            .font(AppFont.caption())
+                            .foregroundColor(Color.textSecondary)
+                            .padding(.horizontal, AppSpacing.md)
+                            .padding(.top, AppSpacing.sm)
+                        
+                        if !loanAppVM.loanProducts.isEmpty {
+                            Picker("Loan Product", selection: $loanAppVM.selectedProductID) {
+                                ForEach(loanAppVM.loanProducts) { product in
+                                    Text("\(product.name) (\(product.baseInterestRate)% interest)")
+                                        .tag(Optional(product.id))
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(Color.textPrimary)
+                            .padding(.horizontal, AppSpacing.sm)
+                        }
+                        
+                        if !loanAppVM.branches.isEmpty {
+                            Picker("Branch", selection: $loanAppVM.selectedBranchID) {
+                                ForEach(loanAppVM.branches) { branch in
+                                    Text("\(branch.name) (\(branch.city))")
+                                        .tag(Optional(branch.id))
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .tint(Color.textPrimary)
+                            .padding(.horizontal, AppSpacing.sm)
+                        }
+                    }
+                    .padding(.bottom, AppSpacing.xs)
+                }
+            }
+            
             Button {
-                if vm.canSubmit { vm.submitApplication() }
+                if vm.canSubmit {
+                    guard let productID = loanAppVM.selectedProductID else {
+                        loanAppVM.submissionError = "Please select a loan product first."
+                        return
+                    }
+                    guard let branchID = loanAppVM.selectedBranchID else {
+                        loanAppVM.submissionError = "Please select a branch first."
+                        return
+                    }
+                    Task {
+                        let success = await loanAppVM.submitApplication(
+                            productID: productID,
+                            branchID: branchID,
+                            requestedAmount: "\(lead.loanAmount)",
+                            tenureMonths: lead.loanType.defaultTenureMonths,
+                            leadDocuments: vm.documents
+                        )
+                        if success {
+                            vm.submitApplication()
+                        }
+                    }
+                }
             } label: {
                 HStack(spacing: AppSpacing.sm) {
                     Image(systemName: vm.canSubmit ? "checkmark.circle.fill" : "arrow.up.right")
@@ -245,6 +339,12 @@ struct LeadDetailView: View {
                             lineWidth: 1
                         )
                 )
+                .overlay {
+                    if loanAppVM.isSubmitting {
+                        Color.black.opacity(0.2).clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                        ProgressView().tint(.white)
+                    }
+                }
                 .padding(.horizontal, AppSpacing.md)
                 .padding(.vertical, AppSpacing.sm)
             }

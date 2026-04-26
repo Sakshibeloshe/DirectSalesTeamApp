@@ -29,7 +29,7 @@ final class ApplicationsViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     // MARK: - Init
-    init(service: ApplicationServiceProtocol = MockApplicationService.shared) {
+    init(service: ApplicationServiceProtocol = BackendApplicationService()) {
         self.service = service
         setupBindings()
         loadApplications()

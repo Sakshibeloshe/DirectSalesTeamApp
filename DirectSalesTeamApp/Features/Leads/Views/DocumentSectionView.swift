@@ -1,8 +1,10 @@
 import SwiftUI
 import PhotosUI
 
+@available(iOS 18.0, *)
 struct DocumentSectionView: View {
     @ObservedObject var vm: LeadDetailViewModel
+    @ObservedObject var loanAppVM: LoanApplicationViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -25,9 +27,17 @@ struct DocumentSectionView: View {
                 ForEach(Array(vm.documents.enumerated()), id: \.element.id) { idx, doc in
                     DocumentRowView(
                         document: doc,
+                        loanAppVM: loanAppVM,
                         onRequest: { vm.requestDocument(id: doc.id) },
-                        onUpload: { fileName in vm.markDocumentUploaded(id: doc.id, fileName: fileName) },
-                        onVerify: { vm.verifyUploadedDocument(id: doc.id) },
+                        onUpload: { fileName, data in 
+                            Task {
+                                let success = await loanAppVM.uploadDocument(id: doc.id, data: data, fileName: fileName, contentType: "image/jpeg")
+                                if success {
+                                    vm.markDocumentUploaded(id: doc.id, fileName: fileName)
+                                    vm.verifyUploadedDocument(id: doc.id)
+                                }
+                            }
+                        },
                         onVerifyIdentity: { data in vm.verifyIdentityDocument(id: doc.id, data: data) }
                     )
 
@@ -46,11 +56,12 @@ struct DocumentSectionView: View {
     }
 }
 
+@available(iOS 18.0, *)
 struct DocumentRowView: View {
     let document: LeadDocument
+    @ObservedObject var loanAppVM: LoanApplicationViewModel
     let onRequest: () -> Void
-    let onUpload: (String) -> Void
-    let onVerify: () -> Void
+    let onUpload: (String, Data) -> Void
     let onVerifyIdentity: (IdentityVerificationData) -> Void
 
     @State private var selectedItem: PhotosPickerItem? = nil
@@ -97,8 +108,13 @@ struct DocumentRowView: View {
         .padding(.horizontal, AppSpacing.md)
         .padding(.vertical, 13)
         .sheet(isPresented: $showIdentitySheet) {
-            IdentityVerificationSheet(document: document, onVerify: onVerifyIdentity)
-                .presentationDetents([.medium, .large])
+            if document.kind == .aadhaar {
+                AadhaarKYCFlowView(viewModel: loanAppVM, document: document, onVerify: onVerifyIdentity)
+                    .presentationDetents([.medium, .large])
+            } else if document.kind == .pan {
+                PANVerifySheet(viewModel: loanAppVM, document: document, onVerify: onVerifyIdentity)
+                    .presentationDetents([.medium, .large])
+            }
         }
         .alert(
             document.kind.requiresIdentityDetails ? "KYC Request Sent" : "Request Sent",
@@ -140,16 +156,9 @@ struct DocumentRowView: View {
                 requestButton
             }
         } else if isAwaitingVerification {
-            Button(action: onVerify) {
-                Text("Verify")
-                    .font(AppFont.captionMed())
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 7)
-                    .background(Color.brandBlue)
-                    .clipShape(Capsule())
-            }
-            .buttonStyle(.plain)
+            ProgressView()
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
         } else {
             HStack(spacing: 8) {
                 PhotosPicker(
@@ -171,9 +180,11 @@ struct DocumentRowView: View {
                     .overlay(Capsule().strokeBorder(Color.borderLight, lineWidth: 1))
                 }
                 .onChange(of: selectedItem) { newVal in
-                    if newVal != nil {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            onUpload("\(document.name) Scan")
+                    if let item = newVal {
+                        Task {
+                            if let data = try? await item.loadTransferable(type: Data.self) {
+                                onUpload("\(document.name) Scan", data)
+                            }
                             selectedItem = nil
                         }
                     }
@@ -236,6 +247,7 @@ struct DocumentRowView: View {
     }
 }
 
+@available(iOS 18.0, *)
 struct IdentityVerificationSheet: View {
     let document: LeadDocument
     let onVerify: (IdentityVerificationData) -> Void

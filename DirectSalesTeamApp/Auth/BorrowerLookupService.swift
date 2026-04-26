@@ -5,6 +5,7 @@ import GRPCNIOTransportHTTP2
 import SwiftProtobuf
 
 struct BorrowerLookupResult: Sendable {
+    let userID: String
     let borrowerProfileID: String
     let displayName: String
 }
@@ -35,7 +36,7 @@ struct BorrowerLookupService {
                 phoneDigits: phoneDigits
             ) {
                 let name = match.email.isEmpty ? match.phone : match.email
-                return BorrowerLookupResult(borrowerProfileID: match.borrowerProfileID, displayName: name)
+                return BorrowerLookupResult(userID: match.userID, borrowerProfileID: match.borrowerProfileID, displayName: name)
             }
         }
 
@@ -86,22 +87,22 @@ struct BorrowerLookupService {
             throw AuthError.unauthenticated
         }
 
-        var request = Auth_SearchBorrowerSignupStatusRequest()
+        var request = Auth_V1_SearchBorrowerSignupStatusRequest()
         request.query = trimmed
         request.limit = limit
         request.offset = offset
 
         let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: token)
-        let rpcRequest = ClientRequest<Auth_SearchBorrowerSignupStatusRequest>(message: request, metadata: metadata)
+        let rpcRequest = ClientRequest<Auth_V1_SearchBorrowerSignupStatusRequest>(message: request, metadata: metadata)
         do {
-            let response: ClientResponse<Auth_SearchBorrowerSignupStatusResponse> = try await grpcClient.unary(
+            let response: ClientResponse<Auth_V1_SearchBorrowerSignupStatusResponse> = try await grpcClient.unary(
                 request: rpcRequest,
                 descriptor: MethodDescriptor(
                     service: ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
                     method: "SearchBorrowerSignupStatus"
                 ),
-                serializer: ProtobufSerializer<Auth_SearchBorrowerSignupStatusRequest>(),
-                deserializer: ProtobufDeserializer<Auth_SearchBorrowerSignupStatusResponse>(),
+                serializer: ProtobufSerializer<Auth_V1_SearchBorrowerSignupStatusRequest>(),
+                deserializer: ProtobufDeserializer<Auth_V1_SearchBorrowerSignupStatusResponse>(),
                 options: options,
                 onResponse: { $0 }
             )
@@ -141,7 +142,7 @@ private struct BorrowerSignupStatusSearchItem: Identifiable, Hashable, Sendable 
     let isActive: Bool
     let borrowerProfileID: String
     var id: String { userID }
-    fileprivate init(proto: Auth_BorrowerSignupStatusItem) {
+    fileprivate init(proto: Auth_V1_BorrowerSignupStatusItem) {
         self.userID = proto.userID
         self.email = proto.email
         self.phone = proto.phone
@@ -150,86 +151,6 @@ private struct BorrowerSignupStatusSearchItem: Identifiable, Hashable, Sendable 
     }
 }
 
-private struct Auth_SearchBorrowerSignupStatusRequest: Sendable {
-    var query: String = ""
-    var limit: Int32 = 0
-    var offset: Int32 = 0
-    var unknownFields = SwiftProtobuf.UnknownStorage()
-}
-
-private struct Auth_BorrowerSignupStatusItem: Sendable {
-    var userID: String = ""
-    var email: String = ""
-    var phone: String = ""
-    var isActive: Bool = false
-    var borrowerProfileID: String = ""
-    var unknownFields = SwiftProtobuf.UnknownStorage()
-}
-
-private struct Auth_SearchBorrowerSignupStatusResponse: Sendable {
-    var items: [Auth_BorrowerSignupStatusItem] = []
-    var unknownFields = SwiftProtobuf.UnknownStorage()
-}
-
-extension Auth_SearchBorrowerSignupStatusRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-    static let protoMessageName = "auth.v1.SearchBorrowerSignupStatusRequest"
-    static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "")
-    mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-        while let f = try decoder.nextFieldNumber() {
-            switch f {
-            case 1: try decoder.decodeSingularStringField(value: &query)
-            case 2: try decoder.decodeSingularInt32Field(value: &limit)
-            case 3: try decoder.decodeSingularInt32Field(value: &offset)
-            default: break
-            }
-        }
-    }
-    func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-        if !query.isEmpty { try visitor.visitSingularStringField(value: query, fieldNumber: 1) }
-        if limit != 0 { try visitor.visitSingularInt32Field(value: limit, fieldNumber: 2) }
-        if offset != 0 { try visitor.visitSingularInt32Field(value: offset, fieldNumber: 3) }
-        try unknownFields.traverse(visitor: &visitor)
-    }
-}
-
-extension Auth_BorrowerSignupStatusItem: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-    static let protoMessageName = "auth.v1.BorrowerSignupStatusItem"
-    static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "")
-    mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-        while let f = try decoder.nextFieldNumber() {
-            switch f {
-            case 1: try decoder.decodeSingularStringField(value: &userID)
-            case 2: try decoder.decodeSingularStringField(value: &email)
-            case 3: try decoder.decodeSingularStringField(value: &phone)
-            case 6: try decoder.decodeSingularBoolField(value: &isActive)
-            case 9: try decoder.decodeSingularStringField(value: &borrowerProfileID)
-            default: break
-            }
-        }
-    }
-    func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-        if !userID.isEmpty { try visitor.visitSingularStringField(value: userID, fieldNumber: 1) }
-        if !email.isEmpty { try visitor.visitSingularStringField(value: email, fieldNumber: 2) }
-        if !phone.isEmpty { try visitor.visitSingularStringField(value: phone, fieldNumber: 3) }
-        if isActive { try visitor.visitSingularBoolField(value: isActive, fieldNumber: 6) }
-        if !borrowerProfileID.isEmpty { try visitor.visitSingularStringField(value: borrowerProfileID, fieldNumber: 9) }
-        try unknownFields.traverse(visitor: &visitor)
-    }
-}
-
-extension Auth_SearchBorrowerSignupStatusResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
-    static let protoMessageName = "auth.v1.SearchBorrowerSignupStatusResponse"
-    static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "")
-    mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-        while let f = try decoder.nextFieldNumber() {
-            switch f {
-            case 1: try decoder.decodeRepeatedMessageField(value: &items)
-            default: break
-            }
-        }
-    }
-    func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-        if !items.isEmpty { try visitor.visitRepeatedMessageField(value: items, fieldNumber: 1) }
-        try unknownFields.traverse(visitor: &visitor)
-    }
-}
+// All hand-rolled proto types below have been replaced by the generated Auth_V1_* types.
+// The generated types live in Networking/Generated/auth/v1/auth.pb.swift and have
+// correct field numbers from the _protobuf_nameMap bytecode.

@@ -169,34 +169,40 @@ struct AddLeadView: View {
 
     // MARK: - Submit
     private func submit() {
-        guard formValid else { return }
-
+        guard formValid, !isCheckingBorrower else { return }
+        let pendingID     = UUID().uuidString  // generated synchronously — stable across taps
+        let capturedName  = nameTrimmed        // captured now — immune to further edits
+        let capturedPhone = phoneDigits
+        let capturedEmail = emailTrimmed
+        let capturedAmount = Double(amountText) ?? 0
+        let capturedType  = selectedType
         Task {
-            await verifyBorrowerAndSubmitLead()
+            await verifyBorrowerAndSubmitLead(
+                id: pendingID, name: capturedName, phone: capturedPhone,
+                email: capturedEmail, amount: capturedAmount, loanType: capturedType
+            )
         }
     }
 
     @MainActor
-    private func verifyBorrowerAndSubmitLead() async {
-        guard let amount = Double(amountText) else { return }
+    private func verifyBorrowerAndSubmitLead(
+        id: String, name: String, phone: String,
+        email: String, amount: Double, loanType: LoanType
+    ) async {
         borrowerStatus = .checking
         isCheckingBorrower = true
         defer { isCheckingBorrower = false }
-
         do {
-            if let result = try await borrowerLookupService.resolveBorrower(email: emailTrimmed, phone: phoneDigits) {
+            if let result = try await borrowerLookupService.resolveBorrower(email: email, phone: phone) {
                 borrowerStatus = .found(profileID: result.borrowerProfileID, name: result.displayName)
                 let lead = Lead(
-                    id: UUID().uuidString,
-                    name: nameTrimmed,
-                    phone: phoneDigits,
-                    email: emailTrimmed,
+                    id: id,                    // use the pre-generated stable ID
+                    name: name,                // use captured values only
+                    phone: phone, email: email,
                     borrowerProfileID: result.borrowerProfileID,
-                    loanType: selectedType,
-                    loanAmount: amount,
-                    status: .new,
-                    createdAt: Date(),
-                    updatedAt: Date()
+                    borrowerUserID: result.userID,
+                    loanType: loanType, loanAmount: amount,
+                    status: .new, createdAt: Date(), updatedAt: Date()
                 )
                 viewModel.addLead(lead)
                 dismiss()

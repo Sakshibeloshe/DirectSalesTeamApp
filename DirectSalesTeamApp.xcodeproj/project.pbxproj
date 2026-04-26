@@ -16,6 +16,7 @@
 		CB5DD4206331866491720E25 /* GRPCProtobuf in Frameworks */ = {isa = PBXBuildFile; productRef = 0D71927042F3992134E56090 /* GRPCProtobuf */; };
 		D32C19C6311AB5A9E210105B /* SwiftProtobufPluginLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 8621FD14C1C0E9E60F5898D6 /* SwiftProtobufPluginLibrary */; };
 		E4FA1F91E2FA3E362967204F /* GRPCNIOTransportHTTP2Posix in Frameworks */ = {isa = PBXBuildFile; productRef = 324D0146102A03290B066289 /* GRPCNIOTransportHTTP2Posix */; };
+		EFAD25544B6FE0D19951D444 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = D15EDA30CAD5C8DECFA007DE /* GRDB */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +45,7 @@
 				CB5DD4206331866491720E25 /* GRPCProtobuf in Frameworks */,
 				BDCB97A98282BCCB4D76622F /* SwiftProtobuf in Frameworks */,
 				D32C19C6311AB5A9E210105B /* SwiftProtobufPluginLibrary in Frameworks */,
+				EFAD25544B6FE0D19951D444 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +120,7 @@
 				222BE875389C521E5B7CFC27 /* XCRemoteSwiftPackageReference "grpc-swift-nio-transport" */,
 				08AB56AB6859A811EB4924D5 /* XCRemoteSwiftPackageReference "grpc-swift-protobuf" */,
 				5C4FDC10FF15C739D5936450 /* XCRemoteSwiftPackageReference "swift-protobuf" */,
+				68D5E228DE73B439A3E987CA /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1820EB1F2F9187ED00906F4E /* Products */;
@@ -273,7 +276,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M693R36JPD;
+				DEVELOPMENT_TEAM = C2N3Q4846H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -300,13 +303,14 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Debug;
@@ -318,7 +322,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = M693R36JPD;
+				DEVELOPMENT_TEAM = C2N3Q4846H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -345,13 +349,14 @@
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2,7";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				XROS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Release;
@@ -402,6 +407,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.25.0;
+			};
+		};
+		68D5E228DE73B439A3E987CA /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.0.0;
 			};
 		};
 		8C20C2A6D873D11D04853ED8 /* XCRemoteSwiftPackageReference "grpc-swift-2" */ = {
@@ -459,6 +472,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 8C20C2A6D873D11D04853ED8 /* XCRemoteSwiftPackageReference "grpc-swift-2" */;
 			productName = GRPCInProcessTransport;
+		};
+		D15EDA30CAD5C8DECFA007DE /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 68D5E228DE73B439A3E987CA /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

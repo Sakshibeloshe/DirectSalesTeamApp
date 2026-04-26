@@ -23,7 +23,7 @@ final class LeadsViewModel: ObservableObject {
     var canScrollRight: Bool { viewWidth > 0 && contentWidth > viewWidth && scrollOffset > -(contentWidth - viewWidth + 5) }
 
     // MARK: - Filters
-    let filters: [LeadFilter] = LeadFilter.allFilters
+    let filters: [LeadFilter] = LeadFilter.leadsTabFilters
 
     // MARK: - Private
     private let service: LeadServiceProtocol
@@ -44,10 +44,13 @@ final class LeadsViewModel: ObservableObject {
             .map { leads, search, filter in
                 leads
                     .filter { lead in
-                        // Status filter
-                        guard filter.status == nil || lead.status == filter.status else { return false }
-                        // Search filter
-                        guard !search.isEmpty else { return true }
+                        // Leads tab: only show pre-submission statuses
+                        let preSubmission: Set<LeadStatus> = [.new, .docsPending]
+                        guard preSubmission.contains(lead.status) else { return false }
+                        // Filter chip
+                        if let required = filter.status, lead.status != required { return false }
+                        // Search
+                        if search.isEmpty { return true }
                         let q = search.lowercased()
                         return lead.name.lowercased().contains(q)
                             || lead.phone.contains(q)
@@ -87,7 +90,11 @@ final class LeadsViewModel: ObservableObject {
                     self?.errorMessage = err.localizedDescription
                 }
             } receiveValue: { [weak self] newLead in
-                self?.leads.insert(newLead, at: 0)
+                guard let self else { return }
+                // Guard prevents duplicates if loadLeads() races with addLead()
+                if !self.leads.contains(where: { $0.id == newLead.id }) {
+                    self.leads.insert(newLead, at: 0)
+                }
             }
             .store(in: &cancellables)
     }
@@ -96,7 +103,10 @@ final class LeadsViewModel: ObservableObject {
         guard var lead = leads.first(where: { $0.id == id }) else { return }
         lead.status = status
         lead.updatedAt = Date()
-        
+        updateLead(lead)
+    }
+
+    func updateLead(_ lead: Lead) {
         service.updateLead(lead)
             .receive(on: RunLoop.main)
             .sink { [weak self] completion in
@@ -105,7 +115,7 @@ final class LeadsViewModel: ObservableObject {
                 }
             } receiveValue: { [weak self] updatedLead in
                 guard let self = self else { return }
-                if let idx = self.leads.firstIndex(where: { $0.id == id }) {
+                if let idx = self.leads.firstIndex(where: { $0.id == updatedLead.id }) {
                     self.leads[idx] = updatedLead
                 }
             }
@@ -154,7 +164,9 @@ final class LeadsViewModel: ObservableObject {
     }
 
     func count(for filter: LeadFilter) -> Int {
-        if filter.status == nil { return leads.count }
-        return leads.filter { $0.status == filter.status }.count
+        let preSubmission: Set<LeadStatus> = [.new, .docsPending]
+        let base = leads.filter { preSubmission.contains($0.status) }
+        if filter.status == nil { return base.count }
+        return base.filter { $0.status == filter.status }.count
     }
 }

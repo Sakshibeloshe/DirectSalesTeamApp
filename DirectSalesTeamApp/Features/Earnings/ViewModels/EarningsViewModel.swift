@@ -205,7 +205,7 @@ class EarningsViewModel: ObservableObject {
         )
     }
 
-    private func mapStatus(_ status: Earning.EarningStatus) -> PaymentStatus { // ✅ FIXED
+    private func mapStatus(_ status: Earning.EarningStatus) -> EarningPaymentStatus { // ✅ FIXED
         switch status {
         case .paid: return .paid
         case .pending: return .pending

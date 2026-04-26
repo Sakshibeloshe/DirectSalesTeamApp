@@ -1,6 +1,6 @@
 require 'xcodeproj'
 
-project_path = '/Users/chirag/Projects/LMS/DirectSalesTeamApp/DirectSalesTeamApp.xcodeproj'
+project_path = './DirectSalesTeamApp.xcodeproj'
 project = Xcodeproj::Project.open(project_path)
 target = project.targets.first
 

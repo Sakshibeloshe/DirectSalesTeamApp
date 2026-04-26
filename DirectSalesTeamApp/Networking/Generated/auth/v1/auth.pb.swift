@@ -129,6 +129,18 @@ public struct Auth_V1_SignupRequest: Sendable {
   public init() {}
 }
 
+public struct Auth_V1_GetBorrowerProfileRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var userID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 public struct Auth_V1_SignupResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -752,6 +764,11 @@ public struct Auth_V1_BorrowerProfile: @unchecked Sendable {
     set {_uniqueStorage()._createdAt = newValue}
   }
 
+  public var cibilScore: Int32 {
+    get {_storage._cibilScore}
+    set {_uniqueStorage()._cibilScore = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1111,6 +1128,36 @@ extension Auth_V1_SignupRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
     if lhs.email != rhs.email {return false}
     if lhs.phone != rhs.phone {return false}
     if lhs.password != rhs.password {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Auth_V1_GetBorrowerProfileRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".GetBorrowerProfileRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}userID\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.userID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.userID.isEmpty {
+      try visitor.visitSingularStringField(value: self.userID, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Auth_V1_GetBorrowerProfileRequest, rhs: Auth_V1_GetBorrowerProfileRequest) -> Bool {
+    if lhs.userID != rhs.userID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2337,7 +2384,7 @@ extension Auth_V1_DstProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImple
 
 extension Auth_V1_BorrowerProfile: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".BorrowerProfile"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}profile_id\0\u{3}first_name\0\u{3}last_name\0\u{3}date_of_birth\0\u{1}gender\0\u{3}address_line1\0\u{1}city\0\u{1}state\0\u{1}pincode\0\u{3}employment_type\0\u{3}monthly_income\0\u{3}profile_completeness_percent\0\u{3}is_aadhaar_verified\0\u{3}is_pan_verified\0\u{3}aadhaar_verified_at\0\u{3}pan_verified_at\0\u{3}created_at\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}profile_id\0\u{3}first_name\0\u{3}last_name\0\u{3}date_of_birth\0\u{1}gender\0\u{3}address_line1\0\u{1}city\0\u{1}state\0\u{1}pincode\0\u{3}employment_type\0\u{3}monthly_income\0\u{3}profile_completeness_percent\0\u{3}is_aadhaar_verified\0\u{3}is_pan_verified\0\u{3}aadhaar_verified_at\0\u{3}pan_verified_at\0\u{3}created_at\0\u{3}cibil_score\0")
 
   fileprivate class _StorageClass {
     var _profileID: String = String()
@@ -2357,6 +2404,7 @@ extension Auth_V1_BorrowerProfile: SwiftProtobuf.Message, SwiftProtobuf._Message
     var _aadhaarVerifiedAt: String = String()
     var _panVerifiedAt: String = String()
     var _createdAt: String = String()
+    var _cibilScore: Int32 = 0
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -2384,6 +2432,7 @@ extension Auth_V1_BorrowerProfile: SwiftProtobuf.Message, SwiftProtobuf._Message
       _aadhaarVerifiedAt = source._aadhaarVerifiedAt
       _panVerifiedAt = source._panVerifiedAt
       _createdAt = source._createdAt
+      _cibilScore = source._cibilScore
     }
   }
 
@@ -2419,6 +2468,7 @@ extension Auth_V1_BorrowerProfile: SwiftProtobuf.Message, SwiftProtobuf._Message
         case 15: try { try decoder.decodeSingularStringField(value: &_storage._aadhaarVerifiedAt) }()
         case 16: try { try decoder.decodeSingularStringField(value: &_storage._panVerifiedAt) }()
         case 17: try { try decoder.decodeSingularStringField(value: &_storage._createdAt) }()
+        case 18: try { try decoder.decodeSingularInt32Field(value: &_storage._cibilScore) }()
         default: break
         }
       }
@@ -2478,6 +2528,9 @@ extension Auth_V1_BorrowerProfile: SwiftProtobuf.Message, SwiftProtobuf._Message
       if !_storage._createdAt.isEmpty {
         try visitor.visitSingularStringField(value: _storage._createdAt, fieldNumber: 17)
       }
+      if _storage._cibilScore != 0 {
+        try visitor.visitSingularInt32Field(value: _storage._cibilScore, fieldNumber: 18)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -2504,6 +2557,7 @@ extension Auth_V1_BorrowerProfile: SwiftProtobuf.Message, SwiftProtobuf._Message
         if _storage._aadhaarVerifiedAt != rhs_storage._aadhaarVerifiedAt {return false}
         if _storage._panVerifiedAt != rhs_storage._panVerifiedAt {return false}
         if _storage._createdAt != rhs_storage._createdAt {return false}
+        if _storage._cibilScore != rhs_storage._cibilScore {return false}
         return true
       }
       if !storagesAreEqual {return false}

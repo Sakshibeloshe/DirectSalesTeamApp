@@ -54,9 +54,15 @@ struct LeadsView: View {
             }
             // ── Lead Detail push ──
             .navigationDestination(for: Lead.self) { lead in
-                LeadDetailView(lead: lead) { id, status in
-                    viewModel.updateLeadStatus(id: id, status: status)
-                }
+                LeadDetailView(
+                    lead: lead,
+                    onStatusUpdate: { id, status in
+                        viewModel.updateLeadStatus(id: id, status: status)
+                    },
+                    onLeadSave: { updatedLead in
+                        viewModel.updateLead(updatedLead)
+                    }
+                )
             }
             .refreshable {
                 viewModel.loadLeads()

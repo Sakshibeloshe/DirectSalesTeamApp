@@ -34,7 +34,7 @@ final class BackendLeadService: LeadServiceProtocol {
     private let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
     private let leadMetadataStore = LeadMetadataStore()
     private let deletedLeadStore = DeletedLeadStore()
-    private let localLeadStore = LocalLeadStore()
+    private let localLeadStore = SQLiteLeadStore()
 
     init(
         tokenStore: TokenStore = .shared,
@@ -411,10 +411,10 @@ enum LeadAPIError: LocalizedError {
 // MARK: - Mock Service
 final class MockLeadService: LeadServiceProtocol {
     static let shared = MockLeadService()
-    private let store = LocalLeadStore(key: "dst.leads.mock.list")
+    private var store: [Lead] = []
 
     private init() {
-        if store.all().isEmpty {
+        if store.isEmpty {
              let initials: [Lead] = [
                 Lead(id: UUID().uuidString, name: "Arjun Mehta",   phone: "9876543210", email: "arjun@email.com",   loanType: .home,      loanAmount: 3_500_000, status: .new,         createdAt: Date().addingTimeInterval(-7200),  updatedAt: Date(), assignedRM: "Priya S", branchCode: "MYS01"),
                 Lead(id: UUID().uuidString, name: "Priya Sharma",  phone: "9845001234", email: "priya@email.com",   loanType: .personal,  loanAmount:   800_000, status: .docsPending, createdAt: Date().addingTimeInterval(-86400), updatedAt: Date(), assignedRM: nil,       branchCode: "MYS01"),
@@ -425,19 +425,19 @@ final class MockLeadService: LeadServiceProtocol {
                 Lead(id: UUID().uuidString, name: "Kiran Hegde",   phone: "9632147852", email: "kiran@email.com",   loanType: .education, loanAmount: 1_500_000, status: .approved,    createdAt: Date().addingTimeInterval(-432000),updatedAt: Date(), assignedRM: "Vikram R", branchCode: "MYS02"),
                 Lead(id: UUID().uuidString, name: "Deepa Nanda",   phone: "8867452130", email: "deepa@email.com",   loanType: .home,      loanAmount: 4_200_000, status: .disbursed,   createdAt: Date().addingTimeInterval(-604800),updatedAt: Date(), assignedRM: "Priya S",  branchCode: "MYS01"),
             ]
-            initials.forEach { store.save($0) }
+            store.append(contentsOf: initials)
         }
     }
 
     func fetchLeads() -> AnyPublisher<[Lead], Error> {
-        Just(store.all())
+        Just(store)
             .delay(for: .milliseconds(400), scheduler: RunLoop.main)
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }
 
     func addLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
-        store.save(lead)
+        store.append(lead)
         return Just(lead)
             .delay(for: .milliseconds(300), scheduler: RunLoop.main)
             .setFailureType(to: Error.self)
@@ -445,14 +445,16 @@ final class MockLeadService: LeadServiceProtocol {
     }
 
     func updateLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
-        store.save(lead)
+        if let idx = store.firstIndex(where: { $0.id == lead.id }) {
+            store[idx] = lead
+        }
         return Just(lead)
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
     }
 
     func deleteLead(_ lead: Lead) -> AnyPublisher<Void, Error> {
-        store.remove(id: lead.id)
+        store.removeAll { $0.id == lead.id }
         return Just(())
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
@@ -831,13 +833,13 @@ extension Loan_UpdateLoanApplicationStatusResponse: SwiftProtobuf.Message, Swift
     }
 }
 
-private struct StoredLeadMetadata: Codable {
+struct StoredLeadMetadata: Codable {
     let name: String
     let phone: String
     let email: String
 }
 
-private final class LeadMetadataStore {
+final class LeadMetadataStore {
     private let key = "dst.lead.metadata.byApplicationID"
     private let defaults: UserDefaults
 
@@ -913,39 +915,3 @@ private final class DeletedLeadStore {
     }
 }
 
-private final class LocalLeadStore {
-    private let key: String
-    private let defaults: UserDefaults
-
-    init(key: String = "dst.leads.local.list", defaults: UserDefaults = .standard) {
-        self.key = key
-        self.defaults = defaults
-    }
-
-    func all() -> [Lead] {
-        guard let data = defaults.data(forKey: key) else { return [] }
-        return (try? JSONDecoder().decode([Lead].self, from: data)) ?? []
-    }
-
-    func save(_ lead: Lead) {
-        var existing = all()
-        if let idx = existing.firstIndex(where: { $0.id == lead.id }) {
-            existing[idx] = lead
-        } else {
-            existing.append(lead)
-        }
-        persist(existing)
-    }
-
-    func remove(id: String) {
-        var existing = all()
-        existing.removeAll { $0.id == id }
-        persist(existing)
-    }
-
-    private func persist(_ leads: [Lead]) {
-        if let data = try? JSONEncoder().encode(leads) {
-            defaults.set(data, forKey: key)
-        }
-    }
-}

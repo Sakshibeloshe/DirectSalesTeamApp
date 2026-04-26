@@ -81,6 +81,7 @@ struct Lead: Identifiable, Codable, Hashable {
     var phone: String
     var email: String
     var borrowerProfileID: String?
+    var borrowerUserID: String?
     var loanType: LoanType
     var loanAmount: Double
     var status: LeadStatus
@@ -89,6 +90,12 @@ struct Lead: Identifiable, Codable, Hashable {
     var assignedRM: String?
     var branchCode: String?
 
+    // KYC persistence
+    var isAadhaarKycVerified: Bool
+    var isPanKycVerified: Bool
+    var aadhaarVerifiedName: String
+    var aadhaarVerifiedDOB: String
+
     init(
         id: String,
         applicationID: String? = nil,
@@ -96,13 +103,18 @@ struct Lead: Identifiable, Codable, Hashable {
         phone: String,
         email: String,
         borrowerProfileID: String? = nil,
+        borrowerUserID: String? = nil,
         loanType: LoanType,
         loanAmount: Double,
         status: LeadStatus,
         createdAt: Date,
         updatedAt: Date,
         assignedRM: String? = nil,
-        branchCode: String? = nil
+        branchCode: String? = nil,
+        isAadhaarKycVerified: Bool = false,
+        isPanKycVerified: Bool = false,
+        aadhaarVerifiedName: String = "",
+        aadhaarVerifiedDOB: String = ""
     ) {
         self.id = id
         self.applicationID = applicationID
@@ -110,6 +122,7 @@ struct Lead: Identifiable, Codable, Hashable {
         self.phone = phone
         self.email = email
         self.borrowerProfileID = borrowerProfileID
+        self.borrowerUserID = borrowerUserID
         self.loanType = loanType
         self.loanAmount = loanAmount
         self.status = status
@@ -117,6 +130,10 @@ struct Lead: Identifiable, Codable, Hashable {
         self.updatedAt = updatedAt
         self.assignedRM = assignedRM
         self.branchCode = branchCode
+        self.isAadhaarKycVerified = isAadhaarKycVerified
+        self.isPanKycVerified = isPanKycVerified
+        self.aadhaarVerifiedName = aadhaarVerifiedName
+        self.aadhaarVerifiedDOB = aadhaarVerifiedDOB
     }
 
     var initials: String {
@@ -168,5 +185,12 @@ struct LeadFilter: Identifiable, Equatable {
     static let all = LeadFilter(title: "All", status: nil)
     static var allFilters: [LeadFilter] {
         [.all] + LeadStatus.allCases.map { LeadFilter(title: $0.rawValue, status: $0) }
+    }
+    static var leadsTabFilters: [LeadFilter] {
+        [
+            LeadFilter(title: "All",         status: nil),
+            LeadFilter(title: "New",          status: .new),
+            LeadFilter(title: "Docs Pending", status: .docsPending),
+        ]
     }
 }
