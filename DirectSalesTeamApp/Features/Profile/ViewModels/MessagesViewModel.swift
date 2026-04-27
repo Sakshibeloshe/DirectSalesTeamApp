@@ -43,6 +43,7 @@ final class MessagesViewModel: ObservableObject {
 
     private func loadApplications() {
         applicationService.fetchApplications()
+            .receive(on: DispatchQueue.main)
             .sink(
                 receiveCompletion: { _ in },
                 receiveValue: { [weak self] applications in
@@ -50,14 +51,14 @@ final class MessagesViewModel: ObservableObject {
                     for app in applications {
                         let key = app.id.uuidString
                         self.applicationCache[key] = app
-                        self.connectableLeads = applications.map { app in
-                            LeadMessagingConnection(
-                                id: app.id.uuidString,
-                                leadName: app.name,
-                                applicationRef: app.id.uuidString,
-                                loanType: app.loanType.rawValue
-                            )
-                        }
+                    }
+                    self.connectableLeads = applications.map { app in
+                        LeadMessagingConnection(
+                            id: app.id.uuidString,
+                            leadName: app.name,
+                            applicationRef: app.id.uuidString,
+                            loanType: app.loanType.rawValue
+                        )
                     }
                 }
             )
@@ -302,7 +303,12 @@ final class MessagesViewModel: ObservableObject {
 
     func createThread(lead: LeadMessagingConnection?, participant: ThreadParticipant, openingMessage: String) async {
         do {
-            let contextAppID = lead?.applicationRef
+            let contextAppID: String?
+            if participant.role == .borrower {
+                contextAppID = lead?.applicationRef
+            } else {
+                contextAppID = nil
+            }
             let room = try await chatService.createOrGetDirectRoom(
                 targetUserID: participant.id,
                 contextApplicationID: contextAppID

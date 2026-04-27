@@ -105,6 +105,7 @@ enum ParticipantRole: String, Codable {
     case manager     = "Manager"
     case system      = "System"
     case dstAgent    = "DST Agent"
+    case borrower    = "Borrower"
 
     var color: Color {
         switch self {
@@ -112,6 +113,7 @@ enum ParticipantRole: String, Codable {
         case .manager: return .purple
         case .system: return .secondary
         case .dstAgent: return .primary
+        case .borrower: return Color(red: 0.0, green: 0.6, blue: 0.53)
         }
     }
 
@@ -124,7 +126,7 @@ enum ParticipantRole: String, Codable {
         case "manager":
             return .manager
         case "borrower":
-            return .loanOfficer // Map borrowers to loan officer role for chat display
+            return .borrower
         default:
             return .system
         }
