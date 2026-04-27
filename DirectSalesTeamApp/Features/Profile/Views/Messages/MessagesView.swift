@@ -36,19 +36,36 @@ struct MessagesView: View {
             .sheet(isPresented: $vm.showComposeSheet) {
                 NewConversationSheet(
                     leads: vm.connectableLeads,
-                    officers: vm.officerDirectory,
+                    officers: vm.eligibleParticipants,
                     selectedLead: $draftLead,
                     selectedOfficer: $draftOfficer,
                     openingMessage: $openingMessage,
                     onCreate: {
-                        guard let lead = draftLead, let officer = draftOfficer else { return }
-                        vm.createThread(lead: lead, participant: officer, openingMessage: openingMessage)
+                        guard let officer = draftOfficer else { return }
+                        let lead = draftLead
+                        let message = openingMessage
                         draftLead = nil
                         draftOfficer = nil
                         openingMessage = ""
                         vm.showComposeSheet = false
+                        Task {
+                            await vm.createThread(
+                                lead: lead,
+                                participant: officer,
+                                openingMessage: message
+                            )
+                        }
                     }
                 )
+            }
+            .alert("Messages Error", isPresented: Binding(
+                get: { vm.errorMessage != nil },
+                set: { if !$0 { vm.errorMessage = nil } }
+            )) {
+                Button("Retry") { vm.refresh() }
+                Button("Dismiss", role: .cancel) { vm.errorMessage = nil }
+            } message: {
+                Text(vm.errorMessage ?? "")
             }
         }
     }
@@ -230,34 +247,33 @@ struct NewConversationSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Lead") {
+                Section("Lead (Optional)") {
                     Picker(
                         "Lead",
-                        selection: Binding(
-                            get: { selectedLead?.id },
-                            set: { newID in selectedLead = leads.first(where: { $0.id == newID }) }
-                        )
+                        selection: $selectedLead
                     ) {
-                        Text("Select Lead").tag(UUID?.none)
+                        Text("None").tag(nil as LeadMessagingConnection?)
                         ForEach(leads) { lead in
-                            Text("\(lead.leadName) · \(lead.applicationRef)")
-                                .tag(Optional(lead.id))
+                            Text("\(lead.leadName) · \(lead.loanType)")
+                                .tag(Optional(lead))
                         }
                     }
                 }
 
                 Section("Loan Officer") {
-                    Picker(
-                        "Officer",
-                        selection: Binding(
-                            get: { selectedOfficer?.id },
-                            set: { newID in selectedOfficer = officers.first(where: { $0.id == newID }) }
-                        )
-                    ) {
-                        Text("Select Officer").tag(UUID?.none)
-                        ForEach(officers) { officer in
-                            Text("\(officer.name) · \(officer.role.rawValue)")
-                                .tag(Optional(officer.id))
+                    if officers.isEmpty {
+                        Text("Loading officers…")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Picker(
+                            "Officer",
+                            selection: $selectedOfficer
+                        ) {
+                            Text("Select Officer").tag(nil as ThreadParticipant?)
+                            ForEach(officers) { officer in
+                                Text("\(officer.name) · \(officer.role.rawValue)")
+                                    .tag(Optional(officer))
+                            }
                         }
                     }
                 }
@@ -278,7 +294,7 @@ struct NewConversationSheet: View {
                         onCreate()
                         dismiss()
                     }
-                    .disabled(selectedLead == nil || selectedOfficer == nil)
+                    .disabled(selectedOfficer == nil)
                 }
             }
         }
