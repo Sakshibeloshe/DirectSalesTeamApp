@@ -11,111 +11,169 @@ struct MessagesView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if vm.isLoading {
-                    ProgressView("Loading messages…")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if vm.threads.isEmpty {
-                    emptyState
-                } else {
-                    threadList
-                }
-            }
-            .background(Color.surfaceSecondary)
-            .navigationTitle("Messages")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        vm.showComposeSheet = true
-                    } label: {
-                        Image(systemName: "square.and.pencil")
-                    }
-                }
-            }
-            .sheet(isPresented: $vm.showComposeSheet) {
-                NewConversationSheet(
-                    participants: vm.eligibleParticipants,
-                    leads: vm.connectableLeads,
-                    selectedParticipant: $draftParticipant,
-                    selectedLead: $draftLead,
-                    openingMessage: $openingMessage,
-                    onCreate: {
-                        guard let participant = draftParticipant else { return }
-                        let lead = draftLead
-                        let message = openingMessage
-                        draftParticipant = nil
-                        draftLead = nil
-                        openingMessage = ""
-                        vm.showComposeSheet = false
-                        Task {
-                            await vm.createThread(
-                                lead: lead,
-                                participant: participant,
-                                openingMessage: message
-                            )
+            ZStack(alignment: .top) {
+                Color.surfaceSecondary.ignoresSafeArea()
+                DSTHeaderGradientBackground(height: 230)
+
+                Group {
+                    if vm.isLoading {
+                        ProgressView("Loading messages…")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if vm.threads.isEmpty {
+                        VStack(spacing: AppSpacing.md) {
+                            messagesHero
+                                .padding(.horizontal, AppSpacing.md)
+                                .padding(.top, AppSpacing.sm)
+                            emptyState
+                                .padding(.horizontal, AppSpacing.md)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    } else {
+                        ScrollView {
+                            VStack(spacing: AppSpacing.md) {
+                                messagesHero
+                                if !vm.connectableLeads.isEmpty {
+                                    ConnectionHubCard(
+                                        pendingConnections: vm.connectableLeads.count,
+                                        onAddMessage: { vm.showComposeSheet = true }
+                                    )
+                                }
+                                threadList
+                            }
+                            .padding(.horizontal, AppSpacing.md)
+                            .padding(.top, AppSpacing.sm)
+                            .padding(.bottom, AppSpacing.xl)
                         }
                     }
-                )
-            }
-            .alert("Messages Error", isPresented: Binding(
-                get: { vm.errorMessage != nil },
-                set: { if !$0 { vm.errorMessage = nil } }
-            )) {
-                Button("Retry") { vm.refresh() }
-                Button("Dismiss", role: .cancel) { vm.errorMessage = nil }
-            } message: {
-                Text(vm.errorMessage ?? "")
+                }
+                .background(Color.clear)
+                .navigationTitle("Messages")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            vm.showComposeSheet = true
+                        } label: {
+                            Image(systemName: "square.and.pencil")
+                        }
+                    }
+                }
+                .sheet(isPresented: $vm.showComposeSheet) {
+                    NewConversationSheet(
+                        participants: vm.eligibleParticipants,
+                        leads: vm.connectableLeads,
+                        selectedParticipant: $draftParticipant,
+                        selectedLead: $draftLead,
+                        openingMessage: $openingMessage,
+                        onCreate: {
+                            guard let participant = draftParticipant else { return }
+                            let lead = draftLead
+                            let message = openingMessage
+                            draftParticipant = nil
+                            draftLead = nil
+                            openingMessage = ""
+                            vm.showComposeSheet = false
+                            Task {
+                                await vm.createThread(
+                                    lead: lead,
+                                    participant: participant,
+                                    openingMessage: message
+                                )
+                            }
+                        }
+                    )
+                }
+                .alert("Messages Error", isPresented: Binding(
+                    get: { vm.errorMessage != nil },
+                    set: { if !$0 { vm.errorMessage = nil } }
+                )) {
+                    Button("Retry") { vm.refresh() }
+                    Button("Dismiss", role: .cancel) { vm.errorMessage = nil }
+                } message: {
+                    Text(vm.errorMessage ?? "")
+                }
             }
         }
     }
 
-    private var threadList: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(vm.threads) { thread in
-                    NavigationLink {
-                        ChatView(
-                            vm: ChatViewModel(
-                                thread: thread,
-                                onMessagesUpdated: { messages in
-                                    vm.updateThread(thread.id, messages: messages)
-                                }
-                            )
-                        )
-                        .onAppear { vm.selectThread(thread) }
-                    } label: {
-                        ThreadRow(thread: thread)
-                    }
-                    .buttonStyle(.plain)
+    private var messagesHero: some View {
+        DSTSurfaceCard {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                DSTSectionTitle("Conversation Hub", subtitle: "Keep every borrower and officer exchange clear, contextual, and easy to continue.")
+                HStack(spacing: AppSpacing.sm) {
+                    summaryMetric(title: "Threads", value: "\(vm.threads.count)", color: Color.textPrimary)
+                    summaryMetric(title: "Unread", value: "\(vm.totalUnread)", color: Color.brandBlue)
+                    summaryMetric(title: "Pending Links", value: "\(vm.connectableLeads.count)", color: Color.statusPending)
                 }
-
-                Text("Messages are end-to-end monitored for compliance")
-                    .font(.caption)
-                    .foregroundStyle(Color.textTertiary)
-                    .padding(.vertical, 24)
-                    .frame(maxWidth: .infinity)
             }
-            .padding(.top, 16)
-            .padding(.bottom, 20)
+        }
+    }
+
+    private func summaryMetric(title: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(value)
+                .font(AppFont.title2())
+                .foregroundColor(color)
+            Text(title)
+                .font(AppFont.caption())
+                .foregroundColor(Color.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppSpacing.sm)
+        .background(Color.brandBlueSoft.opacity(0.45))
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
+    }
+
+    private var threadList: some View {
+        VStack(spacing: 12) {
+            ForEach(vm.threads) { thread in
+                NavigationLink {
+                    ChatView(
+                        vm: ChatViewModel(
+                            thread: thread,
+                            onMessagesUpdated: { messages in
+                                vm.updateThread(thread.id, messages: messages)
+                            }
+                        )
+                    )
+                    .onAppear { vm.selectThread(thread) }
+                } label: {
+                    ThreadRow(thread: thread)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Text("Messages are end-to-end monitored for compliance")
+                .font(.caption)
+                .foregroundStyle(Color.textTertiary)
+                .padding(.vertical, 24)
+                .frame(maxWidth: .infinity)
         }
     }
 
     private var emptyState: some View {
         VStack(spacing: 18) {
-            Image(systemName: "bubble.left.and.bubble.right")
-                .font(.system(size: 44))
-                .foregroundStyle(.tertiary)
+            Image(systemName: "bubble.left.and.bubble.right.fill")
+                .font(.system(size: 38))
+                .foregroundStyle(Color.brandBlue)
             Text("No Messages")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+                .font(AppFont.title2())
+                .foregroundStyle(Color.textPrimary)
             Text("Connect a lead to a loan officer and the conversation will appear here.")
-                .font(.footnote)
-                .foregroundStyle(.tertiary)
+                .font(AppFont.subhead())
+                .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 48)
+                .padding(.horizontal, 32)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, AppSpacing.xxl)
+        .background(Color.surfacePrimary)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
+                .stroke(Color.borderLight, lineWidth: 1)
+        )
+        .cardShadow()
     }
 }
 
@@ -178,8 +236,8 @@ struct ThreadRow: View {
             RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .stroke(Color.borderLight, lineWidth: 1)
         )
-        .padding(.horizontal, 16)
         .contentShape(Rectangle())
+        .cardShadow()
     }
 }
 
@@ -219,7 +277,13 @@ struct ConnectionHubCard: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 12)
-                .background(Color.brandBlue)
+                .background(
+                    LinearGradient(
+                        colors: [Color.mainBlue, Color.secondaryBlue],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
             .buttonStyle(.plain)
