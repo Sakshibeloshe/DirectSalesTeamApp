@@ -5,8 +5,8 @@ import SwiftUI
 struct MessagesView: View {
 
     @ObservedObject var vm: MessagesViewModel
+    @State private var draftParticipant: ThreadParticipant?
     @State private var draftLead: LeadMessagingConnection?
-    @State private var draftOfficer: ThreadParticipant?
     @State private var openingMessage: String = ""
 
     var body: some View {
@@ -35,20 +35,37 @@ struct MessagesView: View {
             }
             .sheet(isPresented: $vm.showComposeSheet) {
                 NewConversationSheet(
+                    participants: vm.eligibleParticipants,
                     leads: vm.connectableLeads,
-                    officers: vm.officerDirectory,
+                    selectedParticipant: $draftParticipant,
                     selectedLead: $draftLead,
-                    selectedOfficer: $draftOfficer,
                     openingMessage: $openingMessage,
                     onCreate: {
-                        guard let lead = draftLead, let officer = draftOfficer else { return }
-                        vm.createThread(lead: lead, participant: officer, openingMessage: openingMessage)
+                        guard let participant = draftParticipant else { return }
+                        let lead = draftLead
+                        let message = openingMessage
+                        draftParticipant = nil
                         draftLead = nil
-                        draftOfficer = nil
                         openingMessage = ""
                         vm.showComposeSheet = false
+                        Task {
+                            await vm.createThread(
+                                lead: lead,
+                                participant: participant,
+                                openingMessage: message
+                            )
+                        }
                     }
                 )
+            }
+            .alert("Messages Error", isPresented: Binding(
+                get: { vm.errorMessage != nil },
+                set: { if !$0 { vm.errorMessage = nil } }
+            )) {
+                Button("Retry") { vm.refresh() }
+                Button("Dismiss", role: .cancel) { vm.errorMessage = nil }
+            } message: {
+                Text(vm.errorMessage ?? "")
             }
         }
     }
@@ -218,52 +235,71 @@ struct ConnectionHubCard: View {
 }
 
 struct NewConversationSheet: View {
+    let participants: [ThreadParticipant]
     let leads: [LeadMessagingConnection]
-    let officers: [ThreadParticipant]
+    @Binding var selectedParticipant: ThreadParticipant?
     @Binding var selectedLead: LeadMessagingConnection?
-    @Binding var selectedOfficer: ThreadParticipant?
     @Binding var openingMessage: String
     let onCreate: () -> Void
 
     @Environment(\.dismiss) private var dismiss
 
+    private var selectedRoleNeedsApplication: Bool {
+        guard let participant = selectedParticipant else { return false }
+        return participant.role == .borrower
+    }
+
+    private var canCreate: Bool {
+        guard let participant = selectedParticipant else { return false }
+        if participant.role == .borrower {
+            return selectedLead != nil
+        }
+        return true
+    }
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("Lead") {
-                    Picker(
-                        "Lead",
-                        selection: Binding(
-                            get: { selectedLead?.id },
-                            set: { newID in selectedLead = leads.first(where: { $0.id == newID }) }
-                        )
-                    ) {
-                        Text("Select Lead").tag(UUID?.none)
-                        ForEach(leads) { lead in
-                            Text("\(lead.leadName) · \(lead.applicationRef)")
-                                .tag(Optional(lead.id))
+                Section("Start conversation with") {
+                    if participants.isEmpty {
+                        Text("Loading contacts…")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Picker(
+                            "Contact",
+                            selection: $selectedParticipant
+                        ) {
+                            Text("Select a contact").tag(nil as ThreadParticipant?)
+                            ForEach(participants) { participant in
+                                Text("\(participant.name) · \(participant.role.rawValue)")
+                                    .tag(Optional(participant))
+                            }
                         }
                     }
                 }
 
-                Section("Loan Officer") {
-                    Picker(
-                        "Officer",
-                        selection: Binding(
-                            get: { selectedOfficer?.id },
-                            set: { newID in selectedOfficer = officers.first(where: { $0.id == newID }) }
-                        )
-                    ) {
-                        Text("Select Officer").tag(UUID?.none)
-                        ForEach(officers) { officer in
-                            Text("\(officer.name) · \(officer.role.rawValue)")
-                                .tag(Optional(officer.id))
+                if selectedRoleNeedsApplication {
+                    Section("Linked Application") {
+                        if leads.isEmpty {
+                            Text("No applications available for this borrower")
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Picker(
+                                "Application",
+                                selection: $selectedLead
+                            ) {
+                                Text("Select application").tag(nil as LeadMessagingConnection?)
+                                ForEach(leads) { lead in
+                                    Text("\(lead.leadName) · \(lead.loanType)")
+                                        .tag(Optional(lead))
+                                }
+                            }
                         }
                     }
                 }
 
                 Section("Opening Message") {
-                    TextField("Share context for the officer…", text: $openingMessage, axis: .vertical)
+                    TextField("Share context for the conversation…", text: $openingMessage, axis: .vertical)
                         .lineLimit(3...6)
                 }
             }
@@ -278,8 +314,15 @@ struct NewConversationSheet: View {
                         onCreate()
                         dismiss()
                     }
-                    .disabled(selectedLead == nil || selectedOfficer == nil)
+                    .disabled(!canCreate)
                 }
+            }
+        }
+        .onChange(of: selectedParticipant?.role) { _, newRole in
+            if newRole != .borrower {
+                selectedLead = nil
+            } else {
+                selectedLead = nil
             }
         }
     }
@@ -294,6 +337,7 @@ struct ThreadAvatar: View {
         case .manager: return Color(red: 0.9, green: 0.83, blue: 0.97)
         case .system: return Color(.secondarySystemFill)
         case .dstAgent: return Color(.secondarySystemFill)
+        case .borrower: return Color(red: 0.85, green: 0.95, blue: 0.92)
         }
     }
 
@@ -303,6 +347,7 @@ struct ThreadAvatar: View {
         case .manager: return .purple
         case .system: return .secondary
         case .dstAgent: return .secondary
+        case .borrower: return Color(red: 0.0, green: 0.45, blue: 0.39)
         }
     }
 
