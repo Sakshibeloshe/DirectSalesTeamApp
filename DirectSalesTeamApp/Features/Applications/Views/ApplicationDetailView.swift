@@ -44,6 +44,12 @@ struct ApplicationDetailView: View {
                 .font(.system(size: 22, weight: .bold))
                 .foregroundColor(Color.textPrimary)
 
+            if let referenceNumber = application.referenceNumber, !referenceNumber.isEmpty {
+                Text(referenceNumber)
+                    .font(AppFont.caption())
+                    .foregroundColor(Color.textTertiary)
+            }
+
             ApplicationStatusBadge(status: application.status)
 
             HStack(spacing: 6) {
@@ -321,9 +327,25 @@ enum ApplicationPipelineStage: CaseIterable, Hashable {
             return status.pipelineStep >= 1 ? "Submitted for review" : "Awaiting submission"
         case .review:
             if status == .rejected { return "Application rejected" }
-            return status.pipelineStep >= 2 ? "Under review by team" : "Not yet started"
+            switch status {
+            case .officerReview:
+                return "Under officer review"
+            case .officerApproved:
+                return "Officer approved, waiting for manager"
+            case .managerReview:
+                return "Under manager review"
+            default:
+                return status.pipelineStep >= 2 ? "Under review by team" : "Not yet started"
+            }
         case .approved:
-            return status.pipelineStep >= 3 ? "Loan sanctioned ✓" : "Pending approval"
+            switch status {
+            case .managerApproved:
+                return "Loan sanctioned ✓"
+            case .approved:
+                return "Loan approved ✓"
+            default:
+                return status.pipelineStep >= 3 ? "Loan sanctioned ✓" : "Pending approval"
+            }
         case .disbursed:
             return status.pipelineStep >= 4 ? "Funds disbursed ✓" : "Awaiting disbursement"
         }

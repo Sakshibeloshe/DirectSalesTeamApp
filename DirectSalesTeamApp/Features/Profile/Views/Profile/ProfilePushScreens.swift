@@ -69,104 +69,83 @@ struct NotificationSettingsView: View {
     }
 }
 
-// MARK: - 2. Security & PIN
+// MARK: - 2. Security Settings
 
-struct SecurityPinView: View {
-    @State private var biometricEnabled = true
-    @State private var appLockEnabled = true
-    @State private var autoLockTimeout = 2  // minutes
-    @State private var showChangePIN = false
-
-    let timeouts = [1, 2, 5, 10, 30]
+struct SecuritySettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var session: SessionStore
+    @State private var showTOTPSetup = false
+    @State private var isAuthenticatorEnabled = false
+    @State private var userID: String = ""
 
     var body: some View {
         List {
-            Section("BIOMETRIC") {
-                ToggleRow(
-                    title: "Face ID / Touch ID",
-                    subtitle: "Use biometrics to unlock the app",
-                    icon: "faceid",
-                    iconColor: .green,
-                    isOn: $biometricEnabled
-                )
+            Section("AUTHENTICATOR APP") {
+                HStack {
+                    RoundedIconView(icon: "lock.shield.fill", color: .blue)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Authenticator App")
+                            .font(.subheadline).fontWeight(.medium)
+                        Text(isAuthenticatorEnabled
+                             ? "Configured — tap to reconfigure"
+                             : "Not configured")
+                            .font(.caption)
+                            .foregroundStyle(isAuthenticatorEnabled ? .green : .secondary)
+                    }
+                    Spacer()
+                    Button(isAuthenticatorEnabled ? "Reconfigure" : "Set Up") {
+                        showTOTPSetup = true
+                    }
+                    .font(.subheadline)
+                    .buttonStyle(.bordered)
+                    .tint(.blue)
+                }
             }
 
-            Section("APP LOCK") {
+            Section("QUICK LOGIN") {
                 ToggleRow(
-                    title: "App Lock",
-                    subtitle: "Require authentication on open",
-                    icon: "lock.fill",
-                    iconColor: .blue,
-                    isOn: $appLockEnabled
-                )
-                if appLockEnabled {
-                    Picker("Auto-lock after", selection: $autoLockTimeout) {
-                        ForEach(timeouts, id: \.self) { t in
-                            Text("\(t) min").tag(t)
+                    title: "Use Authenticator for Quick Login",
+                    subtitle: "Skip password using your authenticator app code",
+                    icon: "apps.iphone",
+                    iconColor: .indigo,
+                    isOn: Binding(
+                        get: { isAuthenticatorEnabled },
+                        set: { newVal in
+                            QuickLoginPreferencesStore.shared.setAuthenticatorEnabled(newVal, for: userID)
+                            isAuthenticatorEnabled = newVal
                         }
-                    }
-                }
-            }
-
-            Section("PIN") {
-                Button {
-                    showChangePIN = true
-                } label: {
-                    HStack {
-                        Label("Change PIN", systemImage: "key.fill")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                            .font(.caption).foregroundStyle(Color(.tertiaryLabel))
-                    }
-                    .foregroundStyle(.primary)
-                }
+                    )
+                )
             }
 
             Section {
-                InfoRow(icon: "exclamationmark.shield", text: "Your PIN is stored securely on-device. Bank staff will never ask for your PIN.")
+                InfoRow(
+                    icon: "exclamationmark.shield",
+                    text: "Use Google Authenticator, 1Password, or any TOTP-compatible app. Your secret is stored server-side and never leaves the secure infrastructure."
+                )
             }
         }
-        .navigationTitle("Security & PIN")
+        .navigationTitle("Security")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showChangePIN) {
-            ChangePINView()
-        }
-    }
-}
-
-struct ChangePINView: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var newPIN = ""
-    @State private var confirmPIN = ""
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section("NEW PIN") {
-                    SecureField("Enter 6-digit PIN", text: $newPIN)
-                        .keyboardType(.numberPad)
-                    SecureField("Confirm PIN", text: $confirmPIN)
-                        .keyboardType(.numberPad)
-                }
-                Section {
-                    InfoRow(icon: "info.circle", text: "Use a PIN that's hard to guess. Do not use your date of birth or phone number.")
-                }
+        .sheet(isPresented: $showTOTPSetup) {
+            SetupTOTPView {
+                // On completion: mark authenticator as enabled
+                QuickLoginPreferencesStore.shared.setAuthenticatorEnabled(true, for: userID)
+                isAuthenticatorEnabled = true
             }
-            .navigationTitle("Change PIN")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") { dismiss() }
-                        .fontWeight(.semibold)
-                        .disabled(newPIN.count < 6 || newPIN != confirmPIN)
-                }
+            .environmentObject(session)
+        }
+        .onAppear {
+            if let token = try? TokenStore.shared.accessToken(),
+               let id = JWTClaimsDecoder.subject(from: token) {
+                userID = id
+                isAuthenticatorEnabled = QuickLoginPreferencesStore.shared
+                    .isAuthenticatorEnabled(for: id)
             }
         }
     }
 }
+
 
 // MARK: - 3. Privacy
 

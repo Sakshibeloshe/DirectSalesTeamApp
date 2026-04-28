@@ -91,6 +91,7 @@ final class BackendLeadService: LeadServiceProtocol {
                     }
                     let branchID = try await self.getDstBranchID()
 
+                    print("DEBUG: Creating application for borrower: \(borrowerProfileID), product: \(resolvedProductID), branch: \(branchID)")
                     // Create as DRAFT — this is the "lead" stage
                     let created = try await self.createLoanApplication(
                         borrowerProfileID: borrowerProfileID,
@@ -100,6 +101,7 @@ final class BackendLeadService: LeadServiceProtocol {
                         tenureMonths: Int32(lead.loanType.defaultTenureMonths),
                         status: .draft
                     )
+                    print("DEBUG: Successfully created application: \(created.id)")
 
                     // Persist UI metadata (name/phone/email/productID) keyed by applicationID
                     self.leadMetadataStore.save(
@@ -119,7 +121,20 @@ final class BackendLeadService: LeadServiceProtocol {
                     mapped.email = lead.email
 
                     promise(.success(mapped))
+                } catch let rpcError as RPCError where rpcError.code == .failedPrecondition {
+                    let msg = rpcError.message.lowercased()
+                    if msg.contains("kyc") {
+                        print("DEBUG: addLead rejected — borrower KYC incomplete")
+                        promise(.failure(LeadAPIError.kycIncomplete))
+                    } else if msg.contains("requested_amount") || msg.contains("amount must be") {
+                        print("DEBUG: addLead rejected — amount out of range: \(rpcError.message)")
+                        promise(.failure(LeadAPIError.backendError(rpcError.message)))
+                    } else {
+                        print("DEBUG: addLead failedPrecondition: \(rpcError.message)")
+                        promise(.failure(LeadAPIError.backendError(rpcError.message)))
+                    }
                 } catch {
+                    print("DEBUG: addLead failed with error: \(error)")
                     promise(.failure(error))
                 }
             }
@@ -244,17 +259,36 @@ final class BackendLeadService: LeadServiceProtocol {
         let auth = Auth_V1_AuthService.Client(wrapping: grpcClient)
         let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: token)
         let request = Auth_V1_GetMyProfileRequest()
-        let response = try await auth.getMyProfile(
-            request: .init(message: request, metadata: metadata),
-            options: options
-        )
+        
+        let response: Auth_V1_GetMyProfileResponse
+        do {
+            response = try await performGetMyProfile(auth: auth, request: request, metadata: metadata, options: options)
+        } catch let rpcError as RPCError where rpcError.code == .cancelled {
+            print("DEBUG: getMyProfile cancelled; retrying once...")
+            try await Task.sleep(for: .milliseconds(200))
+            response = try await performGetMyProfile(auth: auth, request: request, metadata: metadata, options: options)
+        }
 
         if case .dstProfile(let dstProfile) = response.profile {
             let branchID = dstProfile.branch.branchID.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("DEBUG: Retrieved branchID from profile: '\(branchID)'")
             if !branchID.isEmpty { return branchID }
         }
 
+        print("DEBUG: Failed to find branchID in DST profile")
         throw LeadAPIError.missingBranch
+    }
+
+    private func performGetMyProfile(
+        auth: Auth_V1_AuthService.Client<HTTP2ClientTransport.Posix>,
+        request: Auth_V1_GetMyProfileRequest,
+        metadata: Metadata,
+        options: CallOptions
+    ) async throws -> Auth_V1_GetMyProfileResponse {
+        try await auth.getMyProfile(
+            request: .init(message: request, metadata: metadata),
+            options: options
+        )
     }
 
     private func mapLoanApplicationStatus(from status: LeadStatus) -> Loan_LoanApplicationStatus {
@@ -345,6 +379,19 @@ final class BackendLeadService: LeadServiceProtocol {
         method: String,
         request: Request
     ) async throws -> Response {
+        do {
+            return try await performUnaryLoanCall(method: method, request: request)
+        } catch let rpcError as RPCError where rpcError.code == .cancelled {
+            print("DEBUG: unaryLoanCall '\(method)' cancelled; retrying once...")
+            try await Task.sleep(for: .milliseconds(200))
+            return try await performUnaryLoanCall(method: method, request: request)
+        }
+    }
+
+    private func performUnaryLoanCall<Request: SwiftProtobuf.Message, Response: SwiftProtobuf.Message>(
+        method: String,
+        request: Request
+    ) async throws -> Response {
         guard let token = try tokenStore.accessToken(), !token.isEmpty else {
             throw AuthError.unauthenticated
         }
@@ -370,6 +417,9 @@ enum LeadAPIError: LocalizedError {
     case missingBranch
     case missingLoanProduct
     case invalidResponse
+    case kycIncomplete
+    case amountOutOfRange(min: Double, max: Double)
+    case backendError(String)
 
     var errorDescription: String? {
         switch self {
@@ -381,6 +431,17 @@ enum LeadAPIError: LocalizedError {
             return "No active loan product available for this lead type."
         case .invalidResponse:
             return "Backend returned an invalid lead response."
+        case .kycIncomplete:
+            return "This borrower's KYC (identity verification) is not yet complete. Ask the borrower to complete their KYC in the Borrower app before creating a loan application."
+        case .amountOutOfRange(let min, let max):
+            let fmt = { (v: Double) -> String in
+                let l = v / 100_000
+                if l >= 100 { return "\(Int(l/100))Cr" }
+                return v.truncatingRemainder(dividingBy: 100_000) == 0 ? "\(Int(l))L" : String(format: "%.1fL", l)
+            }
+            return "Requested amount must be between ₹\(fmt(min)) and ₹\(fmt(max))."
+        case .backendError(let msg):
+            return msg
         }
     }
 }
@@ -541,6 +602,7 @@ struct Loan_ListLoanProductsResponse: Sendable {
 
 struct Loan_LoanApplication: Sendable {
     var id: String = ""
+    var referenceNumber: String = ""
     var primaryBorrowerProfileID: String = ""
     var loanProductName: String = ""
     var branchName: String = ""
@@ -660,6 +722,7 @@ extension Loan_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
         while let f = try decoder.nextFieldNumber() {
             switch f {
             case 1: try decoder.decodeSingularStringField(value: &id)
+            case 2: try decoder.decodeSingularStringField(value: &referenceNumber)
             case 3: try decoder.decodeSingularStringField(value: &primaryBorrowerProfileID)
             case 5: try decoder.decodeSingularStringField(value: &loanProductName)
             case 7: try decoder.decodeSingularStringField(value: &branchName)
@@ -673,6 +736,7 @@ extension Loan_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._MessageImp
     }
     func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
         if !id.isEmpty { try visitor.visitSingularStringField(value: id, fieldNumber: 1) }
+        if !referenceNumber.isEmpty { try visitor.visitSingularStringField(value: referenceNumber, fieldNumber: 2) }
         if !primaryBorrowerProfileID.isEmpty { try visitor.visitSingularStringField(value: primaryBorrowerProfileID, fieldNumber: 3) }
         if !loanProductName.isEmpty { try visitor.visitSingularStringField(value: loanProductName, fieldNumber: 5) }
         if !branchName.isEmpty { try visitor.visitSingularStringField(value: branchName, fieldNumber: 7) }
@@ -892,4 +956,3 @@ private final class DeletedLeadStore {
         defaults.set(Array(value), forKey: key)
     }
 }
-

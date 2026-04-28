@@ -1,16 +1,22 @@
 import SwiftUI
 
+@MainActor
 struct ApplicationsView: View {
-    @StateObject private var viewModel = ApplicationsViewModel()
+    @ObservedObject var viewModel: ApplicationsViewModel
+
+
 
     // Maps ApplicationStatus → display title for filter chips
     private let filterStatuses: [(label: String, status: ApplicationStatus?)] = [
         ("All", nil),
-        ("Under Review", .underReview),
-        ("Approved", .approved),
-        ("Disbursed", .disbursed),
         ("Submitted", .submitted),
+        ("Officer Review", .officerReview),
+        ("Officer Approved", .officerApproved),
+        ("Manager Review", .managerReview),
+        ("Sanctioned", .managerApproved),
+        ("Approved", .approved),
         ("Rejected", .rejected),
+        ("Disbursed", .disbursed),
     ]
 
     var body: some View {
@@ -65,6 +71,9 @@ struct ApplicationsView: View {
             .refreshable {
                 viewModel.loadApplications()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .dstDataChanged)) { _ in
+                viewModel.loadApplications()
+            }
         }
     }
 
@@ -74,7 +83,7 @@ struct ApplicationsView: View {
                 DSTSectionTitle("Application Pipeline", subtitle: "Track every converted file with the same transparency and confidence as the borrower experience.")
                 HStack(spacing: AppSpacing.sm) {
                     statTile(title: "Total", value: "\(viewModel.stats.total)", color: Color.textPrimary)
-                    statTile(title: "Under Review", value: "\(viewModel.stats.underReview)", color: Color.statusPending)
+                    statTile(title: "In Review", value: "\(viewModel.stats.inReview)", color: Color.statusPending)
                     statTile(title: "Approved", value: "\(viewModel.stats.approved)", color: Color.statusApproved)
                 }
             }
@@ -196,11 +205,14 @@ struct ApplicationsView: View {
 
     private func countFor(_ status: ApplicationStatus) -> Int {
         switch status {
-        case .underReview: return viewModel.stats.underReview
-        case .approved:    return viewModel.stats.approved
-        case .disbursed:   return viewModel.stats.disbursed
-        case .submitted:   return viewModel.applications.filter { $0.status == .submitted }.count
-        case .rejected:    return viewModel.applications.filter { $0.status == .rejected }.count
+        case .submitted:       return viewModel.applications.filter { $0.status == .submitted }.count
+        case .officerReview:   return viewModel.applications.filter { $0.status == .officerReview }.count
+        case .officerApproved: return viewModel.applications.filter { $0.status == .officerApproved }.count
+        case .managerReview:   return viewModel.applications.filter { $0.status == .managerReview }.count
+        case .managerApproved: return viewModel.applications.filter { $0.status == .managerApproved }.count
+        case .approved:        return viewModel.applications.filter { $0.status == .approved }.count
+        case .rejected:        return viewModel.applications.filter { $0.status == .rejected }.count
+        case .disbursed:       return viewModel.stats.disbursed
         }
     }
 
@@ -378,5 +390,5 @@ struct ApplicationDetailPlaceholder: View {
 }
 
 #Preview {
-    ApplicationsView()
+    ApplicationsView(viewModel: ApplicationsViewModel())
 }

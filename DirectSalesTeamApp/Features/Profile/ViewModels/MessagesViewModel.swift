@@ -52,14 +52,14 @@ final class MessagesViewModel: ObservableObject {
                 receiveValue: { [weak self] applications in
                     guard let self else { return }
                     for app in applications {
-                        let key = app.id.uuidString
+                        let key = app.id
                         self.applicationCache[key] = app
                     }
                     self.connectableLeads = applications.map { app in
                         LeadMessagingConnection(
-                            id: app.id.uuidString,
+                            id: app.id,
                             leadName: app.name,
-                            applicationRef: app.id.uuidString,
+                            applicationRef: app.referenceNumber ?? app.id,
                             loanType: app.loanType.rawValue
                         )
                     }

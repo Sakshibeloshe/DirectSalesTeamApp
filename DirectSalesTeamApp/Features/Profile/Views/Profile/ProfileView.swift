@@ -1,6 +1,6 @@
 // MARK: - ProfileView.swift
 // Profile tab — matches design from screenshots
-// Pushes: NotificationSettingsView, SecurityPinView, PrivacyView,
+// Pushes: NotificationSettingsView, SecuritySettingsView, PrivacyView,
 //         HelpCenterView, ContactSupportView, TermsView
 
 import SwiftUI
@@ -33,8 +33,9 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $vm.showNotificationSettings) {
                 NotificationSettingsView(vm: vm)
             }
-            .navigationDestination(isPresented: $vm.showSecurityPin) {
-                SecurityPinView()
+            .navigationDestination(isPresented: $vm.showSecuritySettings) {
+                SecuritySettingsView()
+                    .environmentObject(session)
             }
             .navigationDestination(isPresented: $vm.showPrivacy) {
                 PrivacyView()
@@ -54,6 +55,11 @@ struct ProfileView: View {
                     session.logout()
                 }
                 Button("Cancel", role: .cancel) {}
+            }
+            .task {
+                if #available(iOS 18.0, *) {
+                    await vm.loadProfile()
+                }
             }
         }
     }
@@ -99,11 +105,32 @@ struct ProfileView: View {
 
     private var performanceSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("PERFORMANCE")
-                .font(.caption).fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 20)
-                .padding(.top, 24)
+            HStack {
+                Text("PERFORMANCE")
+                    .font(.caption).fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+
+                if vm.isLoading {
+                    HStack(spacing: 4) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                        Text("Syncing...")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                } else if vm.isUsingMockData {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                        Text("Stats unavailable")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 24)
 
             VStack(spacing: 0) {
                 // Top row: Trust score ring + stats
@@ -121,23 +148,41 @@ struct ProfileView: View {
 
                     // Stats
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("\(vm.agent.totalLeads)")
-                            .font(.title).fontWeight(.bold)
+                        if vm.isUsingMockData || vm.isLoading {
+                            Text("—")
+                                .font(.title).fontWeight(.bold)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("\(vm.agent.totalLeads)")
+                                .font(.title).fontWeight(.bold)
+                        }
                         Text("Total Leads")
                             .font(.caption).foregroundStyle(.secondary)
 
                         HStack(spacing: 16) {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("\(vm.agent.approvalRatePercent)%")
-                                    .font(.headline).fontWeight(.bold)
-                                    .foregroundStyle(Color(red: 0.12, green: 0.35, blue: 0.75))
+                                if vm.isUsingMockData || vm.isLoading {
+                                    Text("—")
+                                        .font(.headline).fontWeight(.bold)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("\(vm.agent.approvalRatePercent)%")
+                                        .font(.headline).fontWeight(.bold)
+                                        .foregroundStyle(Color(red: 0.12, green: 0.35, blue: 0.75))
+                                }
                                 Text("Approval")
                                     .font(.caption2).foregroundStyle(.secondary)
                             }
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("\(vm.agent.rejectionRatePercent)%")
-                                    .font(.headline).fontWeight(.bold)
-                                    .foregroundStyle(.red)
+                                if vm.isUsingMockData || vm.isLoading {
+                                    Text("—")
+                                        .font(.headline).fontWeight(.bold)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("\(vm.agent.rejectionRatePercent)%")
+                                        .font(.headline).fontWeight(.bold)
+                                        .foregroundStyle(.red)
+                                }
                                 Text("Rejection")
                                     .font(.caption2).foregroundStyle(.secondary)
                             }
@@ -156,9 +201,11 @@ struct ProfileView: View {
                         Text("Approval Rate")
                             .font(.subheadline).foregroundStyle(.secondary)
                         Spacer()
-                        Text("\(vm.agent.approvalRatePercent)%")
+                        Text(vm.isUsingMockData || vm.isLoading ? "—" : "\(vm.agent.approvalRatePercent)%")
                             .font(.subheadline).fontWeight(.semibold)
-                            .foregroundStyle(Color(red: 0.12, green: 0.35, blue: 0.75))
+                            .foregroundStyle(vm.isUsingMockData || vm.isLoading
+                                             ? .secondary
+                                             : Color(red: 0.12, green: 0.35, blue: 0.75))
                     }
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
@@ -167,7 +214,7 @@ struct ProfileView: View {
                                 .frame(height: 8)
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(Color(red: 0.12, green: 0.35, blue: 0.75))
-                                .frame(width: geo.size.width * vm.agent.approvalRate, height: 8)
+                                .frame(width: geo.size.width * (vm.isUsingMockData ? 0 : vm.agent.approvalRate), height: 8)
                         }
                     }
                     .frame(height: 8)

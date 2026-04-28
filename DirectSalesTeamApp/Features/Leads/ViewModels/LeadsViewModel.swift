@@ -45,6 +45,11 @@ final class LeadsViewModel: ObservableObject {
         loadLeads()
         // Pre-fetch products eagerly so they're ready when the add-lead sheet opens
         Task { await fetchLoanProducts() }
+        
+        // Listen for global data changes (e.g. from Applications tab)
+        NotificationCenter.default.addObserver(forName: .dstDataChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.loadLeads()
+        }
     }
 
     func fetchLoanProducts() async {
@@ -88,8 +93,20 @@ final class LeadsViewModel: ObservableObject {
                 if case .failure(let err) = completion {
                     self?.errorMessage = err.localizedDescription
                 }
-            } receiveValue: { [weak self] leads in
-                self?.leads = leads
+            } receiveValue: { [weak self] serverLeads in
+                guard let self = self else { return }
+                
+                // Merge logic to handle backend indexing latency:
+                // Keep local leads that are NOT in the server list yet, provided they were created very recently (within 15s).
+                let now = Date()
+                let localOnly = self.leads.filter { local in
+                    !serverLeads.contains(where: { $0.id == local.id || ($0.applicationID != nil && $0.applicationID == local.applicationID) }) &&
+                    now.timeIntervalSince(local.createdAt) < 15
+                }
+                
+                withAnimation(.easeInOut) {
+                    self.leads = (serverLeads + localOnly).sorted { $0.createdAt > $1.createdAt }
+                }
             }
             .store(in: &cancellables)
     }
@@ -98,24 +115,31 @@ final class LeadsViewModel: ObservableObject {
         selectedFilter = filter
     }
 
-    func addLead(_ lead: Lead) {
+    func addLead(_ lead: Lead, completion: ((Bool) -> Void)? = nil) {
+        print("DEBUG: Adding lead for \(lead.name)...")
         service.addLead(lead)
             .receive(on: RunLoop.main)
-            .sink { [weak self] completion in
-                if case .failure(let err) = completion {
+            .sink { [weak self] completionStatus in
+                if case .failure(let err) = completionStatus {
+                    print("DEBUG: Failed to add lead: \(err.localizedDescription)")
                     self?.errorMessage = err.localizedDescription
+                    completion?(false)
                 }
             } receiveValue: { [weak self] newLead in
-                guard let self else { return }
-                // The returned lead has the server-assigned applicationID as its id.
-                // Guard against duplicates in case loadLeads() races with addLead().
-                let isDuplicate = self.leads.contains {
-                    $0.id == newLead.id ||
-                    ($0.applicationID != nil && $0.applicationID == newLead.applicationID)
-                }
+                guard let self = self else { return }
+                print("DEBUG: Successfully added lead: \(newLead.id)")
+                
+                // Add to local list immediately for instant UI feedback
+                let isDuplicate = self.leads.contains { $0.id == newLead.id || ($0.applicationID != nil && $0.applicationID == newLead.applicationID) }
                 if !isDuplicate {
-                    self.leads.insert(newLead, at: 0)
+                    withAnimation {
+                        self.leads.insert(newLead, at: 0)
+                    }
                 }
+                
+                // Notify other parts of the app (like Applications tab) that data changed
+                NotificationCenter.default.post(name: .dstDataChanged, object: nil)
+                completion?(true)
             }
             .store(in: &cancellables)
     }
@@ -183,5 +207,17 @@ final class LeadsViewModel: ObservableObject {
         let base = leads.filter { preSubmission.contains($0.status) }
         if filter.status == nil { return base.count }
         return base.filter { $0.status == filter.status }.count
+    }
+
+    var newLeadCount: Int {
+        leads.filter { $0.status == .new }.count
+    }
+
+    var docsPendingLeadCount: Int {
+        leads.filter { $0.status == .docsPending }.count
+    }
+
+    var totalLeadsCount: Int {
+        newLeadCount + docsPendingLeadCount
     }
 }

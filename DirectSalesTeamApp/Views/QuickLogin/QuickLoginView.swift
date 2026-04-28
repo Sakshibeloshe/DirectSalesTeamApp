@@ -36,10 +36,6 @@ struct QuickLoginView: View {
         return showTOTP
     }
 
-    private var hasAnyQuickLoginMethod: Bool {
-        isBiometricQuickLoginEnabled || isAuthenticatorQuickLoginEnabled
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             Spacer(minLength: 36)
@@ -48,10 +44,7 @@ struct QuickLoginView: View {
 
             Spacer(minLength: 28)
 
-            if !hasAnyQuickLoginMethod {
-                passwordFallbackSection
-                    .padding(.horizontal, 20)
-            } else if showOTPEntry {
+            if showOTPEntry {
                 otpSection
                     .padding(.horizontal, 20)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -59,10 +52,15 @@ struct QuickLoginView: View {
                 totpSection
                     .padding(.horizontal, 20)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-            } else {
+            } else if isBiometricQuickLoginEnabled {
                 biometricSection
                     .padding(.horizontal, 20)
                     .transition(.move(edge: .top).combined(with: .opacity))
+            } else {
+                // No biometric setup — show the MFA picker directly (always available)
+                mfaPickerSection
+                    .padding(.horizontal, 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
             Spacer()
@@ -84,6 +82,8 @@ struct QuickLoginView: View {
         .navigationBarHidden(true)
         .onAppear(perform: refreshQuickLoginPreferences)
     }
+
+    // MARK: - Header
 
     private var headerSection: some View {
         VStack(spacing: 14) {
@@ -108,6 +108,8 @@ struct QuickLoginView: View {
             }
         }
     }
+
+    // MARK: - Biometric Section (passkey registered)
 
     private var biometricSection: some View {
         VStack(spacing: 16) {
@@ -183,8 +185,121 @@ struct QuickLoginView: View {
                     .foregroundColor(DS.primary)
                     .padding(.top, 4)
             }
+
+            Button {
+                bioError = ""
+                requestOTP(factor: "phone_otp")
+            } label: {
+                Text("Send Phone OTP")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(DS.primary)
+                    .padding(.top, 4)
+            }
         }
     }
+
+    // MARK: - MFA Picker Section (no biometric — always available)
+
+    private var mfaPickerSection: some View {
+        VStack(spacing: 14) {
+            Text("Choose how to sign in")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundColor(DS.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if isAuthenticatorQuickLoginEnabled {
+                mfaOptionButton(
+                    icon: "apps.iphone",
+                    title: "Authenticator Code",
+                    subtitle: "Enter code from your authenticator app"
+                ) {
+                    bioError = ""
+                    showTOTP = true
+                    showOTPEntry = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        totpFocused = true
+                    }
+                }
+            }
+
+            mfaOptionButton(
+                icon: "envelope.fill",
+                title: "Email OTP",
+                subtitle: "Send a code to your registered email"
+            ) {
+                bioError = ""
+                requestOTP(factor: "email_otp")
+            }
+
+            mfaOptionButton(
+                icon: "iphone",
+                title: "Phone OTP",
+                subtitle: "Send a code to your registered phone"
+            ) {
+                bioError = ""
+                requestOTP(factor: "phone_otp")
+            }
+
+            if !bioError.isEmpty {
+                Text(bioError)
+                    .font(.system(size: 14))
+                    .foregroundColor(DS.danger)
+                    .multilineTextAlignment(.center)
+            }
+        }
+        .padding(24)
+        .background(.white.opacity(0.84))
+        .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.white.opacity(0.92), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.04), radius: 14, x: 0, y: 6)
+    }
+
+    private func mfaOptionButton(
+        icon: String,
+        title: String,
+        subtitle: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(DS.primary.opacity(0.1))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(DS.primary)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(DS.textPrimary)
+                    Text(subtitle)
+                        .font(.system(size: 13))
+                        .foregroundColor(DS.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(DS.textSecondary.opacity(0.5))
+            }
+            .padding(14)
+            .background(Color.white.opacity(0.7))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.white.opacity(0.8), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isAuthenticating)
+    }
+
+    // MARK: - TOTP Entry Section
 
     private var totpSection: some View {
         VStack(spacing: 24) {
@@ -255,9 +370,20 @@ struct QuickLoginView: View {
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(DS.textSecondary)
                 }
+            } else {
+                Button {
+                    totpCode = ""
+                    showTOTP = false
+                } label: {
+                    Text("Use a different method")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(DS.textSecondary)
+                }
             }
         }
     }
+
+    // MARK: - OTP Entry Section
 
     private var otpSection: some View {
         VStack(spacing: 24) {
@@ -322,44 +448,31 @@ struct QuickLoginView: View {
                     isAuthenticating = false
                 }
             }
-        }
-    }
 
-    private var passwordFallbackSection: some View {
-        VStack(spacing: 18) {
-            Text("Quick login is turned off for this account on this device.")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(DS.textPrimary)
-                .multilineTextAlignment(.center)
-
-            Text("Use your password to continue.")
-                .font(.system(size: 14))
-                .foregroundColor(DS.textSecondary)
-
-            PrimaryBtn(title: "Use Password") {
-                session.logout()
+            Button {
+                otpCode = ""
+                showOTPEntry = false
+            } label: {
+                Text("Use a different method")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(DS.textSecondary)
             }
         }
-        .padding(24)
-        .background(.white.opacity(0.84))
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(0.92), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.04), radius: 14, x: 0, y: 6)
     }
+
+    // MARK: - Footer
 
     private var footerSection: some View {
         Button {
             session.logout()
         } label: {
-            Text(hasAnyQuickLoginMethod ? "Sign in with a different account" : "Back to login")
+            Text("Sign in with a different account")
                 .font(.system(size: 14))
                 .foregroundColor(DS.textSecondary)
         }
     }
+
+    // MARK: - Helpers
 
     private func refreshQuickLoginPreferences() {
         guard let accessToken = try? TokenStore.shared.accessToken(),
@@ -379,7 +492,7 @@ struct QuickLoginView: View {
             do {
                 let result = try await session.beginQuickReopenOTP(factor: factor)
                 await MainActor.run {
-                    mfaSessionID = result.mfaSessionID  // WAS MISSING — now assigned
+                    mfaSessionID = result.mfaSessionID
                     otpFactor    = factor
                     otpTarget    = result.challengeTarget
                     showOTPEntry = true

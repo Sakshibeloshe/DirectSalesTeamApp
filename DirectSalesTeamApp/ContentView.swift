@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 struct ContentView: View {
     @State private var selectedTab: Tab = .leads
 
@@ -32,7 +33,7 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
 
             // ── Tab 1: Leads ──
-            LeadsView()
+            LeadsView(viewModel: leadsViewModel)
                 .tabItem {
                     Label("Leads", systemImage: selectedTab == .leads
                           ? "person.2.fill"
@@ -41,7 +42,7 @@ struct ContentView: View {
                 .tag(Tab.leads)
 
             // ── Tab 2: Applications ──
-            ApplicationsView()
+            ApplicationsView(viewModel: applicationsViewModel)
                 .tabItem {
                     Label("Applications", systemImage: selectedTab == .applications
                           ? "doc.text.fill"

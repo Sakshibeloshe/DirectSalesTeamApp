@@ -33,6 +33,11 @@ final class ApplicationsViewModel: ObservableObject {
         self.service = service
         setupBindings()
         loadApplications()
+        
+        // Listen for global data changes (e.g. from Leads tab)
+        NotificationCenter.default.addObserver(forName: .dstDataChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.loadApplications()
+        }
     }
 
     // MARK: - Bindings
@@ -76,8 +81,12 @@ final class ApplicationsViewModel: ObservableObject {
     var stats: ApplicationStats {
         ApplicationStats(
             total:       applications.count,
-            underReview: applications.filter { $0.status == .underReview }.count,
-            approved:    applications.filter { $0.status == .approved }.count,
+            inReview:    applications.filter {
+                [.officerReview, .officerApproved, .managerReview].contains($0.status)
+            }.count,
+            approved:    applications.filter {
+                [.managerApproved, .approved].contains($0.status)
+            }.count,
             disbursed:   applications.filter { $0.status == .disbursed }.count
         )
     }

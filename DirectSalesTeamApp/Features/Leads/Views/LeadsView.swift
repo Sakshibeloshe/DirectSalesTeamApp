@@ -1,10 +1,13 @@
 import SwiftUI
 
+@MainActor
 struct LeadsView: View {
-    @StateObject private var viewModel = LeadsViewModel()
+    @ObservedObject var viewModel: LeadsViewModel
     @State private var navPath = NavigationPath()
     @State private var showDeleteConfirm = false
     @State private var leadToDelete: Lead? = nil
+
+
 
     var body: some View {
         NavigationStack(path: $navPath) {
@@ -72,6 +75,9 @@ struct LeadsView: View {
             .refreshable {
                 viewModel.loadLeads()
             }
+            .onReceive(NotificationCenter.default.publisher(for: .dstDataChanged)) { _ in
+                viewModel.loadLeads()
+            }
         }
     }
 
@@ -81,9 +87,9 @@ struct LeadsView: View {
                 DSTSectionTitle("Lead Pipeline", subtitle: "Capture prospects, move them forward quickly, and keep every sales touchpoint visible.")
 
                 HStack(spacing: AppSpacing.sm) {
-                    leadMetric(title: "Total Leads", value: "\(viewModel.leads.count)", valueColor: Color.textPrimary)
-                    leadMetric(title: "Submitted", value: "\(viewModel.leads.filter { $0.status == .submitted }.count)", valueColor: Color.brandBlue)
-                    leadMetric(title: "Approved", value: "\(viewModel.leads.filter { $0.status == .approved }.count)", valueColor: Color.statusApproved)
+                    leadMetric(title: "New", value: "\(viewModel.newLeadCount)", valueColor: Color.textPrimary)
+                    leadMetric(title: "Docs Pending", value: "\(viewModel.docsPendingLeadCount)", valueColor: Color.brandBlue)
+                    leadMetric(title: "Total Leads", value: "\(viewModel.totalLeadsCount)", valueColor: Color.brandBlue)
                 }
             }
         }
@@ -205,13 +211,11 @@ struct LeadsView: View {
                     }
                     .buttonStyle(.plain)
                     .contextMenu {
-                        if lead.status == .submitted {
-                            Button(role: .destructive) {
-                                leadToDelete = lead
-                                showDeleteConfirm = true
-                            } label: {
-                                Label("Delete Lead", systemImage: "trash")
-                            }
+                        Button(role: .destructive) {
+                            leadToDelete = lead
+                            showDeleteConfirm = true
+                        } label: {
+                            Label("Delete Lead", systemImage: "trash")
                         }
                     }
 
@@ -230,17 +234,19 @@ struct LeadsView: View {
             .padding(.horizontal, AppSpacing.md)
             .padding(.bottom, AppSpacing.xl)
         }
-        .confirmationDialog("Delete Lead", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
+        .confirmationDialog("Delete Lead?", isPresented: $showDeleteConfirm, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 if let lead = leadToDelete {
-                    viewModel.deleteLead(lead)
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        viewModel.deleteLead(lead)
+                    }
                 }
                 leadToDelete = nil
             }
             Button("Cancel", role: .cancel) { leadToDelete = nil }
         } message: {
             if let lead = leadToDelete {
-                Text("Delete \(lead.name)'s lead? This cannot be undone.")
+                Text("Are you sure you want to delete \(lead.name)'s \(lead.loanType.rawValue) lead? This action cannot be undone.")
             }
         }
     }
@@ -308,5 +314,5 @@ struct LeadRowContent: View {
 }
 
 #Preview {
-    LeadsView()
+    LeadsView(viewModel: LeadsViewModel())
 }

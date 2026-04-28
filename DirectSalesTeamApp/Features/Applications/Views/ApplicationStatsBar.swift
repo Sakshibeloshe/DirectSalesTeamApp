@@ -15,10 +15,10 @@ struct ApplicationStatsBar: View {
             divider
 
             ApplicationStatCell(
-                value: stats.underReview,
-                label: "Under Review",
+                value: stats.inReview,
+                label: "In Review",
                 valueColor: Color(hex: "#D97706")
-            ) { onTap?(.underReview) }
+            ) { onTap?(.officerReview) }
 
             divider
 
@@ -77,6 +77,6 @@ private struct ApplicationStatCell: View {
 }
 
 #Preview {
-    ApplicationStatsBar(stats: ApplicationStats(total: 4, underReview: 1, approved: 1, disbursed: 1))
+    ApplicationStatsBar(stats: ApplicationStats(total: 4, inReview: 1, approved: 1, disbursed: 1))
         .padding()
 }

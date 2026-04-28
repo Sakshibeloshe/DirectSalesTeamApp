@@ -53,7 +53,14 @@ public final class SetupTOTPViewModel: ObservableObject {
             
             // On valid TOTP setup, the backend issues fresh tokens indicating the newly added MFA factor.
             try sessionManager.startSession(tokens: tokens)
-            
+
+            // Persist the preference so QuickLoginView picks it up immediately on next launch
+            // without requiring re-authentication.
+            if let token = try? TokenStore.shared.accessToken(),
+               let userID = JWTClaimsDecoder.subject(from: token) {
+                QuickLoginPreferencesStore.shared.setAuthenticatorEnabled(true, for: userID)
+            }
+
             self.state = .success
             return true
         } catch {

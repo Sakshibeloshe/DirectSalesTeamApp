@@ -52,25 +52,25 @@ struct PipelineProgressBar: View {
 
         Group {
             PipelineProgressBar(application: LoanApplication(
-                id: UUID(), leadId: nil, name: "A", phone: "", loanType: .home,
-                loanAmount: 100, status: .underReview,
+                id: UUID().uuidString, leadId: nil, name: "A", phone: "", referenceNumber: nil, loanType: .home,
+                loanAmount: 100, status: .officerReview,
                 createdAt: Date(), updatedAt: Date(),
                 slaDays: nil, statusLabel: "Review"))
 
             PipelineProgressBar(application: LoanApplication(
-                id: UUID(), leadId: nil, name: "A", phone: "", loanType: .home,
-                loanAmount: 100, status: .approved,
+                id: UUID().uuidString, leadId: nil, name: "A", phone: "", referenceNumber: nil, loanType: .home,
+                loanAmount: 100, status: .managerApproved,
                 createdAt: Date(), updatedAt: Date(),
                 slaDays: nil, statusLabel: "Approved"))
 
             PipelineProgressBar(application: LoanApplication(
-                id: UUID(), leadId: nil, name: "A", phone: "", loanType: .home,
+                id: UUID().uuidString, leadId: nil, name: "A", phone: "", referenceNumber: nil, loanType: .home,
                 loanAmount: 100, status: .rejected,
                 createdAt: Date(), updatedAt: Date(),
                 slaDays: nil, statusLabel: "Closed"))
 
             PipelineProgressBar(application: LoanApplication(
-                id: UUID(), leadId: nil, name: "A", phone: "", loanType: .home,
+                id: UUID().uuidString, leadId: nil, name: "A", phone: "", referenceNumber: nil, loanType: .home,
                 loanAmount: 100, status: .disbursed,
                 createdAt: Date(), updatedAt: Date(),
                 slaDays: nil, statusLabel: "Completed"))

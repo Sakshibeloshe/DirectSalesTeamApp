@@ -8,6 +8,7 @@ import GRPCProtobuf
 final class BackendApplicationService: ApplicationServiceProtocol {
     private let tokenStore: TokenStore
     private let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
+    private let authClient: AuthGRPCClient
 
     init(
         tokenStore: TokenStore = .shared,
@@ -15,6 +16,7 @@ final class BackendApplicationService: ApplicationServiceProtocol {
     ) {
         self.tokenStore = tokenStore
         self.grpcClient = grpcClient
+        self.authClient = AuthGRPCClient(grpcClient: grpcClient, tokenStore: tokenStore)
     }
 
     func fetchApplications() -> AnyPublisher<[LoanApplication], Error> {
@@ -25,34 +27,66 @@ final class BackendApplicationService: ApplicationServiceProtocol {
                     req.limit = 200; req.offset = 0; req.branchID = ""
                     let resp: Loan_ListLoanApplicationsResponse =
                         try await self.unaryLoanCall(method: "ListLoanApplications", request: req)
-                    // Enrich with local metadata (name, phone) if available
                     let meta = LeadMetadataStore()
-                    let apps: [LoanApplication] = resp.items
-                        .filter { $0.status != .draft && $0.status != .unspecified && $0.status != .cancelled }
-                        .map { app in
-                            var a = self.map(app)
-                            if let m = meta.metadata(for: app.id) {
-                                a.name = m.name; a.phone = m.phone
+                    let filtered = resp.items.filter {
+                        $0.status != .draft && $0.status != .unspecified && $0.status != .cancelled
+                    }
+
+                    let apps: [LoanApplication] = try await withThrowingTaskGroup(of: LoanApplication.self) { group in
+                        for proto in filtered {
+                            group.addTask {
+                                var application = self.map(proto)
+                                if let m = meta.metadata(for: proto.id) {
+                                    application.name = m.name
+                                    application.phone = m.phone
+                                } else if !proto.primaryBorrowerProfileID.isEmpty {
+                                    if let profile = try? await self.authClient.getBorrowerProfile(userID: proto.primaryBorrowerProfileID) {
+                                        let fullName = [profile.firstName, profile.lastName]
+                                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                                            .filter { !$0.isEmpty }
+                                            .joined(separator: " ")
+                                        let resolvedName = fullName.isEmpty
+                                            ? (proto.referenceNumber.isEmpty ? "Application" : proto.referenceNumber)
+                                            : fullName
+                                        application.name = resolvedName
+                                        meta.save(
+                                            applicationID: proto.id,
+                                            name: resolvedName,
+                                            phone: "",
+                                            email: "",
+                                            loanProductID: nil
+                                        )
+                                    } else {
+                                        application.name = proto.referenceNumber.isEmpty ? "Application" : proto.referenceNumber
+                                    }
+                                }
+                                return application
                             }
-                            return a
                         }
+                        var results: [LoanApplication] = []
+                        for try await application in group {
+                            results.append(application)
+                        }
+                        return results.sorted { $0.createdAt > $1.createdAt }
+                    }
                     promise(.success(apps))
                 } catch { promise(.failure(error)) }
             }
         }.eraseToAnyPublisher()
     }
 
-    func updateStatus(id: UUID, status: ApplicationStatus) -> AnyPublisher<LoanApplication, Error> {
+    func updateStatus(id: String, status: ApplicationStatus) -> AnyPublisher<LoanApplication, Error> {
         // TODO: wire to UpdateLoanApplicationStatus when backend supports it from DST role
         Fail(error: URLError(.unsupportedURL)).eraseToAnyPublisher()
     }
 
     private func map(_ app: Loan_LoanApplication) -> LoanApplication {
         LoanApplication(
-            id: UUID(uuidString: app.id) ?? UUID(),
+            id: app.id,
             leadId: nil,
-            name: app.primaryBorrowerProfileID,  // overwritten by metadata if available
+            name: app.referenceNumber.isEmpty ? "Application" : app.referenceNumber,
             phone: "",
+            referenceNumber: app.referenceNumber.isEmpty ? nil : app.referenceNumber,
             loanType: mapLoanType(app.loanProductName),
             loanAmount: Double(app.requestedAmount) ?? 0,
             status: mapStatus(app.status),
@@ -67,21 +101,30 @@ final class BackendApplicationService: ApplicationServiceProtocol {
 
     private func mapStatus(_ s: Loan_LoanApplicationStatus) -> ApplicationStatus {
         switch s {
-        case .submitted:                                         return .submitted
-        case .approved, .officerApproved, .managerApproved:     return .approved
-        case .rejected, .officerRejected, .managerRejected:     return .rejected
-        case .disbursed:                                        return .disbursed
-        default:                                                return .underReview
+        case .submitted:                                 return .submitted
+        case .underReview, .officerReview:              return .officerReview
+        case .officerApproved:                          return .officerApproved
+        case .managerReview:                            return .managerReview
+        case .managerApproved:                          return .managerApproved
+        case .approved:                                 return .approved
+        case .rejected, .officerRejected, .managerRejected:
+            return .rejected
+        case .disbursed:                                return .disbursed
+        default:                                        return .submitted
         }
     }
     private func mapStatusLabel(_ s: Loan_LoanApplicationStatus) -> String {
         switch s {
-        case .submitted: return "Submitted"
-        case .underReview, .officerReview, .managerReview: return "Under Review"
-        case .approved, .officerApproved, .managerApproved: return "Sanctioned"
-        case .rejected, .officerRejected, .managerRejected: return "Rejected"
-        case .disbursed: return "Disbursed"
-        default: return "Processing"
+        case .submitted:                                 return "Submitted for review"
+        case .underReview, .officerReview:              return "Officer review in progress"
+        case .officerApproved:                          return "Awaiting manager review"
+        case .managerReview:                            return "Manager review in progress"
+        case .managerApproved:                          return "Sanctioned"
+        case .approved:                                 return "Approved"
+        case .rejected, .officerRejected, .managerRejected:
+            return "Closed"
+        case .disbursed:                                return "Completed"
+        default:                                        return "Processing"
         }
     }
     private func mapLoanType(_ productName: String) -> LoanType {
@@ -94,6 +137,19 @@ final class BackendApplicationService: ApplicationServiceProtocol {
     }
 
     private func unaryLoanCall<Request: SwiftProtobuf.Message, Response: SwiftProtobuf.Message>(
+        method: String,
+        request: Request
+    ) async throws -> Response {
+        do {
+            return try await performUnaryLoanCall(method: method, request: request)
+        } catch let rpcError as RPCError where rpcError.code == .cancelled {
+            print("DEBUG: ApplicationService unaryLoanCall '\(method)' cancelled; retrying once...")
+            try await Task.sleep(for: .milliseconds(200))
+            return try await performUnaryLoanCall(method: method, request: request)
+        }
+    }
+
+    private func performUnaryLoanCall<Request: SwiftProtobuf.Message, Response: SwiftProtobuf.Message>(
         method: String,
         request: Request
     ) async throws -> Response {
