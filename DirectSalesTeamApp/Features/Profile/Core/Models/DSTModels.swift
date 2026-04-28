@@ -61,7 +61,12 @@ struct MessageThread: Identifiable, Codable {
     let linkedApplicationRef: String?
     let linkedLeadName: String?
 
-    var lastMessage: ChatMessage? { messages.last }
+    var lastMessage: ChatMessage? {
+        messages.max {
+            if $0.sentAt != $1.sentAt { return $0.sentAt < $1.sentAt }
+            return $0.id < $1.id
+        }
+    }
     var unreadCount: Int { messages.filter { !$0.isRead && $0.senderRole != .dstAgent }.count }
 
     var lastMessageTime: String {

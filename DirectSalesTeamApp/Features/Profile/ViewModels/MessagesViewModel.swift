@@ -22,11 +22,14 @@ final class MessagesViewModel: ObservableObject {
     private var chatRooms: [ChatRoom] = []
     private var messageStreamTasks: [String: Task<Void, Never>] = [:]
     private var lastMessageIDByRoom: [String: String] = [:]
+    private var lastRoomEventAt: [String: Date] = [:]
     private var currentUserID: String = ""
     private var userRolesCache: [String: String] = [:]
     private let applicationService: ApplicationServiceProtocol
     private var applicationCache: [String: LoanApplication] = [:]
     private var cancellables = Set<AnyCancellable>()
+    private let heartbeatTimeout: TimeInterval = 90
+    private let maxReconnectDelaySeconds: UInt64 = 30
 
     var totalUnread: Int { threads.reduce(0) { $0 + $1.unreadCount } }
 
@@ -139,56 +142,54 @@ final class MessagesViewModel: ObservableObject {
         // Cancel existing stream for this room before starting a new one
         messageStreamTasks[room.id]?.cancel()
 
-        let afterMessageID = lastMessageIDByRoom[room.id]
         let task = Task {
-            let stream = chatService.subscribeToRoomMessages(roomID: room.id, afterMessageID: afterMessageID)
+            var attempt = 0
+            while !Task.isCancelled {
+                let afterMessageID = await MainActor.run { self.lastMessageIDByRoom[room.id] }
+                let stream = chatService.subscribeToRoomMessages(roomID: room.id, afterMessageID: afterMessageID)
 
-            do {
-                for try await event in stream {
-                    if Task.isCancelled { break }
+                do {
+                    self.lastRoomEventAt[room.id] = Date()
+                    for try await event in stream {
+                        if Task.isCancelled { break }
+                        self.lastRoomEventAt[room.id] = Date()
 
-                    if !event.isHeartbeat, let newMessage = event.message {
-                        lastMessageIDByRoom[room.id] = newMessage.id
-
-                        await MainActor.run {
-                            if let idx = self.chatRooms.firstIndex(where: { $0.id == room.id }) {
-                                var updatedRoom = self.chatRooms[idx]
-                                self.chatRooms[idx] = ChatRoom(
-                                    id: updatedRoom.id,
-                                    roomType: updatedRoom.roomType,
-                                    userAID: updatedRoom.userAID,
-                                    userBID: updatedRoom.userBID,
-                                    createdByUserID: updatedRoom.createdByUserID,
-                                    contextApplicationID: updatedRoom.contextApplicationID,
-                                    createdAt: updatedRoom.createdAt,
-                                    updatedAt: Date(),
-                                    latestMessage: newMessage
-                                )
-
-                                if let threadIdx = self.threads.firstIndex(where: { $0.id == room.id }) {
-                                    let newChatMessage = self.convertToChatMessage(protoMessage: newMessage)
-                                    var updatedThread = self.threads[threadIdx]
-                                    updatedThread = MessageThread(
-                                        id: updatedThread.id,
-                                        participant: updatedThread.participant,
-                                        messages: updatedThread.messages + [newChatMessage],
-                                        linkedApplicationRef: updatedThread.linkedApplicationRef,
-                                        linkedLeadName: updatedThread.linkedLeadName
-                                    )
-                                    self.threads[threadIdx] = updatedThread
-                                    self.moveThreadToTop(updatedThread.id)
-                                }
+                        if !event.isHeartbeat, let newMessage = event.message {
+                            await MainActor.run {
+                                self.mergeIncomingMessage(protoMessage: newMessage, roomID: room.id)
                             }
                         }
+
+                        if let lastEventAt = self.lastRoomEventAt[room.id], Date().timeIntervalSince(lastEventAt) > self.heartbeatTimeout {
+                            throw ChatError.networkError("Stream heartbeat timeout")
+                        }
                     }
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
+                    break
+                } catch {
+                    if Task.isCancelled { break }
+                    await reconcileRoomMessages(roomID: room.id)
+                    attempt += 1
+                    let delaySeconds = min(UInt64(1 << min(attempt, 5)), maxReconnectDelaySeconds)
+                    try? await Task.sleep(nanoseconds: (delaySeconds * 1_000_000_000) + UInt64.random(in: 0...500_000_000))
                 }
             }
         }
         messageStreamTasks[room.id] = task
+    }
+
+    private func reconcileRoomMessages(roomID: String) async {
+        do {
+            let protoMessages = try await chatService.listRoomMessages(roomID: roomID, limit: 50, offset: 0)
+            let convertedMessages = normalizeMessages(protoMessages.map(convertToChatMessage(protoMessage:)))
+            await MainActor.run {
+                self.updateThreadMessages(roomID: roomID, mergedWith: convertedMessages)
+                self.lastMessageIDByRoom[roomID] = self.latestMessageID(from: self.threadMessages(roomID: roomID))
+            }
+        } catch {
+            await MainActor.run {
+                self.errorMessage = error.localizedDescription
+            }
+        }
     }
 
     private func convertToMessageThread(room: ChatRoom) async -> MessageThread? {
@@ -212,11 +213,8 @@ final class MessagesViewModel: ObservableObject {
                 limit: 50,
                 offset: 0
             )
-            messages = protoMessages.map { proto in
-                let msg = convertToChatMessage(protoMessage: proto)
-                lastMessageIDByRoom[room.id] = proto.id
-                return msg
-            }
+            messages = normalizeMessages(protoMessages.map(convertToChatMessage(protoMessage:)))
+            lastMessageIDByRoom[room.id] = latestMessageID(from: messages)
         } catch {
             // Continue with empty messages on error
         }
@@ -255,6 +253,63 @@ final class MessagesViewModel: ObservableObject {
         )
     }
 
+    private func normalizeMessages(_ messages: [ChatMessage]) -> [ChatMessage] {
+        var byID: [String: ChatMessage] = [:]
+        for message in messages {
+            byID[message.id] = message
+        }
+        return byID.values.sorted {
+            if $0.sentAt != $1.sentAt { return $0.sentAt < $1.sentAt }
+            return $0.id < $1.id
+        }
+    }
+
+    private func latestMessageID(from messages: [ChatMessage]) -> String? {
+        normalizeMessages(messages).last?.id
+    }
+
+    private func threadMessages(roomID: String) -> [ChatMessage] {
+        threads.first(where: { $0.id == roomID })?.messages ?? []
+    }
+
+    private func updateThreadMessages(roomID: String, mergedWith incoming: [ChatMessage]) {
+        guard let threadIdx = threads.firstIndex(where: { $0.id == roomID }) else { return }
+        let current = threads[threadIdx]
+        let merged = normalizeMessages(current.messages + incoming)
+        threads[threadIdx] = MessageThread(
+            id: current.id,
+            participant: current.participant,
+            messages: merged,
+            linkedApplicationRef: current.linkedApplicationRef,
+            linkedLeadName: current.linkedLeadName
+        )
+        if selectedThread?.id == roomID {
+            selectedThread = threads[threadIdx]
+        }
+    }
+
+    private func mergeIncomingMessage(protoMessage: ChatDomainMessage, roomID: String) {
+        if let idx = chatRooms.firstIndex(where: { $0.id == roomID }) {
+            let updatedRoom = chatRooms[idx]
+            chatRooms[idx] = ChatRoom(
+                id: updatedRoom.id,
+                roomType: updatedRoom.roomType,
+                userAID: updatedRoom.userAID,
+                userBID: updatedRoom.userBID,
+                createdByUserID: updatedRoom.createdByUserID,
+                contextApplicationID: updatedRoom.contextApplicationID,
+                createdAt: updatedRoom.createdAt,
+                updatedAt: Date(),
+                latestMessage: protoMessage
+            )
+        }
+
+        let converted = convertToChatMessage(protoMessage: protoMessage)
+        updateThreadMessages(roomID: roomID, mergedWith: [converted])
+        lastMessageIDByRoom[roomID] = latestMessageID(from: threadMessages(roomID: roomID))
+        moveThreadToTop(roomID)
+    }
+
     func selectThread(_ thread: MessageThread) {
         selectedThread = threads.first(where: { $0.id == thread.id }) ?? thread
         markThreadAsRead(thread.id)
@@ -289,7 +344,7 @@ final class MessagesViewModel: ObservableObject {
         threads[idx] = MessageThread(
             id: updated.id,
             participant: updated.participant,
-            messages: messages,
+            messages: normalizeMessages(messages),
             linkedApplicationRef: updated.linkedApplicationRef,
             linkedLeadName: updated.linkedLeadName
         )
@@ -338,7 +393,7 @@ final class MessagesViewModel: ObservableObject {
                         thread = MessageThread(
                             id: thread.id,
                             participant: thread.participant,
-                            messages: thread.messages + [chatMsg],
+                            messages: normalizeMessages(thread.messages + [chatMsg]),
                             linkedApplicationRef: thread.linkedApplicationRef,
                             linkedLeadName: lead?.leadName ?? thread.linkedLeadName
                         )
@@ -387,6 +442,9 @@ final class ChatViewModel: ObservableObject {
     private var lastMessageID: String? = nil
     private var messageOffset: Int = 0
     private let messagePageSize: Int = 50
+    private var lastEventAt: Date = Date()
+    private let heartbeatTimeout: TimeInterval = 90
+    private let maxReconnectDelaySeconds: UInt64 = 30
     @Published var hasMoreMessages: Bool = true
 
     @Published var messages: [ChatMessage]
@@ -466,13 +524,12 @@ final class ChatViewModel: ObservableObject {
                 let convertedMessages = protoMessages.map { proto in
                     convertToChatMessage(protoMessage: proto)
                 }
-                if let lastMsg = protoMessages.last {
-                    lastMessageID = lastMsg.id
-                }
+                let normalized = normalizeMessages(convertedMessages)
+                lastMessageID = normalized.last?.id
                 hasMoreMessages = protoMessages.count >= messagePageSize
                 messageOffset = protoMessages.count
                 await MainActor.run {
-                    self.messages = convertedMessages
+                    self.messages = normalized
                     self.isLoading = false
                 }
             } catch {
@@ -501,10 +558,8 @@ final class ChatViewModel: ObservableObject {
                 hasMoreMessages = protoMessages.count >= messagePageSize
                 messageOffset += protoMessages.count
                 await MainActor.run {
-                    // Prepend older messages, deduping by ID
-                    let existingIDs = Set(self.messages.map(\.id))
-                    let newMessages = convertedMessages.filter { !existingIDs.contains($0.id) }
-                    self.messages = newMessages + self.messages
+                    self.messages = self.normalizeMessages(self.messages + convertedMessages)
+                    self.lastMessageID = self.messages.last?.id
                     self.isLoading = false
                 }
             } catch {
@@ -519,28 +574,64 @@ final class ChatViewModel: ObservableObject {
     private func startStreaming() {
         messageStreamTask?.cancel()
         messageStreamTask = Task {
-            let stream = chatService.subscribeToRoomMessages(roomID: roomID, afterMessageID: lastMessageID)
+            var attempt = 0
+            while !Task.isCancelled {
+                let stream = chatService.subscribeToRoomMessages(roomID: roomID, afterMessageID: lastMessageID)
+                do {
+                    self.lastEventAt = Date()
+                    for try await event in stream {
+                        if Task.isCancelled { break }
+                        self.lastEventAt = Date()
 
-            do {
-                for try await event in stream {
-                    if Task.isCancelled { break }
-
-                    if !event.isHeartbeat, let newMessage = event.message {
-                        lastMessageID = newMessage.id
-                        await MainActor.run {
-                            let convertedMessage = self.convertToChatMessage(protoMessage: newMessage)
-                            if !self.messages.contains(where: { $0.id == convertedMessage.id }) {
-                                self.messages.append(convertedMessage)
+                        if !event.isHeartbeat, let newMessage = event.message {
+                            await MainActor.run {
+                                let convertedMessage = self.convertToChatMessage(protoMessage: newMessage)
+                                self.messages = self.normalizeMessages(self.messages + [convertedMessage])
+                                self.lastMessageID = self.messages.last?.id
                                 self.onMessagesUpdated(self.messages)
                             }
                         }
+
+                        if Date().timeIntervalSince(self.lastEventAt) > self.heartbeatTimeout {
+                            throw ChatError.networkError("Stream heartbeat timeout")
+                        }
                     }
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = error.localizedDescription
+                    break
+                } catch {
+                    if Task.isCancelled { break }
+                    await reconcileLatestMessages()
+                    attempt += 1
+                    let delaySeconds = min(UInt64(1 << min(attempt, 5)), maxReconnectDelaySeconds)
+                    try? await Task.sleep(nanoseconds: (delaySeconds * 1_000_000_000) + UInt64.random(in: 0...500_000_000))
                 }
             }
+        }
+    }
+
+    private func reconcileLatestMessages() async {
+        do {
+            let protoMessages = try await chatService.listRoomMessages(roomID: roomID, limit: messagePageSize, offset: 0)
+            let convertedMessages = protoMessages.map { convertToChatMessage(protoMessage: $0) }
+            await MainActor.run {
+                self.messages = self.normalizeMessages(self.messages + convertedMessages)
+                self.lastMessageID = self.messages.last?.id
+                self.onMessagesUpdated(self.messages)
+            }
+        } catch {
+            await MainActor.run {
+                self.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func normalizeMessages(_ messages: [ChatMessage]) -> [ChatMessage] {
+        var byID: [String: ChatMessage] = [:]
+        for message in messages {
+            byID[message.id] = message
+        }
+        return byID.values.sorted {
+            if $0.sentAt != $1.sentAt { return $0.sentAt < $1.sentAt }
+            return $0.id < $1.id
         }
     }
 
@@ -579,10 +670,9 @@ final class ChatViewModel: ObservableObject {
                 )
                 let convertedMessage = convertToChatMessage(protoMessage: sentMessage)
                 await MainActor.run {
-                    if !self.messages.contains(where: { $0.id == convertedMessage.id }) {
-                        self.messages.append(convertedMessage)
-                        self.onMessagesUpdated(self.messages)
-                    }
+                    self.messages = self.normalizeMessages(self.messages + [convertedMessage])
+                    self.lastMessageID = self.messages.last?.id
+                    self.onMessagesUpdated(self.messages)
                 }
             } catch {
                 await MainActor.run {
@@ -604,10 +694,9 @@ final class ChatViewModel: ObservableObject {
                 )
                 let convertedMessage = convertToChatMessage(protoMessage: sentMessage)
                 await MainActor.run {
-                    if !self.messages.contains(where: { $0.id == convertedMessage.id }) {
-                        self.messages.append(convertedMessage)
-                        self.onMessagesUpdated(self.messages)
-                    }
+                    self.messages = self.normalizeMessages(self.messages + [convertedMessage])
+                    self.lastMessageID = self.messages.last?.id
+                    self.onMessagesUpdated(self.messages)
                 }
             } catch {
                 await MainActor.run {
