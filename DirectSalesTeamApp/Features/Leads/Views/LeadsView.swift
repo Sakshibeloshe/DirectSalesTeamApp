@@ -205,11 +205,11 @@ struct LeadsView: View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 ForEach(viewModel.filteredLeads, id: \.id) { lead in
-                    // NavigationLink for push navigation
                     NavigationLink(value: lead) {
                         LeadRowContent(lead: lead)
+                            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PlainButtonStyle())
                     .contextMenu {
                         Button(role: .destructive) {
                             leadToDelete = lead
@@ -220,17 +220,17 @@ struct LeadsView: View {
                     }
 
                     if lead.id != viewModel.filteredLeads.last?.id {
-                        Divider().padding(.leading, 76)
+                        Divider().padding(.leading, 72)
                     }
                 }
             }
             .background(Color.surfacePrimary)
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: AppRadius.md)
-                    .strokeBorder(Color.borderLight, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(Color.borderLight.opacity(0.8), lineWidth: 1)
             )
-            .cardShadow()
+            .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 4)
             .padding(.horizontal, AppSpacing.md)
             .padding(.bottom, AppSpacing.xl)
         }
@@ -269,45 +269,48 @@ struct LeadRowContent: View {
     let lead: Lead
 
     var body: some View {
-        HStack(spacing: AppSpacing.sm) {
+        HStack(spacing: 16) {
             AvatarView(
                 initials: lead.initials,
                 color: lead.name.avatarColor,
-                size: 48
+                size: 44
             )
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
+            
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
                     Text(lead.name)
-                        .font(AppFont.bodyMedium())
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundColor(Color.textPrimary)
                         .lineLimit(1)
+                    
                     Spacer()
+                    
                     StatusBadgeView(status: lead.status)
+                        .scaleEffect(0.9)
                 }
-                HStack(spacing: 6) {
-                    Image(systemName: lead.loanType.icon)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(Color.textTertiary)
-                    Text(lead.loanType.rawValue)
-                        .font(AppFont.subhead())
+                
+                HStack(spacing: 8) {
+                    Label(lead.loanType.rawValue, systemImage: lead.loanType.icon)
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Color.textSecondary)
-                    Text("·")
+                    
+                    Text("•")
                         .foregroundColor(Color.textTertiary)
+                    
                     Text(lead.formattedAmount)
-                        .font(AppFont.subheadMed())
-                        .foregroundColor(Color.textSecondary)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(Color.brandBlue)
+                    
                     Spacer()
+                    
                     Text(lead.timeAgo)
-                        .font(AppFont.caption())
+                        .font(.system(size: 11))
                         .foregroundColor(Color.textTertiary)
                 }
             }
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(Color.textTertiary)
         }
-        .padding(.horizontal, AppSpacing.md)
-        .padding(.vertical, AppSpacing.sm)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .background(Color.surfacePrimary)
         .contentShape(Rectangle())
     }

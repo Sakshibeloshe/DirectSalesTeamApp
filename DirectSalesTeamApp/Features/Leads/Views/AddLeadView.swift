@@ -152,21 +152,36 @@ struct AddLeadView: View {
                                         .font(.subheadline)
                                 } else {
                                     Menu {
-                                        Button("Select…") { selectedProductID = nil }
+                                        Button("Select Product…") { selectedProductID = nil }
+                                        Divider()
                                         ForEach(viewModel.loanProducts) { p in
-                                            Button("\(p.name) · \(p.baseInterestRate)%") {
+                                            Button(action: { 
                                                 selectedProductID = p.id
+                                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                            }) {
+                                                HStack {
+                                                    Text(p.name)
+                                                    Spacer()
+                                                    Text("\(p.baseInterestRate)%")
+                                                        .font(.caption)
+                                                }
                                             }
                                         }
                                     } label: {
                                         HStack {
-                                            Text(selectedProduct?.name ?? "Select…")
-                                                .foregroundColor(selectedProductID == nil ? .secondary : .primary)
+                                            if let p = selectedProduct {
+                                                Text(p.name)
+                                                    .foregroundColor(.primary)
+                                            } else {
+                                                Text("Select Product…")
+                                                    .foregroundColor(.secondary)
+                                            }
                                             Spacer()
                                             Image(systemName: "chevron.up.chevron.down")
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.secondary)
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .foregroundColor(.brandBlue)
                                         }
+                                        .padding(.vertical, 4)
                                     }
                                 }
                             }

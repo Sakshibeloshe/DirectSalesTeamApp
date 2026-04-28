@@ -53,8 +53,12 @@ final class LeadsViewModel: ObservableObject {
     }
 
     func fetchLoanProducts() async {
-        guard let products = try? await LoanGRPCClient().listLoanProducts(limit: 50, offset: 0) else { return }
-        loanProducts = products.filter { $0.isActive }
+        do {
+            let products = try await service.fetchLoanProducts()
+            loanProducts = products
+        } catch {
+            print("DEBUG: Failed to fetch loan products: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Bindings

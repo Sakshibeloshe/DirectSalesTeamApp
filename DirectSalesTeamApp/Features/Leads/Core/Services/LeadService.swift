@@ -12,6 +12,7 @@ protocol LeadServiceProtocol {
     func addLead(_ lead: Lead) -> AnyPublisher<Lead, Error>
     func updateLead(_ lead: Lead) -> AnyPublisher<Lead, Error>
     func deleteLead(_ lead: Lead) -> AnyPublisher<Void, Error>
+    func fetchLoanProducts() async throws -> [LoanProduct]
 }
 
 enum LeadDeletionError: LocalizedError {
@@ -83,8 +84,8 @@ final class BackendLeadService: LeadServiceProtocol {
                     if let pid = lead.loanProductID, !pid.isEmpty {
                         resolvedProductID = pid
                     } else {
-                        let products = try await self.listLoanProducts()
-                        guard let product = self.selectProduct(for: lead.loanType, products: products) else {
+                        let protoProducts = try await self.listLoanProductsInternal()
+                        guard let product = self.selectProduct(for: lead.loanType, products: protoProducts) else {
                             throw LeadAPIError.missingLoanProduct
                         }
                         resolvedProductID = product.id
@@ -187,7 +188,35 @@ final class BackendLeadService: LeadServiceProtocol {
         .eraseToAnyPublisher()
     }
 
-    private func listLoanProducts() async throws -> [Loan_LoanProductItem] {
+    func fetchLoanProducts() async throws -> [LoanProduct] {
+        let items = try await listLoanProductsInternal()
+        return items.map { item in
+            let appCategory: LoanProductCategory
+            switch item.category {
+            case .home:      appCategory = .home
+            case .vehicle:   appCategory = .vehicle
+            case .education: appCategory = .education
+            case .personal:  appCategory = .personal
+            default:         appCategory = .unspecified
+            }
+            return LoanProduct(
+                id: item.id,
+                name: item.name,
+                category: appCategory,
+                interestType: .unspecified,
+                baseInterestRate: "",
+                minAmount: "",
+                maxAmount: "",
+                isRequiringCollateral: false,
+                isActive: item.isActive,
+                eligibilityRule: nil,
+                fees: [],
+                requiredDocuments: []
+            )
+        }
+    }
+
+    private func listLoanProductsInternal() async throws -> [Loan_LoanProductItem] {
         var request = Loan_ListLoanProductsRequest()
         request.limit = 100
         request.offset = 0
@@ -496,6 +525,10 @@ final class MockLeadService: LeadServiceProtocol {
         return Just(())
             .setFailureType(to: Error.self)
             .eraseToAnyPublisher()
+    }
+
+    func fetchLoanProducts() async throws -> [LoanProduct] {
+        return []
     }
 }
 
