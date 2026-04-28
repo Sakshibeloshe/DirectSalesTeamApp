@@ -41,32 +41,34 @@ public enum ChatError: Error, LocalizedError {
     }
 
 static func from(_ error: Error) -> ChatError {
-            if let rpc = error as? RPCError {
+        if let rpc = error as? RPCError {
+            switch rpc.code {
+            case .unauthenticated:
+                return .unauthenticated
+            case .permissionDenied:
+                return .permissionDenied
+            case .notFound:
+                return .roomNotFound
+            case .invalidArgument:
                 let message = rpc.message.lowercased()
-
-                if message.contains("unauthenticated") || message.contains("not authenticated") {
-                    return .unauthenticated
-                }
-                if message.contains("permission denied") || message.contains("permission") {
-                    return .permissionDenied
-                }
-                if message.contains("invalid") && message.contains("room") {
+                if message.contains("room") {
                     return .invalidRoomID
                 }
-                if message.contains("invalid") && message.contains("user") {
+                if message.contains("user") {
                     return .invalidUserID
                 }
-                if message.contains("not found") || message.contains("room") {
-                    return .roomNotFound
-                }
-
+                return .underlyingError(rpc)
+            case .unavailable, .deadlineExceeded:
+                return .networkError(rpc.message)
+            default:
                 return .underlyingError(rpc)
             }
-            if let chatError = error as? ChatError {
-                return chatError
-            }
-            return .unknown
         }
+        if let chatError = error as? ChatError {
+            return chatError
+        }
+        return .unknown
+    }
 }
 
 // MARK: - ChatGRPCClientProtocol
