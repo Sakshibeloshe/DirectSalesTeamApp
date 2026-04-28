@@ -47,8 +47,8 @@ struct ApplicationsView: View {
             }
             .navigationTitle("Applications")
             .navigationBarTitleDisplayMode(.large)
-            .sheet(item: $viewModel.selectedApplication) { app in
-                ApplicationDetailPlaceholder(application: app)
+            .navigationDestination(for: LoanApplication.self) { app in
+                ApplicationDetailView(application: app)
             }
             .refreshable {
                 viewModel.loadApplications()
@@ -168,9 +168,10 @@ struct ApplicationsView: View {
     private var applicationList: some View {
         LazyVStack(spacing: 0) {
             ForEach(Array(viewModel.filteredApplications.enumerated()), id: \.element.id) { index, app in
-                ApplicationRowView(application: app) {
-                    viewModel.selectedApplication = app
+                NavigationLink(value: app) {
+                    ApplicationRowView(application: app)
                 }
+                .buttonStyle(.plain)
                 if index < viewModel.filteredApplications.count - 1 {
                     Divider()
                         .padding(.leading, 76)

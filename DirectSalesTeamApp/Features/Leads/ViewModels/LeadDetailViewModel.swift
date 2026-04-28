@@ -16,16 +16,12 @@ final class LeadDetailViewModel: ObservableObject {
 
     var uploadedCount: Int { documents.filter { $0.status.isUploaded }.count }
     var totalCount: Int    { documents.count }
-    /// KYC docs must be .verified; supporting docs must be at least .uploaded (not .notUploaded / .requested)
+    /// All docs must be at least uploaded (photo captured) before the DST can submit.
+    /// Backend-side KYC verification happens after submission — DST only provides the scan.
     var missingCount: Int {
-        documents.filter { doc in
-            switch doc.kind {
-            case .aadhaar, .pan: return !doc.status.isVerified
-            case .supporting:    return !doc.status.isUploaded
-            }
-        }.count
+        documents.filter { !$0.status.isUploaded }.count
     }
-    var canSubmit: Bool { missingCount == 0 }
+    var canSubmit: Bool { missingCount == 0 && totalCount > 0 }
 
     private let documentStore: SQLiteDocumentStore
     private let leadID: String
@@ -87,6 +83,57 @@ final class LeadDetailViewModel: ObservableObject {
             documentStore.save(documents[idx], leadID: leadID)
         }
     }
+
+    /// Merges backend product required-doc definitions into the local document list.
+    /// Merges backend product required-doc definitions into the local document list.
+    /// All docs are .supporting kind in the DST context (upload-only, no KYC flow).
+    func syncRequiredDocuments(from requirements: [ProductRequiredDocument]) {
+        guard !requirements.isEmpty else { return }
+
+        // All backend required docs (identity + income + collateral) need upload slots
+        let existingSupportingCount = documents.filter { $0.kind == .supporting }.count
+        let neededExtra = max(0, requirements.count - existingSupportingCount)
+        guard neededExtra > 0 else { return }
+
+        let existingReqs = requirements.prefix(existingSupportingCount)
+        let newReqs = requirements.dropFirst(existingSupportingCount)
+
+        // Rename existing supporting docs to match product requirement types
+        var supportingIdx = 0
+        for req in existingReqs {
+            while supportingIdx < documents.count && documents[supportingIdx].kind != .supporting {
+                supportingIdx += 1
+            }
+            if supportingIdx < documents.count {
+                let expectedName = req.requirementType.displayName
+                if documents[supportingIdx].name != expectedName {
+                    let updated = LeadDocument(
+                        id: documents[supportingIdx].id,
+                        name: expectedName,
+                        kind: .supporting,
+                        status: documents[supportingIdx].status,
+                        verification: documents[supportingIdx].verification
+                    )
+                    documents[supportingIdx] = updated
+                    documentStore.save(updated, leadID: leadID)
+                }
+                supportingIdx += 1
+            }
+        }
+
+        // Append any genuinely new required docs
+        for req in newReqs {
+            let doc = LeadDocument(
+                id: UUID(),
+                name: req.requirementType.displayName,
+                kind: .supporting,
+                status: .notUploaded
+            )
+            documents.append(doc)
+            documentStore.save(doc, leadID: leadID)
+        }
+    }
+
 
     func requestDocument(id: UUID) {
         guard let idx = documents.firstIndex(where: { $0.id == id }) else { return }

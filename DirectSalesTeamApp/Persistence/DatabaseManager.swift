@@ -60,17 +60,43 @@ final class DatabaseManager {
                 t.column("email", .text).notNull().defaults(to: "")
             }
         }
-        migrator.registerMigration("v2_userdefaults_migration") { db in
-            // One-time migration from UserDefaults LocalLeadStore
-            let key = "dst.leads.local.list"
-            guard let data = UserDefaults.standard.data(forKey: key),
-                  let legacyLeads = try? JSONDecoder().decode([Lead].self, from: data)
-            else { return }
-            for lead in legacyLeads {
-                let record = LeadRecord(from: lead)
-                try record.insert(db, onConflict: .ignore)
+        migrator.registerMigration("v2_userdefaults_migration") { _ in
+            // No-op: the UserDefaults→SQLite lead migration is obsolete.
+            // All leads are now persisted on the backend as DRAFT LoanApplications.
+            // The migration identifier is kept so it is not re-applied on existing devices.
+        }
+        migrator.registerMigration("v3_drop_lead_documents_fk") { db in
+            // The lead_documents table has a FK to leads (onDelete: .cascade).
+            // Since leads are now backend-only, any leadID (applicationUUID) that is
+            // not in the local leads table fails the FK check and inserts are silently dropped.
+            // Recreate the table without the FK so documents can use any string as leadID.
+            try db.execute(sql: """
+                CREATE TABLE lead_documents_new (
+                    id              TEXT PRIMARY KEY NOT NULL,
+                    leadID          TEXT NOT NULL,
+                    name            TEXT NOT NULL,
+                    kind            TEXT NOT NULL,
+                    statusType      TEXT NOT NULL DEFAULT 'notUploaded',
+                    uploadedFileName TEXT,
+                    mediaFileID     TEXT,
+                    requestedAt     REAL,
+                    uploadedAt      REAL,
+                    verifiedAt      REAL,
+                    verifiedName    TEXT,
+                    verifiedDocNumber TEXT,
+                    verifiedDOB     TEXT,
+                    verificationNote TEXT
+                )
+            """)
+            try db.execute(sql: "INSERT INTO lead_documents_new SELECT * FROM lead_documents")
+            try db.execute(sql: "DROP TABLE lead_documents")
+            try db.execute(sql: "ALTER TABLE lead_documents_new RENAME TO lead_documents")
+        }
+        migrator.registerMigration("v4_add_lead_product_id") { db in
+            // Add loanProductID column to leads table for forward compatibility.
+            try db.alter(table: "leads") { t in
+                t.add(column: "loanProductID", .text)
             }
-            UserDefaults.standard.removeObject(forKey: key)
         }
         try migrator.migrate(dbPool)
     }

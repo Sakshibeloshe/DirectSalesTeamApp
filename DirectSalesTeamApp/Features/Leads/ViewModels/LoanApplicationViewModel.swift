@@ -315,6 +315,13 @@ final class LoanApplicationViewModel: ObservableObject {
             print("Failed to fetch branches: \(error)")
         }
     }
+
+    /// Returns the required documents for a specific product ID.
+    /// Called by LeadDetailView after products are fetched to pre-populate the document list.
+    func requiredDocuments(for productID: String?) -> [ProductRequiredDocument] {
+        guard let productID else { return [] }
+        return loanProducts.first(where: { $0.id == productID })?.requiredDocuments ?? []
+    }
     
     private func persistKYCState() {
         var updated = lead

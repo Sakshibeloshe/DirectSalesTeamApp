@@ -11,7 +11,7 @@ final class ApplicationsViewModel: ObservableObject {
     @Published var searchText: String                    = ""
     @Published var isLoading: Bool                       = false
     @Published var errorMessage: String?                 = nil
-    @Published var selectedApplication: LoanApplication? = nil
+    @Published var selectedApplication: LoanApplication? = nil   // kept for backward compat; unused by view (NavigationLink used instead)
     
     // MARK: - Scroll Tracking
     @Published var scrollOffset: CGFloat = 0

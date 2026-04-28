@@ -12,7 +12,16 @@ final class LeadsViewModel: ObservableObject {
     @Published var searchText: String      = ""
     @Published var isLoading: Bool         = false
     @Published var errorMessage: String?   = nil
-    @Published var showAddLead: Bool       = false
+    @Published var showAddLead: Bool       = false {
+        didSet {
+            // Pre-fetch products when the sheet is about to open so AddLeadView
+            // doesn't need to run an async task inside the sheet (which resets form state).
+            if showAddLead && loanProducts.isEmpty {
+                Task { await fetchLoanProducts() }
+            }
+        }
+    }
+    @Published var loanProducts: [LoanProduct] = []
     
     // MARK: - Scroll Tracking
     @Published var scrollOffset: CGFloat = 0
@@ -34,6 +43,13 @@ final class LeadsViewModel: ObservableObject {
         self.service = service
         setupBindings()
         loadLeads()
+        // Pre-fetch products eagerly so they're ready when the add-lead sheet opens
+        Task { await fetchLoanProducts() }
+    }
+
+    func fetchLoanProducts() async {
+        guard let products = try? await LoanGRPCClient().listLoanProducts(limit: 50, offset: 0) else { return }
+        loanProducts = products.filter { $0.isActive }
     }
 
     // MARK: - Bindings
@@ -91,8 +107,13 @@ final class LeadsViewModel: ObservableObject {
                 }
             } receiveValue: { [weak self] newLead in
                 guard let self else { return }
-                // Guard prevents duplicates if loadLeads() races with addLead()
-                if !self.leads.contains(where: { $0.id == newLead.id }) {
+                // The returned lead has the server-assigned applicationID as its id.
+                // Guard against duplicates in case loadLeads() races with addLead().
+                let isDuplicate = self.leads.contains {
+                    $0.id == newLead.id ||
+                    ($0.applicationID != nil && $0.applicationID == newLead.applicationID)
+                }
+                if !isDuplicate {
                     self.leads.insert(newLead, at: 0)
                 }
             }
@@ -123,13 +144,8 @@ final class LeadsViewModel: ObservableObject {
     }
 
     func deleteLead(_ lead: Lead) {
-        // Allow deletion if it's a local lead or if it's a submitted backend lead
-        let isLocal = lead.applicationID == nil || lead.applicationID?.isEmpty == true
-        guard isLocal || lead.status == .submitted else {
-            errorMessage = "Only submitted or local leads can be deleted."
-            return
-        }
-
+        // All leads are now backend applications (DRAFT or later);
+        // cancellation is always allowed from the Leads tab.
         isLoading = true
         errorMessage = nil
 
@@ -139,7 +155,7 @@ final class LeadsViewModel: ObservableObject {
                 self?.isLoading = false
                 if case .failure(let err) = completion {
                     self?.errorMessage = err.localizedDescription
-                    // If backend fails, we should probably re-add it or reload to be safe
+                    // Re-sync so a cancelled lead that failed to cancel doesn't disappear locally.
                     self?.loadLeads()
                 }
             } receiveValue: { [weak self] _ in
@@ -149,7 +165,6 @@ final class LeadsViewModel: ObservableObject {
                     self.filteredLeads.removeAll { $0.id == lead.id }
                 }
                 // Re-sync from backend to ensure cancelled leads never reappear.
-                // We add a slight delay to allow backend to process the cancellation
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     self.loadLeads()
                 }

@@ -27,13 +27,15 @@ final class BackendApplicationService: ApplicationServiceProtocol {
                         try await self.unaryLoanCall(method: "ListLoanApplications", request: req)
                     // Enrich with local metadata (name, phone) if available
                     let meta = LeadMetadataStore()
-                    let apps: [LoanApplication] = resp.items.map { app in
-                        var a = self.map(app)
-                        if let m = meta.metadata(for: app.id) {
-                            a.name = m.name; a.phone = m.phone
+                    let apps: [LoanApplication] = resp.items
+                        .filter { $0.status != .draft && $0.status != .unspecified && $0.status != .cancelled }
+                        .map { app in
+                            var a = self.map(app)
+                            if let m = meta.metadata(for: app.id) {
+                                a.name = m.name; a.phone = m.phone
+                            }
+                            return a
                         }
-                        return a
-                    }
                     promise(.success(apps))
                 } catch { promise(.failure(error)) }
             }
@@ -65,10 +67,11 @@ final class BackendApplicationService: ApplicationServiceProtocol {
 
     private func mapStatus(_ s: Loan_LoanApplicationStatus) -> ApplicationStatus {
         switch s {
-        case .approved, .officerApproved, .managerApproved: return .approved
-        case .rejected, .officerRejected, .managerRejected: return .rejected
-        case .disbursed: return .disbursed
-        default: return .underReview
+        case .submitted:                                         return .submitted
+        case .approved, .officerApproved, .managerApproved:     return .approved
+        case .rejected, .officerRejected, .managerRejected:     return .rejected
+        case .disbursed:                                        return .disbursed
+        default:                                                return .underReview
         }
     }
     private func mapStatusLabel(_ s: Loan_LoanApplicationStatus) -> String {
