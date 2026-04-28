@@ -176,7 +176,7 @@ enum SettingsItem: CaseIterable, Identifiable {
     var subtitle: String {
         switch self {
         case .notifications: return "Push, SMS alerts"
-        case .securityPin: return "Biometric, app lock"
+        case .securityPin: return "Authenticator app & quick login"
         case .privacy: return "Data & consent settings"
         case .helpCenter: return "FAQs, guides, tutorials"
         case .contactSupport: return "Chat or call us"

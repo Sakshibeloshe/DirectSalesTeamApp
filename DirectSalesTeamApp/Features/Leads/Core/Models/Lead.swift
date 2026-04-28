@@ -177,6 +177,74 @@ struct Lead: Identifiable, Codable, Hashable {
         fmt.numberStyle = .decimal
         return "₹\(fmt.string(from: NSNumber(value: v)) ?? "\(v)")"
     }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case applicationID
+        case name
+        case phone
+        case email
+        case borrowerProfileID
+        case borrowerUserID
+        case loanType
+        case loanProductID
+        case loanAmount
+        case status
+        case createdAt
+        case updatedAt
+        case assignedRM
+        case branchCode
+        case isAadhaarKycVerified
+        case isPanKycVerified
+        case aadhaarVerifiedName
+        case aadhaarVerifiedDOB
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        applicationID = try container.decodeIfPresent(String.self, forKey: .applicationID)
+        name = try container.decode(String.self, forKey: .name)
+        phone = try container.decode(String.self, forKey: .phone)
+        email = try container.decode(String.self, forKey: .email)
+        borrowerProfileID = try container.decodeIfPresent(String.self, forKey: .borrowerProfileID)
+        borrowerUserID = try container.decodeIfPresent(String.self, forKey: .borrowerUserID)
+        loanType = try container.decode(LoanType.self, forKey: .loanType)
+        loanProductID = try container.decodeIfPresent(String.self, forKey: .loanProductID)
+        loanAmount = try container.decode(Double.self, forKey: .loanAmount)
+        status = try container.decode(LeadStatus.self, forKey: .status)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        assignedRM = try container.decodeIfPresent(String.self, forKey: .assignedRM)
+        branchCode = try container.decodeIfPresent(String.self, forKey: .branchCode)
+        isAadhaarKycVerified = try container.decodeIfPresent(Bool.self, forKey: .isAadhaarKycVerified) ?? false
+        isPanKycVerified = try container.decodeIfPresent(Bool.self, forKey: .isPanKycVerified) ?? false
+        aadhaarVerifiedName = try container.decodeIfPresent(String.self, forKey: .aadhaarVerifiedName) ?? ""
+        aadhaarVerifiedDOB = try container.decodeIfPresent(String.self, forKey: .aadhaarVerifiedDOB) ?? ""
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encodeIfPresent(applicationID, forKey: .applicationID)
+        try container.encode(name, forKey: .name)
+        try container.encode(phone, forKey: .phone)
+        try container.encode(email, forKey: .email)
+        try container.encodeIfPresent(borrowerProfileID, forKey: .borrowerProfileID)
+        try container.encodeIfPresent(borrowerUserID, forKey: .borrowerUserID)
+        try container.encode(loanType, forKey: .loanType)
+        try container.encodeIfPresent(loanProductID, forKey: .loanProductID)
+        try container.encode(loanAmount, forKey: .loanAmount)
+        try container.encode(status, forKey: .status)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        try container.encodeIfPresent(assignedRM, forKey: .assignedRM)
+        try container.encodeIfPresent(branchCode, forKey: .branchCode)
+        try container.encode(isAadhaarKycVerified, forKey: .isAadhaarKycVerified)
+        try container.encode(isPanKycVerified, forKey: .isPanKycVerified)
+        try container.encode(aadhaarVerifiedName, forKey: .aadhaarVerifiedName)
+        try container.encode(aadhaarVerifiedDOB, forKey: .aadhaarVerifiedDOB)
+    }
 }
 
 // MARK: - Filter Model

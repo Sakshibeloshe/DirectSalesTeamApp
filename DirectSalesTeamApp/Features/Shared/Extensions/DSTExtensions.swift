@@ -28,3 +28,9 @@ extension View {
             .background(Color(.systemBackground), in: RoundedRectangle(cornerRadius: cornerRadius))
     }
 }
+
+// MARK: - Notifications
+
+extension Notification.Name {
+    static let dstDataChanged = Notification.Name("dstDataChanged")
+}

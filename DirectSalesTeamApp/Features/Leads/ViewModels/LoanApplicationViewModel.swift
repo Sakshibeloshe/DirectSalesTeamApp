@@ -278,6 +278,10 @@ final class LoanApplicationViewModel: ObservableObject {
             
             self.submittedApplicationID = application.id
             isSubmitting = false
+            
+            // Post notification for cross-tab sync
+            NotificationCenter.default.post(name: .dstDataChanged, object: nil)
+            
             return true
         } catch {
             isSubmitting = false

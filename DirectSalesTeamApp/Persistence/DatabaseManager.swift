@@ -94,8 +94,11 @@ final class DatabaseManager {
         }
         migrator.registerMigration("v4_add_lead_product_id") { db in
             // Add loanProductID column to leads table for forward compatibility.
-            try db.alter(table: "leads") { t in
-                t.add(column: "loanProductID", .text)
+            let hasLoanProductID = try db.columns(in: "leads").contains { $0.name == "loanProductID" }
+            if !hasLoanProductID {
+                try db.alter(table: "leads") { t in
+                    t.add(column: "loanProductID", .text)
+                }
             }
         }
         try migrator.migrate(dbPool)

@@ -1,6 +1,7 @@
 import SwiftUI
 import GRPCCore
 
+@MainActor
 struct AddLeadView: View {
     @ObservedObject var viewModel: LeadsViewModel
     @Environment(\.dismiss) private var dismiss
@@ -11,12 +12,20 @@ struct AddLeadView: View {
     @State private var amountText = ""
     @State private var selectedProductID: String? = nil
 
+    // Reset KYC flag when user changes phone/email (might be different borrower)
+    private func resetBorrowerState() {
+        kycIncomplete = false
+        borrowerStatus = .unknown
+        borrowerLookupErrorMessage = ""
+    }
+
     // Borrower Profile Resolution
     @State private var borrowerStatus: BorrowerStatus = .unknown
-    @State private var showBorrowerLookupErrorAlert = false
     @State private var borrowerLookupErrorMessage = ""
     @State private var showBorrowerSignupPrompt = false
     @State private var isCheckingBorrower = false
+    @State private var isAddingLead = false
+    @State private var kycIncomplete = false
     private let borrowerLookupService = BorrowerLookupService()
 
     enum BorrowerStatus {
@@ -66,11 +75,22 @@ struct AddLeadView: View {
     }
 
     private var formValid: Bool {
-        nameTrimmed.count >= 2 &&
-        phoneDigits.count == 10 &&
-        (emailTrimmed.isEmpty || emailError == nil) &&
-        (Double(amountText) ?? 0) > 0 &&
-        selectedProductID != nil
+        let amount = Double(amountText) ?? 0
+        let rangeValid: Bool
+        if let p = selectedProduct,
+           let min = Double(p.minAmount),
+           let max = Double(p.maxAmount) {
+            rangeValid = amount >= min && amount <= max
+        } else {
+            rangeValid = amount > 0
+        }
+
+        return !kycIncomplete &&
+               nameTrimmed.count >= 2 &&
+               phoneDigits.count == 10 &&
+               (emailTrimmed.isEmpty || emailError == nil) &&
+               rangeValid &&
+               selectedProductID != nil
     }
 
     private var selectedProduct: LoanProduct? {
@@ -117,6 +137,10 @@ struct AddLeadView: View {
                             borrowerStatusBadge
                         }
 
+                        if kycIncomplete {
+                            kycWarningBanner
+                        }
+
                         sectionLabel("Loan Details")
 
                         formCard {
@@ -127,15 +151,23 @@ struct AddLeadView: View {
                                         .foregroundColor(.secondary)
                                         .font(.subheadline)
                                 } else {
-                                    Picker("", selection: $selectedProductID) {
-                                        Text("Select…").tag(Optional<String>.none)
+                                    Menu {
+                                        Button("Select…") { selectedProductID = nil }
                                         ForEach(viewModel.loanProducts) { p in
-                                            Text("\(p.name) · \(p.baseInterestRate)%")
-                                                .tag(Optional(p.id))
+                                            Button("\(p.name) · \(p.baseInterestRate)%") {
+                                                selectedProductID = p.id
+                                            }
+                                        }
+                                    } label: {
+                                        HStack {
+                                            Text(selectedProduct?.name ?? "Select…")
+                                                .foregroundColor(selectedProductID == nil ? .secondary : .primary)
+                                            Spacer()
+                                            Image(systemName: "chevron.up.chevron.down")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.secondary)
                                         }
                                     }
-                                    .labelsHidden()
-                                    .frame(maxWidth: .infinity, alignment: .trailing)
                                 }
                             }
                             Divider().padding(.leading, 16)
@@ -173,24 +205,41 @@ struct AddLeadView: View {
                     Button("Cancel") { dismiss() }
                 }
             }
-            .onAppear {
-                // Set default selection once products arrive
+            .task {
+                if viewModel.loanProducts.isEmpty {
+                    await viewModel.fetchLoanProducts()
+                }
                 if selectedProductID == nil, let first = viewModel.loanProducts.first {
                     selectedProductID = first.id
                 }
             }
-            .onChange(of: viewModel.loanProducts) { products in
-                if selectedProductID == nil, let first = products.first {
-                    selectedProductID = first.id
+            .onChange(of: viewModel.errorMessage) { err in
+                if err != nil && !(err?.lowercased().contains("kyc") == true) {
+                    showErrorAlert = true
                 }
             }
+            .onChange(of: borrowerLookupErrorMessage) { msg in
+                if !msg.isEmpty { showErrorAlert = true }
+            }
+            .onChange(of: phone) { _ in resetBorrowerState() }
+            .onChange(of: email) { _ in resetBorrowerState() }
             .sheet(isPresented: $showBorrowerSignupPrompt) { borrowerSignupSheet }
-            .alert("Unable to verify borrower", isPresented: $showBorrowerLookupErrorAlert) {
-                Button("OK", role: .cancel) {}
+            .alert("Action Required", isPresented: $showErrorAlert) {
+                Button("OK", role: .cancel) { 
+                    viewModel.errorMessage = nil
+                    borrowerLookupErrorMessage = ""
+                }
             } message: {
-                Text(borrowerLookupErrorMessage)
+                Text(errorMessageForAlert)
             }
         }
+    }
+
+    @State private var showErrorAlert = false
+    private var errorMessageForAlert: String {
+        if let vmError = viewModel.errorMessage { return vmError }
+        if !borrowerLookupErrorMessage.isEmpty { return borrowerLookupErrorMessage }
+        return "An unexpected error occurred."
     }
 
     // MARK: - Sub-views
@@ -238,6 +287,27 @@ struct AddLeadView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 
+    private var kycWarningBanner: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.shield.fill")
+                    .foregroundColor(.orange)
+                    .font(.system(size: 18))
+                Text("KYC Verification Required")
+                    .font(.subheadline).fontWeight(.semibold)
+                    .foregroundColor(.orange)
+                Spacer()
+            }
+            Text("This borrower's KYC (identity verification) is incomplete. Ask them to open the Borrower app, go to their Profile, and complete KYC before you can add a lead.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(12)
+        .background(Color.orange.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.orange.opacity(0.3), lineWidth: 1))
+    }
+
     private func requiredDocsPreview(_ product: LoanProduct) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             sectionLabel("Required Documents")
@@ -275,10 +345,10 @@ struct AddLeadView: View {
             Divider()
             Button(action: submit) {
                 HStack(spacing: 8) {
-                    if isCheckingBorrower {
+                    if isCheckingBorrower || isAddingLead {
                         ProgressView().tint(.white).scaleEffect(0.85)
                     }
-                    Text(isCheckingBorrower ? "Verifying…" : "Add Lead")
+                    Text(isCheckingBorrower ? "Verifying…" : (isAddingLead ? "Creating Lead…" : "Add Lead"))
                         .font(.system(size: 16, weight: .semibold))
                 }
                 .foregroundColor(.white)
@@ -287,7 +357,7 @@ struct AddLeadView: View {
                 .background(formValid && !isCheckingBorrower ? Color.brandBlue : Color(.systemGray4))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
             }
-            .disabled(!formValid || isCheckingBorrower)
+            .disabled(!formValid || isCheckingBorrower || isAddingLead)
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(Color(.systemGroupedBackground))
@@ -319,7 +389,7 @@ struct AddLeadView: View {
     // MARK: - Actions
 
     private func submit() {
-        guard formValid, !isCheckingBorrower else { return }
+        guard formValid, !isCheckingBorrower, !isAddingLead else { return }
         let id      = UUID().uuidString
         let name    = nameTrimmed
         let phone   = phoneDigits
@@ -354,8 +424,18 @@ struct AddLeadView: View {
                     status: .new,
                     createdAt: Date(), updatedAt: Date()
                 )
-                viewModel.addLead(lead)
-                dismiss()
+                isAddingLead = true
+                viewModel.addLead(lead) { [self] success in
+                    isAddingLead = false
+                    if success {
+                        dismiss()
+                    } else if let err = viewModel.errorMessage,
+                              err.lowercased().contains("kyc") {
+                        // Specific KYC error — show inline banner, clear generic alert
+                        kycIncomplete = true
+                        viewModel.errorMessage = nil
+                    }
+                }
             } else {
                 borrowerStatus = .notFound
                 showBorrowerSignupPrompt = true
@@ -368,7 +448,7 @@ struct AddLeadView: View {
             borrowerStatus = .error
             borrowerLookupErrorMessage = (error as? BorrowerLookupError)?.localizedDescription
                 ?? error.localizedDescription
-            showBorrowerLookupErrorAlert = true
+            // Alert is triggered by onChange(of: borrowerLookupErrorMessage)
         }
     }
 

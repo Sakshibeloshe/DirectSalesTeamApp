@@ -151,9 +151,21 @@ public final class AuthGRPCClient: AuthGRPCClientProtocol {
     // The generated Client<Transport> works with any ClientTransport.
     // We pin the concrete type to avoid existential boxing.
     private let client: Auth_V1_AuthService.Client<HTTP2ClientTransport.Posix>
+    private let tokenStore: TokenStore
 
-    public init(grpcClient: GRPCClient<HTTP2ClientTransport.Posix> = GRPCChannelFactory.shared.client) {
+    public init(
+        grpcClient: GRPCClient<HTTP2ClientTransport.Posix> = GRPCChannelFactory.shared.client,
+        tokenStore: TokenStore = .shared
+    ) {
         self.client = Auth_V1_AuthService.Client(wrapping: grpcClient)
+        self.tokenStore = tokenStore
+    }
+
+    private func authContext() throws -> (options: CallOptions, metadata: Metadata) {
+        guard let token = try tokenStore.accessToken(), !token.isEmpty else {
+            throw AuthError.unauthenticated
+        }
+        return AuthCallOptionsFactory.authenticated(accessToken: token)
     }
 
     // MARK: - Signup
@@ -333,6 +345,20 @@ public final class AuthGRPCClient: AuthGRPCClientProtocol {
                 options: options
             )
         } catch { throw AuthError.from(error) }
+    }
+
+    public func getBorrowerProfile(userID: String) async throws -> Auth_V1_BorrowerProfile {
+        var req = Auth_V1_GetBorrowerProfileRequest()
+        req.userID = userID
+        let (options, metadata) = try authContext()
+        do {
+            return try await client.getBorrowerProfile(
+                request: .init(message: req, metadata: metadata),
+                options: options
+            )
+        } catch {
+            throw AuthError.from(error)
+        }
     }
 
     public func changePassword(

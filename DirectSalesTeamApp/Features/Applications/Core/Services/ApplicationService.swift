@@ -4,7 +4,7 @@ import Combine
 // MARK: - Protocol
 protocol ApplicationServiceProtocol {
     func fetchApplications() -> AnyPublisher<[LoanApplication], Error>
-    func updateStatus(id: UUID, status: ApplicationStatus) -> AnyPublisher<LoanApplication, Error>
+    func updateStatus(id: String, status: ApplicationStatus) -> AnyPublisher<LoanApplication, Error>
 }
 
 // MARK: - Mock Service
@@ -14,44 +14,47 @@ final class MockApplicationService: ApplicationServiceProtocol {
 
     private let mockData: [LoanApplication] = [
         LoanApplication(
-            id: UUID(),
+            id: UUID().uuidString,
             leadId: nil,
             name: "Rohit Verma",
             phone: "9900112233",
+            referenceNumber: "APP-1001",
             loanType: .business,
             loanAmount: 5_000_000,
-            status: .underReview,
+            status: .officerReview,
             createdAt: Date().addingTimeInterval(-172_800),
             updatedAt: Date().addingTimeInterval(-3_600),
             slaDays: 2,
-            statusLabel: "2 days left",
+            statusLabel: "Officer review in progress",
             bankName: "HDFC Bank",
             sanctionedAmount: nil,
             disbursedAmount: nil,
             rmName: "Vikram R"
         ),
         LoanApplication(
-            id: UUID(),
+            id: UUID().uuidString,
             leadId: nil,
             name: "Arjun Mehta",
             phone: "9876543210",
+            referenceNumber: "APP-1002",
             loanType: .home,
             loanAmount: 3_500_000,
-            status: .approved,
+            status: .managerApproved,
             createdAt: Date().addingTimeInterval(-432_000),
             updatedAt: Date().addingTimeInterval(-7_200),
             slaDays: nil,
-            statusLabel: "Disbursement pending",
+            statusLabel: "Sanctioned",
             bankName: "SBI",
             sanctionedAmount: 3_500_000,
             disbursedAmount: nil,
             rmName: "Priya S"
         ),
         LoanApplication(
-            id: UUID(),
+            id: UUID().uuidString,
             leadId: nil,
             name: "Kavitha Nair",
             phone: "9844556677",
+            referenceNumber: "APP-1003",
             loanType: .home,
             loanAmount: 6_000_000,
             status: .rejected,
@@ -65,10 +68,11 @@ final class MockApplicationService: ApplicationServiceProtocol {
             rmName: "Priya S"
         ),
         LoanApplication(
-            id: UUID(),
+            id: UUID().uuidString,
             leadId: nil,
             name: "Priya Sharma",
             phone: "9845001234",
+            referenceNumber: "APP-1004",
             loanType: .personal,
             loanAmount: 800_000,
             status: .disbursed,
@@ -90,7 +94,7 @@ final class MockApplicationService: ApplicationServiceProtocol {
             .eraseToAnyPublisher()
     }
 
-    func updateStatus(id: UUID, status: ApplicationStatus) -> AnyPublisher<LoanApplication, Error> {
+    func updateStatus(id: String, status: ApplicationStatus) -> AnyPublisher<LoanApplication, Error> {
         guard var app = mockData.first(where: { $0.id == id }) else {
             return Fail(error: URLError(.badURL)).eraseToAnyPublisher()
         }

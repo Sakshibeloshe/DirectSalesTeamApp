@@ -24,6 +24,7 @@ struct LeadRowView: View {
                             .font(AppFont.bodyMedium())
                             .foregroundColor(Color.textPrimary)
                             .lineLimit(1)
+                            .layoutPriority(1)
 
                         Spacer()
 

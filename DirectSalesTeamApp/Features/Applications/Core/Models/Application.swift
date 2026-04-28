@@ -2,21 +2,28 @@ import SwiftUI
 
 // MARK: - Application Status
 enum ApplicationStatus: String, CaseIterable, Identifiable, Codable {
-    case submitted    = "Submitted"
-    case underReview  = "Under Review"
-    case approved     = "Approved"
-    case rejected     = "Rejected"
-    case disbursed    = "Disbursed"
+    case submitted       = "Submitted"
+    case officerReview   = "Officer Review"
+    case officerApproved = "Officer Approved"
+    case managerReview   = "Manager Review"
+    case managerApproved = "Sanctioned"
+    case approved        = "Approved"
+    case rejected        = "Rejected"
+    case disbursed       = "Disbursed"
 
     var id: String { rawValue }
+    var displayName: String { rawValue }
 
     var dotColor: Color {
         switch self {
-        case .submitted:   return .statusSubmitted
-        case .underReview: return .statusPending
-        case .approved:    return .statusApproved
-        case .rejected:    return .statusRejected
-        case .disbursed:   return .statusDisbursed
+        case .submitted:       return .statusSubmitted
+        case .officerReview:   return .statusPending
+        case .officerApproved: return .brandBlue
+        case .managerReview:   return Color(hex: "#F59E0B")
+        case .managerApproved: return Color(hex: "#0F9D84")
+        case .approved:        return .statusApproved
+        case .rejected:        return .statusRejected
+        case .disbursed:       return .statusDisbursed
         }
     }
 
@@ -24,22 +31,28 @@ enum ApplicationStatus: String, CaseIterable, Identifiable, Codable {
 
     var backgroundColor: Color {
         switch self {
-        case .submitted:   return .statusSubmittedBg
-        case .underReview: return .statusPendingBg
-        case .approved:    return .statusApprovedBg
-        case .rejected:    return .statusRejectedBg
-        case .disbursed:   return .statusDisbursedBg
+        case .submitted:       return .statusSubmittedBg
+        case .officerReview:   return .statusPendingBg
+        case .officerApproved: return Color.brandBlue.opacity(0.12)
+        case .managerReview:   return Color(hex: "#F59E0B").opacity(0.14)
+        case .managerApproved: return Color(hex: "#0F9D84").opacity(0.14)
+        case .approved:        return .statusApprovedBg
+        case .rejected:        return .statusRejectedBg
+        case .disbursed:       return .statusDisbursedBg
         }
     }
 
     // Which pipeline step index this status corresponds to (0-based)
     var pipelineStep: Int {
         switch self {
-        case .submitted:   return 1
-        case .underReview: return 2
-        case .approved:    return 3
-        case .rejected:    return 2   // stalls at review
-        case .disbursed:   return 4
+        case .submitted:       return 1
+        case .officerReview:   return 2
+        case .officerApproved: return 2
+        case .managerReview:   return 2
+        case .managerApproved: return 3
+        case .approved:        return 3
+        case .rejected:        return 2
+        case .disbursed:       return 4
         }
     }
 }
@@ -52,10 +65,11 @@ struct PipelineStage: Identifiable {
 
 // MARK: - Application Model
 struct LoanApplication: Identifiable, Codable, Hashable {
-    let id: UUID
-    var leadId: UUID?
+    let id: String
+    var leadId: String?
     var name: String
     var phone: String
+    var referenceNumber: String?
     var loanType: LoanType
     var loanAmount: Double
     var status: ApplicationStatus
@@ -98,7 +112,7 @@ struct LoanApplication: Identifiable, Codable, Hashable {
 // MARK: - Applications Summary Stats
 struct ApplicationStats {
     let total: Int
-    let underReview: Int
+    let inReview: Int
     let approved: Int
     let disbursed: Int
 }

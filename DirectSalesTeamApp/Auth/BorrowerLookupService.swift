@@ -25,7 +25,7 @@ struct BorrowerLookupService {
     func resolveBorrower(email: String, phone: String) async throws -> BorrowerLookupResult? {
         let phoneDigits = phone.filter(\.isNumber)
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
-        let queries = [normalizedEmail, phoneDigits].filter { !$0.isEmpty }
+        let queries = searchQueries(email: normalizedEmail, phoneDigits: phoneDigits)
         guard !queries.isEmpty else { return nil }
 
         for query in queries {
@@ -35,8 +35,16 @@ struct BorrowerLookupService {
                 normalizedEmail: normalizedEmail,
                 phoneDigits: phoneDigits
             ) {
-                let name = match.email.isEmpty ? match.phone : match.email
-                return BorrowerLookupResult(userID: match.userID, borrowerProfileID: match.borrowerProfileID, displayName: name)
+                let profile = try? await fetchBorrowerProfile(userID: match.userID)
+                let profileID = profile?.profileID.isEmpty == false ? profile!.profileID : match.borrowerProfileID
+                guard !profileID.isEmpty else { continue }
+
+                let resolvedName = resolvedDisplayName(profile: profile, fallback: match)
+                return BorrowerLookupResult(
+                    userID: match.userID,
+                    borrowerProfileID: profileID,
+                    displayName: resolvedName
+                )
             }
         }
 
@@ -48,11 +56,14 @@ struct BorrowerLookupService {
         normalizedEmail: String,
         phoneDigits: String
     ) -> BorrowerSignupStatusSearchItem? {
-        let candidates = items.filter { !$0.borrowerProfileID.isEmpty }
+        let activeCandidates = items.filter { !$0.borrowerProfileID.isEmpty && $0.isActive }
+        let candidates = activeCandidates.isEmpty
+            ? items.filter { !$0.borrowerProfileID.isEmpty }
+            : activeCandidates
         guard !candidates.isEmpty else { return nil }
 
         if !phoneDigits.isEmpty,
-           let phoneExactMatch = candidates.first(where: { normalizedDigits($0.phone) == phoneDigits }) {
+           let phoneExactMatch = candidates.first(where: { phoneMatches(normalizedDigits($0.phone), target: phoneDigits) }) {
             return phoneExactMatch
         }
 
@@ -68,6 +79,48 @@ struct BorrowerLookupService {
 
     private func normalizedDigits(_ value: String) -> String {
         value.filter(\.isNumber)
+    }
+
+    private func phoneMatches(_ candidate: String, target: String) -> Bool {
+        candidate == target || candidate.hasSuffix(target) || target.hasSuffix(candidate)
+    }
+
+    private func searchQueries(email: String, phoneDigits: String) -> [String] {
+        var queries: [String] = []
+        if !email.isEmpty {
+            queries.append(email)
+        }
+        if !phoneDigits.isEmpty {
+            queries.append(phoneDigits)
+            if phoneDigits.count == 10 {
+                queries.append("+91\(phoneDigits)")
+                queries.append("91\(phoneDigits)")
+            }
+        }
+
+        var seen = Set<String>()
+        return queries.filter { query in
+            let normalized = query.lowercased()
+            guard !normalized.isEmpty, !seen.contains(normalized) else { return false }
+            seen.insert(normalized)
+            return true
+        }
+    }
+
+    private func resolvedDisplayName(profile: Auth_V1_BorrowerProfile?, fallback: BorrowerSignupStatusSearchItem) -> String {
+        if let profile {
+            let name = [profile.firstName, profile.lastName]
+                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+            if !name.isEmpty {
+                return name
+            }
+        }
+
+        if !fallback.email.isEmpty { return fallback.email }
+        if !fallback.phone.isEmpty { return fallback.phone }
+        return "Borrower"
     }
 
     private func searchBorrowerWithRetry(query: String) async throws -> [BorrowerSignupStatusSearchItem] {
@@ -115,6 +168,22 @@ struct BorrowerLookupService {
             }
             throw BorrowerLookupError.rpc(code: rpcError.code.rawValue, message: rpcError.message)
         }
+    }
+
+    private func fetchBorrowerProfile(userID: String) async throws -> Auth_V1_BorrowerProfile {
+        guard let token = try tokenStore.accessToken(), !token.isEmpty else {
+            throw AuthError.unauthenticated
+        }
+
+        var request = Auth_V1_GetBorrowerProfileRequest()
+        request.userID = userID
+
+        let authClient = Auth_V1_AuthService.Client(wrapping: grpcClient)
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: token)
+        return try await authClient.getBorrowerProfile(
+            request: .init(message: request, metadata: metadata),
+            options: options
+        )
     }
 }
 

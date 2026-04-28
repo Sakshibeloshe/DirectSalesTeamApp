@@ -11,9 +11,10 @@ struct ApplicationStatusBadge: View {
                     .fill(status.dotColor)
                     .frame(width: 7, height: 7)
             }
-            Text(status.rawValue)
+            Text(status.displayName)
                 .font(AppFont.captionMed())
                 .foregroundColor(status.textColor)
+                .lineLimit(1)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
@@ -23,5 +24,6 @@ struct ApplicationStatusBadge: View {
             Capsule()
                 .strokeBorder(status.textColor.opacity(0.18), lineWidth: 1)
         )
+        .fixedSize(horizontal: true, vertical: false)
     }
 }

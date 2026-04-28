@@ -25,6 +25,7 @@ struct ApplicationRowView: View {
                             .font(AppFont.bodyMedium())
                             .foregroundColor(Color.textPrimary)
                             .lineLimit(1)
+                            .layoutPriority(1)
 
                         Spacer()
 
@@ -33,6 +34,13 @@ struct ApplicationRowView: View {
                         Image(systemName: "chevron.right")
                             .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(Color.textTertiary)
+                    }
+
+                    if let referenceNumber = application.referenceNumber, !referenceNumber.isEmpty {
+                        Text(referenceNumber)
+                            .font(AppFont.caption())
+                            .foregroundColor(Color.textTertiary)
+                            .lineLimit(1)
                     }
 
                     // Row 2: Loan type + amount
@@ -97,20 +105,26 @@ struct ApplicationRowView: View {
 
     private var statusLabelColor: Color {
         switch application.status {
-        case .rejected:    return Color.statusRejected
-        case .disbursed:   return Color.statusDisbursed
-        case .underReview:
+        case .rejected:        return Color.statusRejected
+        case .disbursed:       return Color.statusDisbursed
+        case .officerReview, .managerReview:
             if let days = application.slaDays, days <= 2 { return Color.statusPending }
             return Color.textSecondary
-        default:           return Color.textSecondary
+        case .officerApproved:
+            return Color.brandBlue
+        case .managerApproved:
+            return Color(hex: "#0F9D84")
+        default:
+            return Color.textSecondary
         }
     }
 }
 
 #Preview {
     let sample = LoanApplication(
-        id: UUID(), leadId: nil, name: "Rohit Verma", phone: "9900112233",
-        loanType: .business, loanAmount: 5_000_000, status: .underReview,
+        id: UUID().uuidString, leadId: nil, name: "Rohit Verma", phone: "9900112233",
+        referenceNumber: "APP-1001",
+        loanType: .business, loanAmount: 5_000_000, status: .officerReview,
         createdAt: Date(), updatedAt: Date(), slaDays: 2, statusLabel: "2 days left",
         bankName: "HDFC", sanctionedAmount: nil, disbursedAmount: nil, rmName: "Vikram"
     )

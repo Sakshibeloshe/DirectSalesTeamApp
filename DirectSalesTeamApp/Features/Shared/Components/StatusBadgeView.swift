@@ -14,6 +14,7 @@ struct StatusBadgeView: View {
             Text(status.displayName)
                 .font(AppFont.captionMed())
                 .foregroundColor(status.textColor)
+                .lineLimit(1)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 5)
@@ -23,6 +24,7 @@ struct StatusBadgeView: View {
             Capsule()
                 .strokeBorder(status.textColor.opacity(0.18), lineWidth: 1)
         )
+        .fixedSize(horizontal: true, vertical: false)
     }
 }
 

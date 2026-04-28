@@ -1,5 +1,6 @@
 import SwiftUI
 
+@MainActor
 @available(iOS 18.0, *)
 struct LeadDetailView: View {
     let lead: Lead

@@ -497,17 +497,42 @@ struct BiometricCard: View {
     let failed: Bool
     let errorMessage: String
 
+    private var accentColor: Color {
+        if success { return DS.success }
+        if failed { return DS.danger }
+        return DS.primary
+    }
+
+    private var centerFillColor: Color {
+        if success { return DS.success.opacity(0.15) }
+        if failed { return DS.danger.opacity(0.1) }
+        return DS.primaryLight
+    }
+
+    private var symbolName: String {
+        if success { return "checkmark.circle.fill" }
+        if failed { return "xmark.circle.fill" }
+        return "faceid"
+    }
+
+    private var titleText: String {
+        if success { return "Identity Verified!" }
+        if failed { return "Authentication Failed" }
+        return isAuthenticating ? "Verifying…" : "Ready to authenticate"
+    }
+
+    private func ringColor(for index: Int) -> Color {
+        if success { return DS.success.opacity(0.2 - Double(index) * 0.06) }
+        if failed { return DS.danger.opacity(0.2 - Double(index) * 0.06) }
+        return DS.primary.opacity(0.15 - Double(index) * 0.04)
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             ZStack {
                 ForEach(0..<3, id: \.self) { index in
                     Circle()
-                        .stroke(
-                            success ? DS.success.opacity(0.2 - Double(index) * 0.06)
-                            : failed ? DS.danger.opacity(0.2 - Double(index) * 0.06)
-                            : DS.primary.opacity(0.15 - Double(index) * 0.04),
-                            lineWidth: 1.5
-                        )
+                        .stroke(ringColor(for: index), lineWidth: 1.5)
                         .frame(width: CGFloat(80 + index * 28), height: CGFloat(80 + index * 28))
                         .scaleEffect(isAuthenticating ? 1.08 : 1)
                         .animation(
@@ -519,25 +544,21 @@ struct BiometricCard: View {
                 }
 
                 Circle()
-                    .fill(success ? DS.success.opacity(0.15) : failed ? DS.danger.opacity(0.1) : DS.primaryLight)
+                    .fill(centerFillColor)
                     .frame(width: 90, height: 90)
 
-                Image(systemName: success ? "checkmark.circle.fill" : failed ? "xmark.circle.fill" : "faceid")
+                Image(systemName: symbolName)
                     .font(.system(size: success || failed ? 46 : 44))
-                    .foregroundColor(success ? DS.success : failed ? DS.danger : DS.primary)
+                    .foregroundColor(accentColor)
                     .scaleEffect(success || failed ? 1.1 : 1)
                     .animation(.spring(response: 0.4), value: success)
             }
             .frame(height: 145)
 
             VStack(spacing: 4) {
-                Text(
-                    success ? "Identity Verified!"
-                    : failed ? "Authentication Failed"
-                    : isAuthenticating ? "Verifying…" : "Ready to authenticate"
-                )
+                Text(titleText)
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundColor(success ? DS.success : failed ? DS.danger : DS.textPrimary)
+                .foregroundColor(success || failed ? accentColor : DS.textPrimary)
 
                 Text(
                     success ? "Proceeding to next step"
