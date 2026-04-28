@@ -41,7 +41,7 @@ final class MessagesViewModel: ObservableObject {
         self.applicationService = applicationService
         self.currentUserID = getCurrentUserID()
         loadApplications()
-        Task { await loadThreads(); await loadEligibleUsers() }
+        Task { async let threads = loadThreads(); async let users = loadEligibleUsers(); await threads; await users }
     }
 
     private func loadApplications() {
@@ -85,7 +85,9 @@ final class MessagesViewModel: ObservableObject {
                 self.eligibleParticipants = participants
             }
         } catch {
-            // Eligible users list is best-effort; compose sheet falls back gracefully
+            await MainActor.run {
+                self.errorMessage = "Failed to load contacts: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -407,6 +409,7 @@ final class MessagesViewModel: ObservableObject {
                 await MainActor.run {
                     self.threads.insert(thread, at: 0)
                     self.chatRooms.append(room)
+                    self.selectedThread = self.threads.first(where: { $0.id == thread.id })
                 }
                 startStreaming(for: room)
             }
