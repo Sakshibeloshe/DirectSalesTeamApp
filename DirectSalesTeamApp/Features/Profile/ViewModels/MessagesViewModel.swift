@@ -17,10 +17,8 @@ final class MessagesViewModel: ObservableObject {
     // Backend-driven compose data
     @Published var eligibleParticipants: [ThreadParticipant] = []
     @Published var connectableLeads: [LeadMessagingConnection] = []
-    private var leadParticipants: [ThreadParticipant] = []
 
     private let chatService: ChatServiceProtocol
-    private let leadService: LeadServiceProtocol
     private var chatRooms: [ChatRoom] = []
     private var messageStreamTasks: [String: Task<Void, Never>] = [:]
     private var lastMessageIDByRoom: [String: String] = [:]
@@ -37,65 +35,13 @@ final class MessagesViewModel: ObservableObject {
 
     init(
         chatService: ChatServiceProtocol = ChatService(),
-        applicationService: ApplicationServiceProtocol = BackendApplicationService(),
-        leadService: LeadServiceProtocol = BackendLeadService()
+        applicationService: ApplicationServiceProtocol = BackendApplicationService()
     ) {
         self.chatService = chatService
         self.applicationService = applicationService
-        self.leadService = leadService
         self.currentUserID = getCurrentUserID()
         loadApplications()
-        Task { 
-            await loadThreads()
-            await loadEligibleUsers()
-            await loadLeadParticipants()
-        }
-    }
-
-    private func loadLeadParticipants() async {
-        // Fetch leads and map them to participants
-        self.leadService.fetchLeads()
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { [weak self] leads in
-                    guard let self else { return }
-                    
-                    var uniqueBorrowers: [String: ThreadParticipant] = [:]
-                    for lead in leads {
-                        let id = lead.borrowerUserID ?? lead.borrowerProfileID ?? lead.id
-                        // If multiple leads for same borrower, we only need one participant entry
-                        if uniqueBorrowers[id] == nil {
-                            uniqueBorrowers[id] = ThreadParticipant(
-                                id: id,
-                                name: lead.name,
-                                role: .borrower
-                            )
-                        }
-                    }
-                    
-                    self.leadParticipants = Array(uniqueBorrowers.values)
-                    self.updateEligibleParticipants()
-                }
-            )
-            .store(in: &cancellables)
-    }
-
-    private func updateEligibleParticipants() {
-        var merged: [String: ThreadParticipant] = [:]
-        
-        // 1. Start with non-borrowers from backend (colleagues)
-        for p in eligibleParticipants where p.role != .borrower {
-            merged[p.id] = p
-        }
-        
-        // 2. Add/Overwrite with lead-based participants (priority)
-        for p in leadParticipants {
-            merged[p.id] = p
-        }
-        
-        // 3. Update the published list with unique, sorted participants
-        eligibleParticipants = Array(merged.values).sorted { $0.name < $1.name }
+        Task { async let threads = loadThreads(); async let users = loadEligibleUsers(); await threads; await users }
     }
 
     private func loadApplications() {
@@ -137,10 +83,11 @@ final class MessagesViewModel: ObservableObject {
             }
             await MainActor.run {
                 self.eligibleParticipants = participants
-                self.updateEligibleParticipants()
             }
         } catch {
-            // Eligible users list is best-effort; compose sheet falls back gracefully
+            await MainActor.run {
+                self.errorMessage = "Failed to load contacts: \(error.localizedDescription)"
+            }
         }
     }
 
@@ -462,6 +409,7 @@ final class MessagesViewModel: ObservableObject {
                 await MainActor.run {
                     self.threads.insert(thread, at: 0)
                     self.chatRooms.append(room)
+                    self.selectedThread = self.threads.first(where: { $0.id == thread.id })
                 }
                 startStreaming(for: room)
             }

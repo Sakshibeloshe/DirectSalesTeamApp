@@ -329,14 +329,22 @@ struct NewConversationSheet: View {
                         Text("Loading contacts…")
                             .foregroundStyle(.secondary)
                     } else {
-                        Picker(
-                            "Contact",
-                            selection: $selectedParticipant
-                        ) {
-                            Text("Select a contact").tag(nil as ThreadParticipant?)
-                            ForEach(participants) { participant in
-                                Text("\(participant.name) · \(participant.role.rawValue)")
-                                    .tag(Optional(participant))
+                        NavigationLink {
+                            ParticipantPickerList(
+                                participants: participants,
+                                selectedParticipant: $selectedParticipant
+                            )
+                        } label: {
+                            HStack {
+                                Text("Contact")
+                                Spacer()
+                                if let p = selectedParticipant {
+                                    Text("\(p.name) · \(p.role.rawValue)")
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("Select a contact")
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                         }
                     }
@@ -348,14 +356,22 @@ struct NewConversationSheet: View {
                             Text("No applications available for this borrower")
                                 .foregroundStyle(.secondary)
                         } else {
-                            Picker(
-                                "Application",
-                                selection: $selectedLead
-                            ) {
-                                Text("Select application").tag(nil as LeadMessagingConnection?)
-                                ForEach(leads) { lead in
-                                    Text("\(lead.leadName) · \(lead.loanType)")
-                                        .tag(Optional(lead))
+                            NavigationLink {
+                                LeadPickerList(
+                                    leads: leads,
+                                    selectedLead: $selectedLead
+                                )
+                            } label: {
+                                HStack {
+                                    Text("Application")
+                                    Spacer()
+                                    if let l = selectedLead {
+                                        Text("\(l.leadName) · \(l.loanType)")
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        Text("Select application")
+                                            .foregroundStyle(.secondary)
+                                    }
                                 }
                             }
                         }
@@ -382,13 +398,75 @@ struct NewConversationSheet: View {
                 }
             }
         }
-        .onChange(of: selectedParticipant?.role) { _, newRole in
-            if newRole != .borrower {
-                selectedLead = nil
-            } else {
-                selectedLead = nil
+        .onChange(of: selectedParticipant?.id) { _, _ in
+                    selectedLead = nil
+                }
+    }
+}
+
+struct LeadPickerList: View {
+    let leads: [LeadMessagingConnection]
+    @Binding var selectedLead: LeadMessagingConnection?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        List(leads) { lead in
+            Button {
+                selectedLead = lead
+                dismiss()
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(lead.leadName)
+                            .font(.body)
+                        Text(lead.loanType)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if selectedLead?.id == lead.id {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(Color.mainBlue)
+                    }
+                }
             }
+            .buttonStyle(.plain)
         }
+        .navigationTitle("Select Application")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct ParticipantPickerList: View {
+    let participants: [ThreadParticipant]
+    @Binding var selectedParticipant: ThreadParticipant?
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        List(participants) { participant in
+            Button {
+                selectedParticipant = participant
+                dismiss()
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(participant.name)
+                            .font(.body)
+                        Text(participant.role.rawValue)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if selectedParticipant?.id == participant.id {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(Color.mainBlue)
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+        }
+        .navigationTitle("Select Contact")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
