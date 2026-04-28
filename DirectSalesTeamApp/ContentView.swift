@@ -12,6 +12,18 @@ struct ContentView: View {
         case profile      = 4
     }
 
+    private var tabSelection: Binding<Tab> {
+        Binding(
+            get: { selectedTab },
+            set: { newValue in
+                if newValue == selectedTab {
+                    NotificationCenter.default.post(name: Notification.Name("DSTScrollToTop"), object: newValue.rawValue)
+                }
+                selectedTab = newValue
+            }
+        )
+    }
+
     // Shared state injected here and passed down as needed
     @StateObject private var leadsViewModel        = LeadsViewModel()
     @StateObject private var applicationsViewModel = ApplicationsViewModel()
@@ -30,14 +42,14 @@ struct ContentView: View {
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: tabSelection) {
 
             // ── Tab 1: Leads ──
             LeadsView(viewModel: leadsViewModel)
                 .tabItem {
                     Label("Leads", systemImage: selectedTab == .leads
-                          ? "person.2.fill"
-                          : "person.2")
+                          ? "person.crop.circle.fill.badge.plus"
+                          : "person.crop.circle.badge.plus")
                 }
                 .tag(Tab.leads)
 
@@ -45,8 +57,8 @@ struct ContentView: View {
             ApplicationsView(viewModel: applicationsViewModel)
                 .tabItem {
                     Label("Applications", systemImage: selectedTab == .applications
-                          ? "doc.text.fill"
-                          : "doc.text")
+                          ? "doc.plaintext.fill"
+                          : "doc.plaintext")
                 }
                 .tag(Tab.applications)
 
@@ -54,8 +66,8 @@ struct ContentView: View {
             MessagesView(vm: messagesViewModel)
                 .tabItem {
                     Label("Messages", systemImage: selectedTab == .messages
-                          ? "message.fill"
-                          : "message")
+                          ? "bubble.left.and.bubble.right.fill"
+                          : "bubble.left.and.bubble.right")
                 }
                 .tabBadge(messagesViewModel.totalUnread)
                 .tag(Tab.messages)
@@ -64,8 +76,8 @@ struct ContentView: View {
             EarningsView()
                 .tabItem {
                     Label("Earnings", systemImage: selectedTab == .earnings
-                          ? "chart.line.uptrend.xyaxis"
-                          : "chart.line.uptrend.xyaxis")
+                          ? "indianrupeesign.circle.fill"
+                          : "indianrupeesign.circle")
                 }
                 .tag(Tab.earnings)
 
@@ -73,12 +85,17 @@ struct ContentView: View {
             ProfileView()
                 .tabItem {
                     Label("Profile", systemImage: selectedTab == .profile
-                          ? "person.fill"
-                          : "person")
+                          ? "person.circle.fill"
+                          : "person.circle")
                 }
                 .tag(Tab.profile)
         }
         .tint(Color.brandBlue)
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("DSTSwitchTab"))) { note in
+            if let index = note.object as? Int, let tab = Tab(rawValue: index) {
+                selectedTab = tab
+            }
+        }
     }
 }
 

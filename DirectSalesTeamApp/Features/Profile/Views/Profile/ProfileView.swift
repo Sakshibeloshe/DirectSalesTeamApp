@@ -192,34 +192,6 @@ struct ProfileView: View {
                     .padding(.vertical, 20)
                     .padding(.leading, 20)
                 }
-
-                Divider().padding(.horizontal, 16)
-
-                // Approval rate progress bar
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Approval Rate")
-                            .font(.subheadline).foregroundStyle(.secondary)
-                        Spacer()
-                        Text(vm.isUsingMockData || vm.isLoading ? "—" : "\(vm.agent.approvalRatePercent)%")
-                            .font(.subheadline).fontWeight(.semibold)
-                            .foregroundStyle(vm.isUsingMockData || vm.isLoading
-                                             ? .secondary
-                                             : Color(red: 0.12, green: 0.35, blue: 0.75))
-                    }
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(.systemFill))
-                                .frame(height: 8)
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(red: 0.12, green: 0.35, blue: 0.75))
-                                .frame(width: geo.size.width * (vm.isUsingMockData ? 0 : vm.agent.approvalRate), height: 8)
-                        }
-                    }
-                    .frame(height: 8)
-                }
-                .padding(16)
             }
             .background(Color.surfacePrimary, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay(
@@ -235,7 +207,7 @@ struct ProfileView: View {
 
     private var topPerformerBanner: some View {
         Group {
-            if vm.agent.isTopPerformer {
+            if vm.agent.isTopPerformer && vm.agent.totalLeads > 0 {
                 HStack(spacing: 12) {
                     Image(systemName: "rosette")
                         .font(.title3)
@@ -258,6 +230,24 @@ struct ProfileView: View {
                         .stroke(Color.brandBlue.opacity(0.12), lineWidth: 1)
                 )
                 .cardShadow()
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+            } else if vm.agent.totalLeads == 0 {
+                // Onboarding card
+                HStack(spacing: 12) {
+                    Image(systemName: "leaf.fill")
+                        .foregroundColor(.green)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Unlock your ranking")
+                            .font(.subheadline).fontWeight(.semibold)
+                        Text("Complete your first lead to build your score.")
+                            .font(.caption).foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(16)
+                .background(Color.surfacePrimary, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Color.borderLight, lineWidth: 1))
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
             }
@@ -333,10 +323,13 @@ struct ProfileView: View {
     // MARK: - Footer
 
     private var footerLabel: some View {
-        Text(vm.footerText)
-            .font(.caption2)
-            .foregroundStyle(Color(.tertiaryLabel))
-            .padding(.vertical, 24)
+        VStack(spacing: 4) {
+            Text(vm.footerText)
+                .font(.caption2)
+                .foregroundStyle(Color(.tertiaryLabel))
+            Spacer().frame(height: 100) // Safe area padding
+        }
+        .padding(.vertical, 24)
     }
 }
 
@@ -362,18 +355,32 @@ struct TrustScoreRing: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(color.opacity(0.15), lineWidth: 10)
-                .frame(width: 80, height: 80)
-            Circle()
-                .trim(from: 0, to: Double(score) / 100)
-                .stroke(color, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                .frame(width: 80, height: 80)
-                .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.8), value: score)
+                .stroke(score == 0 ? Color.secondary.opacity(0.1) : color.opacity(0.15), lineWidth: 8)
+                .frame(width: 76, height: 76)
+            
+            if score == 0 {
+                Circle()
+                    .stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [4, 4]))
+                    .frame(width: 76, height: 76)
+            } else {
+                Circle()
+                    .trim(from: 0, to: Double(score) / 100)
+                    .stroke(color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .frame(width: 76, height: 76)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.easeInOut(duration: 0.8), value: score)
+            }
+
             VStack(spacing: 1) {
-                Text("\(score)")
-                    .font(.title2).fontWeight(.bold)
-                    .foregroundStyle(color)
+                if score == 0 {
+                    Text("—")
+                        .font(.title2).fontWeight(.bold)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("\(score)")
+                        .font(.title2).fontWeight(.bold)
+                        .foregroundStyle(color)
+                }
                 Text("TRUST")
                     .font(.system(size: 9)).fontWeight(.semibold)
                     .foregroundStyle(.secondary)

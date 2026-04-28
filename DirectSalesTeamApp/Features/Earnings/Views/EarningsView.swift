@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 
 struct EarningsView: View {
     @StateObject private var viewModel = EarningsViewModel()
@@ -38,16 +39,61 @@ struct EarningsView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 16) {
-                            earningsHero
-                                .padding(.top, 8)
-
-                            // Summary Card
+                            // Hero/Stats Card
                             if let stats = viewModel.stats {
-                                EarningsSummaryCard(stats: stats)
-                                    .padding(.top, 8)
+                                DSTSurfaceCard {
+                                    VStack(alignment: .leading, spacing: 12) {
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text("THIS MONTH")
+                                                .font(.system(size: 11, weight: .bold))
+                                                .foregroundColor(Color.textSecondary)
+                                                .tracking(1.2)
+                                            
+                                            Text(stats.formattedMonthEarnings)
+                                                .font(.system(size: 40, weight: .bold))
+                                                .foregroundColor(Color.textPrimary)
+                                        }
+                                        
+                                        if #available(iOS 16.0, *) {
+                                            Chart {
+                                                ForEach(sampleData) { data in
+                                                    LineMark(
+                                                        x: .value("Month", data.month),
+                                                        y: .value("Earnings", data.value)
+                                                    )
+                                                    .interpolationMethod(.catmullRom)
+                                                    .foregroundStyle(Color.brandBlue)
+                                                    
+                                                    AreaMark(
+                                                        x: .value("Month", data.month),
+                                                        y: .value("Earnings", data.value)
+                                                    )
+                                                    .interpolationMethod(.catmullRom)
+                                                    .foregroundStyle(
+                                                        LinearGradient(
+                                                            colors: [Color.brandBlue.opacity(0.15), Color.brandBlue.opacity(0.0)],
+                                                            startPoint: .top,
+                                                            endPoint: .bottom
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                            .chartXAxis(.hidden)
+                                            .chartYAxis(.hidden)
+                                            .frame(height: 50)
+                                        }
+                                        
+                                        HStack(spacing: 32) {
+                                            summaryDetail(label: "LIFETIME", value: stats.formattedLifetimeEarnings)
+                                            summaryDetail(label: "PENDING", value: stats.formattedPendingPayout, isHighlight: true)
+                                            Spacer()
+                                        }
+                                        .padding(.top, 8)
+                                    }
+                                    .padding(.vertical, 8)
+                                }
+                                .padding(.horizontal, 16)
                             }
-                            
-                            // Removed Stats Row as requested
                             
                             // -- Start Filter Row --
                             FilterRowDynamic(viewModel: viewModel)
@@ -84,12 +130,30 @@ struct EarningsView: View {
                                                     )
                                                 )
                                             } label: {
-                                                EarningTransactionRow(
-                                                    earning: earning,
-                                                    payoutText: viewModel.getExpectedPayoutText(for: earning)
-                                                )
+                                                VStack(alignment: .leading, spacing: 4) {
+                                                    EarningTransactionRow(
+                                                        earning: earning,
+                                                        payoutText: viewModel.getExpectedPayoutText(for: earning)
+                                                    )
+                                                    
+                                                    if earning.status == .pending && !viewModel.getExpectedPayoutText(for: earning).isEmpty {
+                                                        HStack(spacing: 4) {
+                                                            Image(systemName: "clock")
+                                                                .font(.system(size: 10))
+                                                            Text(viewModel.getExpectedPayoutText(for: earning).replacingOccurrences(of: "Payout releases after disbursement: ", with: ""))
+                                                                .font(.system(size: 11, weight: .medium))
+                                                        }
+                                                        .foregroundColor(Color(red: 1.0, green: 0.6, blue: 0.0))
+                                                        .padding(.horizontal, 8)
+                                                        .padding(.vertical, 3)
+                                                        .background(Color(red: 1.0, green: 0.6, blue: 0.0).opacity(0.12))
+                                                        .clipShape(Capsule())
+                                                        .padding(.leading, 68)
+                                                        .padding(.bottom, 8)
+                                                    }
+                                                }
                                             }
-                                            .buttonStyle(.plain) // keeps your UI clean
+                                            .buttonStyle(.plain)
                                             
                                             if earning.id != viewModel.filteredEarnings.last?.id {
                                                 Divider()
@@ -97,7 +161,6 @@ struct EarningsView: View {
                                             }
                                         }
                                     }
-
                                 }
                                 .background(Color.surfacePrimary)
                                 .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous))
@@ -110,7 +173,6 @@ struct EarningsView: View {
                             }
                         }
                         .padding(.bottom, 80)
-                        .padding(.horizontal, 16)
                     }
                     .refreshable {
                         await viewModel.loadData()
@@ -120,63 +182,46 @@ struct EarningsView: View {
             .navigationTitle("Earnings")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        Button {
-                            viewModel.showCalculator = true
-                        } label: {
-                            Label("Commission Calculator", systemImage: "percent")
-                        }
-                        
-                        Button {
-                            viewModel.showCommissionRates = true
-                        } label: {
-                            Label("View Commission Rates", systemImage: "list.bullet.rectangle")
-                        }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 18))
+                    HStack(spacing: 16) {
+                        Button { } label: { Image(systemName: "square.and.arrow.down").font(.system(size: 18)) }
+                        Button { viewModel.showCalculator = true } label: { Image(systemName: "plus.forwardslash.minus").font(.system(size: 18)) }
                     }
                 }
             }
-            .sheet(isPresented: $viewModel.showCalculator) {
-                CommissionCalculatorSheet(viewModel: viewModel)
-            }
-            .sheet(isPresented: $viewModel.showCommissionRates) {
-                CommissionRateCard(rates: viewModel.commissionRates)
-            }
+            .sheet(isPresented: $viewModel.showCalculator) { CommissionCalculatorSheet(viewModel: viewModel) }
+            .sheet(isPresented: $viewModel.showCommissionRates) { CommissionRateCard(rates: viewModel.commissionRates) }
         }
-        .task {
-            await viewModel.loadData()
-        }
+        .task { await viewModel.loadData() }
     }
 
-    private var earningsHero: some View {
-        DSTSurfaceCard {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                DSTSectionTitle("Earnings Overview", subtitle: "See commissions, pending payouts, and performance momentum at a glance.")
-                HStack(spacing: AppSpacing.sm) {
-                    metric(title: "Transactions", value: "\(viewModel.earnings.count)", color: Color.textPrimary)
-                    metric(title: "Paid", value: "\(viewModel.stats?.paidTransactionsCount ?? 0)", color: Color.statusApproved)
-                    metric(title: "Pending", value: "\(viewModel.stats?.pendingTransactionsCount ?? 0)", color: Color.statusPending)
-                }
-            }
-        }
-    }
-
-    private func metric(title: String, value: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(value)
-                .font(AppFont.title2())
-                .foregroundColor(color)
-            Text(title)
-                .font(AppFont.caption())
+    private func summaryDetail(label: String, value: String, isHighlight: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.system(size: 9, weight: .bold))
                 .foregroundColor(Color.textSecondary)
+                .tracking(0.5)
+            Text(value)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(isHighlight ? Color.statusPending : Color.textPrimary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(AppSpacing.sm)
-        .background(Color.brandBlueSoft.opacity(0.45))
-        .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
     }
+    
+    private var sampleData: [ChartData] {
+        [
+            ChartData(month: "Jan", value: 12000),
+            ChartData(month: "Feb", value: 18000),
+            ChartData(month: "Mar", value: 15000),
+            ChartData(month: "Apr", value: 22000),
+            ChartData(month: "May", value: 19000),
+            ChartData(month: "Jun", value: 26550)
+        ]
+    }
+}
+
+struct ChartData: Identifiable {
+    let id = UUID()
+    let month: String
+    let value: Double
 }
 
 struct FilterPill: View {
@@ -220,7 +265,6 @@ struct ScrollOffsetTracker: PreferenceKey {
 
 struct FilterRowDynamic: View {
     @ObservedObject var viewModel: EarningsViewModel
-    
     @State private var offset: CGFloat = 0
     @State private var contentWidth: CGFloat = 0
     @State private var viewWidth: CGFloat = 0

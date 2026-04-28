@@ -7,7 +7,7 @@ final class ApplicationsViewModel: ObservableObject {
     // MARK: - Published State
     @Published var applications: [LoanApplication]       = []
     @Published var filteredApplications: [LoanApplication] = []
-    @Published var selectedStatus: ApplicationStatus?    = nil   // nil = All
+    @Published var selectedStatus: ApplicationStatus?    = .officerReview // Default to Officer Review as requested
     @Published var searchText: String                    = ""
     @Published var isLoading: Bool                       = false
     @Published var errorMessage: String?                 = nil

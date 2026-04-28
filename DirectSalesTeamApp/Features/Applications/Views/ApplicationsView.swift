@@ -4,8 +4,6 @@ import SwiftUI
 struct ApplicationsView: View {
     @ObservedObject var viewModel: ApplicationsViewModel
 
-
-
     // Maps ApplicationStatus → display title for filter chips
     private let filterStatuses: [(label: String, status: ApplicationStatus?)] = [
         ("All", nil),
@@ -26,42 +24,42 @@ struct ApplicationsView: View {
                 DSTHeaderGradientBackground(height: 230)
 
                 VStack(spacing: 0) {
-                    applicationsHero
-                        .padding(.horizontal, AppSpacing.md)
-                        .padding(.top, AppSpacing.sm)
-
-                    VStack(spacing: 0) {
-                        SearchBarView(text: $viewModel.searchText)
-                            .padding(.horizontal, AppSpacing.md)
-                            .padding(.vertical, AppSpacing.xs)
-                        filterChipHeader
+                    // Compact summary strip
+                    HStack(spacing: AppSpacing.md) {
+                        summaryItem(label: "Total", value: "\(viewModel.stats.total)")
+                        summaryItem(label: "In Review", value: "\(viewModel.stats.inReview)")
+                        summaryItem(label: "Approved", value: "\(viewModel.stats.approved)")
+                        Spacer()
                     }
-                    .padding(.bottom, AppSpacing.xs)
-                    .background(Color.clear)
+                    .padding(.horizontal, AppSpacing.md)
+                    .padding(.vertical, AppSpacing.sm)
 
-                    ScrollView {
-                        if viewModel.isLoading {
-                            loadingView
-                        } else if viewModel.filteredApplications.isEmpty {
-                            emptyView
-                        } else {
-                            VStack(spacing: AppSpacing.md) {
-                                ApplicationStatsBar(stats: viewModel.stats)
-                                    .clipShape(RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: AppRadius.lg, style: .continuous)
-                                            .stroke(Color.borderLight, lineWidth: 1)
-                                    )
-                                    .cardShadow()
-                                    .padding(.horizontal, AppSpacing.md)
-                                    .padding(.top, AppSpacing.sm)
+                    SearchBarView(text: $viewModel.searchText)
+                        .padding(.horizontal, AppSpacing.md)
+                        .padding(.bottom, AppSpacing.xs)
 
+                    filterChipHeader
+                    
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            if viewModel.isLoading && viewModel.applications.isEmpty {
+                                shimmerLoadingView
+                            } else if viewModel.filteredApplications.isEmpty {
+                                emptyView
+                            } else {
                                 applicationList
+                                    .padding(.top, AppSpacing.sm)
+                            }
+                        }
+                        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("DSTScrollToTop"))) { note in
+                            if let index = note.object as? Int, index == 1 { // 1 is Apps tab
+                                withAnimation(.spring()) {
+                                    proxy.scrollTo("top_anchor", anchor: .top)
+                                }
                             }
                         }
                     }
                 }
-                .padding(.top, -8)
             }
             .navigationTitle("Applications")
             .navigationBarTitleDisplayMode(.large)
@@ -77,93 +75,42 @@ struct ApplicationsView: View {
         }
     }
 
-    private var applicationsHero: some View {
-        DSTSurfaceCard {
-            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                DSTSectionTitle("Application Pipeline", subtitle: "Track every converted file with the same transparency and confidence as the borrower experience.")
-                HStack(spacing: AppSpacing.sm) {
-                    statTile(title: "Total", value: "\(viewModel.stats.total)", color: Color.textPrimary)
-                    statTile(title: "In Review", value: "\(viewModel.stats.inReview)", color: Color.statusPending)
-                    statTile(title: "Approved", value: "\(viewModel.stats.approved)", color: Color.statusApproved)
-                }
-            }
-        }
-    }
-
-    private func statTile(title: String, value: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+    private func summaryItem(label: String, value: String) -> some View {
+        HStack(spacing: 4) {
             Text(value)
-                .font(AppFont.title2())
-                .foregroundColor(color)
-            Text(title)
-                .font(AppFont.caption())
+                .font(.system(size: 13, weight: .bold))
+                .foregroundColor(Color.textPrimary)
+            Text(label)
+                .font(.system(size: 12, weight: .medium))
                 .foregroundColor(Color.textSecondary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(AppSpacing.sm)
-        .background(Color.brandBlueSoft.opacity(0.45))
-        .clipShape(RoundedRectangle(cornerRadius: AppRadius.md, style: .continuous))
     }
 
     // MARK: - FILTER CHIP HEADER WITH CHEVRONS
     private var filterChipHeader: some View {
-        ScrollViewReader { proxy in
-            GeometryReader { outerGeo in
-                HStack(spacing: 0) {
-                    if viewModel.canScrollLeft {
-                        Button {
-                            if let first = filterStatuses.first {
-                                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(first.label, anchor: .leading) }
-                            }
-                        } label: {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(Color.textTertiary)
-                                .padding(.leading, AppSpacing.md)
-                                .padding(.trailing, AppSpacing.xs)
-                        }
-                    }
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: AppSpacing.xs) {
-                            ForEach(filterStatuses, id: \.label) { item in
-                                chipView(for: item)
-                                    .id(item.label)
-                            }
-                        }
-                        .padding(.horizontal, AppSpacing.md)
-                        .padding(.vertical, AppSpacing.xs)
-                        .background(
-                            GeometryReader { geo in
-                                Color.clear
-                                    .preference(key: ScrollOffsetTracker.self, value: geo.frame(in: .named("appsScroll")).minX)
-                                    .onAppear { viewModel.contentWidth = geo.size.width }
-                                    .onChange(of: geo.size.width) { _ in viewModel.contentWidth = geo.size.width }
-                            }
-                        )
-                    }
-                    .coordinateSpace(name: "appsScroll")
-                    .onPreferenceChange(ScrollOffsetTracker.self) { value in viewModel.scrollOffset = value }
-
-                    if viewModel.canScrollRight {
-                        Button {
-                            if let last = filterStatuses.last {
-                                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(last.label, anchor: .trailing) }
-                            }
-                        } label: {
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(Color.textTertiary)
-                                .padding(.trailing, AppSpacing.md)
-                                .padding(.leading, AppSpacing.xs)
-                        }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: AppSpacing.xs) {
+                ForEach(filterStatuses, id: \.label) { item in
+                    let count = item.status == nil ? viewModel.stats.total : countFor(item.status!)
+                    if count > 0 || item.status == nil {
+                        chipView(for: item)
                     }
                 }
-                .onAppear { viewModel.viewWidth = outerGeo.size.width }
-                .onChange(of: outerGeo.size.width) { _ in viewModel.viewWidth = outerGeo.size.width }
             }
-            .frame(height: 44)
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.xs)
         }
+        .mask(
+            HStack(spacing: 0) {
+                Color.black
+                LinearGradient(
+                    gradient: Gradient(colors: [.black, .clear]),
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .frame(width: 20)
+            }
+        )
     }
 
     // MARK: - CHIP VIEW (NO SHRINK, INSTANT RESPONSE)
@@ -171,6 +118,7 @@ struct ApplicationsView: View {
         let isSelected = viewModel.selectedStatus == item.status
 
         return Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             viewModel.selectStatus(item.status)
         } label: {
             HStack(spacing: 5) {
@@ -197,8 +145,9 @@ struct ApplicationsView: View {
             .background(isSelected ? Color.brandBlue : Color.surfacePrimary)
             .clipShape(Capsule())
             .overlay(
-                Capsule().strokeBorder(isSelected ? Color.clear : Color.borderLight, lineWidth: 1)
+                Capsule().strokeBorder(isSelected ? Color.brandBlue : Color.borderLight, lineWidth: 1)
             )
+            .shadow(color: isSelected ? Color.brandBlue.opacity(0.3) : Color.clear, radius: 4, x: 0, y: 2)
         }
         .buttonStyle(.plain)
     }
@@ -219,12 +168,14 @@ struct ApplicationsView: View {
     // MARK: - Application List
     private var applicationList: some View {
         LazyVStack(spacing: 0) {
-            ForEach(Array(viewModel.filteredApplications.enumerated()), id: \.element.id) { index, app in
+            Color.clear.frame(height: 1).id("top_anchor")
+            ForEach(viewModel.filteredApplications) { app in
                 NavigationLink(value: app) {
                     ApplicationRowView(application: app)
                 }
                 .buttonStyle(.plain)
-                if index < viewModel.filteredApplications.count - 1 {
+                
+                if app.id != viewModel.filteredApplications.last?.id {
                     Divider()
                         .padding(.leading, 76)
                 }
@@ -242,15 +193,27 @@ struct ApplicationsView: View {
     }
 
     // MARK: - Loading
-    private var loadingView: some View {
-        VStack(spacing: AppSpacing.md) {
-            Spacer()
-            ProgressView().tint(Color.brandBlue)
-            Text("Loading applications…")
-                .font(AppFont.subhead())
-                .foregroundColor(Color.textSecondary)
-            Spacer()
+    private var shimmerLoadingView: some View {
+        VStack(spacing: 12) {
+            ForEach(0..<6) { _ in
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Circle().fill(Color.surfaceTertiary).frame(width: 48, height: 48)
+                        VStack(alignment: .leading, spacing: 6) {
+                            RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 140, height: 16)
+                            RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 200, height: 12)
+                        }
+                    }
+                    RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(height: 4)
+                    RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 100, height: 10)
+                }
+                .padding(AppSpacing.md)
+                .background(Color.surfacePrimary)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
+                .padding(.horizontal, AppSpacing.md)
+            }
         }
+        .shimmering()
     }
 
     // MARK: - Empty

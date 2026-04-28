@@ -48,13 +48,11 @@ struct MessagesView: View {
                 }
                 .background(Color.clear)
                 .navigationTitle("Messages")
-                .navigationBarTitleDisplayMode(.large)
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button {
-                            vm.showComposeSheet = true
-                        } label: {
-                            Image(systemName: "square.and.pencil")
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { vm.showComposeSheet = true } label: {
+                            Image(systemName: "pencil.line")
+                                .font(.system(size: 16, weight: .semibold))
                         }
                     }
                 }
@@ -100,10 +98,10 @@ struct MessagesView: View {
         DSTSurfaceCard {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 DSTSectionTitle("Conversation Hub", subtitle: "Keep every borrower and officer exchange clear, contextual, and easy to continue.")
-                HStack(spacing: AppSpacing.sm) {
+                HStack(spacing: AppSpacing.md) {
                     summaryMetric(title: "Threads", value: "\(vm.threads.count)", color: Color.textPrimary)
                     summaryMetric(title: "Unread", value: "\(vm.totalUnread)", color: Color.brandBlue)
-                    summaryMetric(title: "Pending Links", value: "\(vm.connectableLeads.count)", color: Color.statusPending)
+                    Spacer()
                 }
             }
         }
@@ -156,14 +154,28 @@ struct MessagesView: View {
             Image(systemName: "bubble.left.and.bubble.right.fill")
                 .font(.system(size: 38))
                 .foregroundStyle(Color.brandBlue)
-            Text("No Messages")
-                .font(AppFont.title2())
-                .foregroundStyle(Color.textPrimary)
-            Text("Connect a lead to a loan officer and the conversation will appear here.")
-                .font(AppFont.subhead())
-                .foregroundStyle(Color.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
+            VStack(spacing: AppSpacing.xs) {
+                Text("No messages yet")
+                    .font(AppFont.headline())
+                    .foregroundColor(Color.textPrimary)
+                Text("Connect a lead to a loan officer and the conversation will appear here.")
+                    .font(AppFont.subhead())
+                    .foregroundColor(Color.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, AppSpacing.xxl)
+            }
+            Button {
+                NotificationCenter.default.post(name: Notification.Name("DSTSwitchTab"), object: 0)
+            } label: {
+                Text("Go to Leads")
+                    .font(AppFont.subheadMed())
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 10)
+                    .background(Color.brandBlue)
+                    .foregroundColor(.white)
+                    .clipShape(Capsule())
+            }
+            .padding(.top, AppSpacing.sm)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.xxl)

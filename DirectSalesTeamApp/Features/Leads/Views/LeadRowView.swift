@@ -2,98 +2,83 @@ import SwiftUI
 
 struct LeadRowView: View {
     let lead: Lead
-    var onTap: (() -> Void)? = nil
+    var isNew: Bool = false
 
     var body: some View {
-        Button {
-            onTap?()
-        } label: {
-            HStack(spacing: AppSpacing.sm) {
-
-                // Avatar
-                AvatarView(
-                    initials: lead.initials,
-                    color: lead.name.avatarColor,
-                    size: 48
-                )
-
-                // Info
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(lead.name)
-                            .font(AppFont.bodyMedium())
-                            .foregroundColor(Color.textPrimary)
-                            .lineLimit(1)
-                            .layoutPriority(1)
-
-                        Spacer()
-
-                        StatusBadgeView(status: lead.status)
-                    }
-
-                    HStack(spacing: 6) {
-                        // Loan type icon + label
-                        Image(systemName: lead.loanType.icon)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color.textTertiary)
-
-                        Text(lead.loanType.rawValue)
-                            .font(AppFont.subhead())
-                            .foregroundColor(Color.textSecondary)
-
-                        Text("·")
-                            .foregroundColor(Color.textTertiary)
-                            .font(AppFont.subhead())
-
-                        Text(lead.formattedAmount)
-                            .font(AppFont.subheadMed())
-                            .foregroundColor(Color.textSecondary)
-
-                        Spacer()
-
-                        Text(lead.timeAgo)
-                            .font(AppFont.caption())
-                            .foregroundColor(Color.textTertiary)
+        HStack(spacing: 12) {
+            // Avatar with dynamic background
+            AvatarView(
+                initials: lead.initials,
+                color: lead.name.avatarColor,
+                size: 42
+            )
+            
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .center, spacing: 6) {
+                    let displayName = lead.name.count < 10 || !lead.name.allSatisfy({ $0.isHexDigit }) ? lead.name : "Pending Registration"
+                    Text(displayName)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Color.textPrimary)
+                        .lineLimit(1)
+                    
+                    if lead.status == .new || isNew {
+                        Text("NEW")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 2)
+                            .background(Color.brandBlue)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
                 }
-
-                // Chevron
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(Color.textTertiary)
+                
+                HStack(spacing: 6) {
+                    Text(lead.loanType.rawValue)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color.textSecondary)
+                    
+                    Text("•")
+                        .foregroundColor(Color.textTertiary)
+                    
+                    Text(lead.formattedAmount)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color.brandBlue)
+                    
+                    Spacer()
+                    
+                    Text(lead.timeAgo)
+                        .font(.system(size: 11))
+                        .foregroundColor(Color.textTertiary)
+                }
             }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.vertical, AppSpacing.sm)
-            .background(Color.surfacePrimary)
-            .contentShape(Rectangle())
+            
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(Color.textTertiary.opacity(0.5))
+                .padding(.leading, 4)
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color.surfacePrimary)
+        .contentShape(Rectangle())
     }
 }
 
-// MARK: - Swipe Actions Row Wrapper
+// MARK: - Swipeable Row Wrapper
 struct SwipeableLeadRow: View {
     let lead: Lead
-    var onEdit: (() -> Void)?   = nil
+    var onCall: (() -> Void)? = nil
     var onDelete: (() -> Void)? = nil
-    var onCall: (() -> Void)?   = nil
-    var onTap: (() -> Void)?    = nil
-
+    
     var body: some View {
-        LeadRowView(lead: lead, onTap: onTap)
+        LeadRowView(lead: lead)
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                 Button(role: .destructive) {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     onDelete?()
                 } label: {
-                    Label("Delete", systemImage: "trash")
+                    Label("Cancel", systemImage: "xmark.circle.fill")
                 }
-
-                Button {
-                    onEdit?()
-                } label: {
-                    Label("Edit", systemImage: "pencil")
-                }
-                .tint(Color.brandBlue)
             }
             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                 Button {
@@ -101,7 +86,7 @@ struct SwipeableLeadRow: View {
                 } label: {
                     Label("Call", systemImage: "phone.fill")
                 }
-                .tint(Color.statusSubmitted)
+                .tint(Color.statusApproved)
             }
     }
 }

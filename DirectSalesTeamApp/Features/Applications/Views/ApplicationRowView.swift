@@ -17,52 +17,45 @@ struct ApplicationRowView: View {
                 .padding(.top, 2)
 
                 // Content
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-
-                    // Row 1: Name + Status badge + Chevron
+                VStack(alignment: .leading, spacing: 6) {
+                    // Row 1: Name + Status badge
                     HStack(alignment: .center, spacing: AppSpacing.xs) {
                         Text(application.name)
-                            .font(AppFont.bodyMedium())
+                            .font(.system(size: 16, weight: .bold))
                             .foregroundColor(Color.textPrimary)
                             .lineLimit(1)
-                            .layoutPriority(1)
 
                         Spacer()
 
                         ApplicationStatusBadge(status: application.status)
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(Color.textTertiary)
+                            .scaleEffect(0.85)
                     }
 
-                    if let referenceNumber = application.referenceNumber, !referenceNumber.isEmpty {
-                        Text(referenceNumber)
-                            .font(AppFont.caption())
-                            .foregroundColor(Color.textTertiary)
-                            .lineLimit(1)
-                    }
-
-                    // Row 2: Loan type + amount
-                    HStack(spacing: 4) {
-                        Image(systemName: application.loanType.icon)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color.textTertiary)
+                    // Row 2: Type + Amount + Ref
+                    HStack(spacing: 6) {
                         Text(application.loanType.rawValue)
-                            .font(AppFont.subhead())
+                            .font(.system(size: 12, weight: .medium))
                             .foregroundColor(Color.textSecondary)
-                        Text("·")
+                        Text("•")
                             .foregroundColor(Color.textTertiary)
                         Text(application.formattedAmount)
-                            .font(AppFont.subheadMed())
-                            .foregroundColor(Color.textSecondary)
-                        Spacer()
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(Color.brandBlue)
+                        
+                        if let referenceNumber = application.referenceNumber, !referenceNumber.isEmpty {
+                            Text("•")
+                                .foregroundColor(Color.textTertiary)
+                            Text(referenceNumber)
+                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .foregroundColor(Color.textTertiary)
+                        }
                     }
 
                     // Row 3: Pipeline progress bar
                     PipelineProgressBar(application: application)
+                        .padding(.top, 2)
 
-                    // Row 4: Status label (e.g. "2 days left", "Completed")
+                    // Row 4: Status label
                     statusLabelView
                 }
             }

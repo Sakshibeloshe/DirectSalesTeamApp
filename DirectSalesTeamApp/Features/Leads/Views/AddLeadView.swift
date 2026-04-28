@@ -443,6 +443,7 @@ struct AddLeadView: View {
                 viewModel.addLead(lead) { [self] success in
                     isAddingLead = false
                     if success {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         dismiss()
                     } else if let err = viewModel.errorMessage,
                               err.lowercased().contains("kyc") {
