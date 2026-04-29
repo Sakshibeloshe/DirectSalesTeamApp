@@ -5,66 +5,65 @@ struct ApplicationRowView: View {
     var onTap: (() -> Void)? = nil
 
     var body: some View {
-        Button { onTap?() } label: {
-            HStack(alignment: .top, spacing: AppSpacing.sm) {
-
-                // Avatar
-                AvatarView(
-                    initials: application.initials,
-                    color: application.name.avatarColor,
-                    size: 48
-                )
-                .padding(.top, 2)
-
-                // Content
-                VStack(alignment: .leading, spacing: 6) {
-                    // Row 1: Name + Status badge
-                    HStack(alignment: .center, spacing: AppSpacing.xs) {
-                        Text(application.name)
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundColor(Color.textPrimary)
-                            .lineLimit(1)
-
-                        Spacer()
-
-                        ApplicationStatusBadge(status: application.status)
-                            .scaleEffect(0.85)
-                    }
-
-                    // Row 2: Type + Amount + Ref
-                    HStack(spacing: 6) {
-                        Text(application.loanType.rawValue)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(Color.textSecondary)
-                        Text("•")
-                            .foregroundColor(Color.textTertiary)
-                        Text(application.formattedAmount)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(Color.brandBlue)
-                        
-                        if let referenceNumber = application.referenceNumber, !referenceNumber.isEmpty {
-                            Text("•")
-                                .foregroundColor(Color.textTertiary)
-                            Text(referenceNumber)
-                                .font(.system(size: 11, weight: .medium, design: .monospaced))
-                                .foregroundColor(Color.textTertiary)
-                        }
-                    }
-
-                    // Row 3: Pipeline progress bar
-                    PipelineProgressBar(application: application)
-                        .padding(.top, 2)
-
-                    // Row 4: Status label
-                    statusLabelView
-                }
+        if let onTap = onTap {
+            Button { onTap() } label: {
+                rowContent
             }
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.vertical, AppSpacing.sm + 2)
-            .background(Color.surfacePrimary)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+        } else {
+            rowContent
         }
-        .buttonStyle(.plain)
+    }
+
+    private var rowContent: some View {
+        HStack(alignment: .top, spacing: AppSpacing.sm) {
+            // Avatar
+            AvatarView(
+                initials: application.initials,
+                color: application.name.avatarColor,
+                size: 48
+            )
+            .padding(.top, 2)
+
+            // Content
+            VStack(alignment: .leading, spacing: 6) {
+                // Row 1: Name + Status badge
+                HStack(alignment: .center, spacing: AppSpacing.xs) {
+                    Text(application.displayName)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Color.textPrimary)
+                        .lineLimit(1)
+
+                    Spacer()
+
+                    ApplicationStatusBadge(status: application.status)
+                        .scaleEffect(0.85)
+                }
+
+                // Row 2: Type + Amount
+                HStack(spacing: 6) {
+                    Text(application.loanType.rawValue)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color.textSecondary)
+                    Text("•")
+                        .foregroundColor(Color.textTertiary)
+                    Text(application.formattedAmount)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color.brandBlue)
+                }
+
+                // Row 3: Pipeline progress bar
+                PipelineProgressBar(application: application)
+                    .padding(.top, 2)
+
+                // Row 4: Status label
+                statusLabelView
+            }
+        }
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.vertical, AppSpacing.sm + 2)
+        .background(Color.surfacePrimary)
+        .contentShape(Rectangle())
     }
 
     // MARK: - Status label row

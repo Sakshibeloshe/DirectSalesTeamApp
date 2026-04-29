@@ -69,9 +69,14 @@ final class LeadsViewModel: ObservableObject {
             .map { leads, search, filter in
                 leads
                     .filter { lead in
-                        // Leads tab: only show pre-submission statuses
-                        let preSubmission: Set<LeadStatus> = [.new, .docsPending]
-                        guard preSubmission.contains(lead.status) else { return false }
+                        // Leads tab: only show active prospects (New or Docs Pending) 
+                        // that have NOT been converted into a submitted application yet.
+                        let activeProspectStatuses: Set<LeadStatus> = [.new, .docsPending]
+                        guard activeProspectStatuses.contains(lead.status) else { return false }
+                        
+                        // Explicitly hide if an application has been created/linked
+                        if lead.applicationID != nil && lead.status != .new { return false }
+                        
                         // Filter chip
                         if let required = filter.status, lead.status != required { return false }
                         // Search
@@ -120,6 +125,7 @@ final class LeadsViewModel: ObservableObject {
     }
 
     func addLead(_ lead: Lead, completion: ((Bool) -> Void)? = nil) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         print("DEBUG: Adding lead for \(lead.name)...")
         service.addLead(lead)
             .receive(on: RunLoop.main)
@@ -172,6 +178,7 @@ final class LeadsViewModel: ObservableObject {
     }
 
     func deleteLead(_ lead: Lead) {
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
         // All leads are now backend applications (DRAFT or later);
         // cancellation is always allowed from the Leads tab.
         isLoading = true

@@ -49,17 +49,16 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $vm.showTerms) {
                 TermsView()
             }
-            .confirmationDialog("Log out of DST Agent?", isPresented: $vm.showLogoutConfirm, titleVisibility: .visible) {
+            .alert("Log Out", isPresented: $vm.showLogoutConfirm) {
                 Button("Log Out", role: .destructive) {
-                    vm.showLogoutConfirm = false
                     session.logout()
                 }
                 Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Are you sure you want to log out of DST Agent?")
             }
             .task {
-                if #available(iOS 18.0, *) {
-                    await vm.loadProfile()
-                }
+                await vm.loadProfile()
             }
         }
     }
@@ -354,37 +353,55 @@ struct TrustScoreRing: View {
 
     var body: some View {
         ZStack {
+            // Background Track
             Circle()
-                .stroke(score == 0 ? Color.secondary.opacity(0.1) : color.opacity(0.15), lineWidth: 8)
-                .frame(width: 76, height: 76)
-            
-            if score == 0 {
-                Circle()
-                    .stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [4, 4]))
-                    .frame(width: 76, height: 76)
-            } else {
+                .stroke(Color.borderLight, lineWidth: 6)
+                .frame(width: 78, height: 78)
+
+            if score > 0 {
+                // Glow effect for progress
                 Circle()
                     .trim(from: 0, to: Double(score) / 100)
-                    .stroke(color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                    .frame(width: 76, height: 76)
+                    .stroke(color.opacity(0.3), style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .frame(width: 78, height: 78)
                     .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 0.8), value: score)
+                    .blur(radius: 4)
+
+                // Main Progress Ring
+                Circle()
+                    .trim(from: 0, to: Double(score) / 100)
+                    .stroke(
+                        LinearGradient(
+                            colors: [color, color.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                    )
+                    .frame(width: 78, height: 78)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7), value: score)
+            } else {
+                // Empty state dashed ring
+                Circle()
+                    .stroke(Color.textTertiary.opacity(0.3), style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [4, 4]))
+                    .frame(width: 78, height: 78)
             }
 
-            VStack(spacing: 1) {
+            VStack(spacing: 0) {
                 if score == 0 {
                     Text("—")
-                        .font(.title2).fontWeight(.bold)
-                        .foregroundStyle(.secondary)
+                        .font(AppFont.title2())
+                        .foregroundColor(Color.textTertiary)
                 } else {
                     Text("\(score)")
-                        .font(.title2).fontWeight(.bold)
-                        .foregroundStyle(color)
+                        .font(AppFont.title2())
+                        .foregroundColor(Color.textPrimary)
                 }
-                Text("TRUST")
-                    .font(.system(size: 9)).fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .tracking(0.5)
+                Text("SCORE")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(Color.textSecondary)
+                    .tracking(1)
             }
         }
     }

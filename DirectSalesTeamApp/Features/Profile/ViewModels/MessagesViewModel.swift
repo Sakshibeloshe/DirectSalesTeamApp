@@ -5,7 +5,6 @@ import SwiftUI
 import Combine
 
 @MainActor
-@available(iOS 18.0, *)
 final class MessagesViewModel: ObservableObject {
 
     @Published var threads: [MessageThread] = []
@@ -29,6 +28,10 @@ final class MessagesViewModel: ObservableObject {
     private let maxReconnectDelaySeconds: UInt64 = 30
 
     var totalUnread: Int { threads.reduce(0) { $0 + $1.unreadCount } }
+    
+    var connectableLeads: [ThreadParticipant] {
+        eligibleParticipants.filter { $0.role == .borrower }
+    }
 
     init(
         chatService: ChatServiceProtocol = ChatService()
@@ -379,7 +382,6 @@ final class MessagesViewModel: ObservableObject {
 }
 
 @MainActor
-@available(iOS 18.0, *)
 final class ChatViewModel: ObservableObject {
 
     let thread: MessageThread
@@ -603,6 +605,7 @@ final class ChatViewModel: ObservableObject {
 
     func sendMessage() {
         guard canSend else { return }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         let text = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
         draftText = ""
 
@@ -630,6 +633,7 @@ final class ChatViewModel: ObservableObject {
     }
 
     func sendAttachment(fileName: String) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         Task {
             do {
                 let sentMessage = try await chatService.sendMessage(

@@ -181,3 +181,73 @@ struct DSTPrimaryActionButton: View {
         .elevatedCardShadow()
     }
 }
+
+// MARK: - Skeleton Loading Components
+struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = -0.5
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                LinearGradient(
+                    colors: [.clear, .white.opacity(0.3), .clear],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+                .offset(x: phase * 400)
+                .mask(content)
+            )
+            .onAppear {
+                withAnimation(Animation.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 1.5
+                }
+            }
+    }
+}
+
+//extension View {
+//    func shimmering() -> some View {
+//        modifier(ShimmerModifier())
+//    }
+//}
+
+struct DSTSkeletonRow: View {
+    var body: some View {
+        HStack(spacing: 16) {
+            Circle()
+                .fill(Color(.systemGray5))
+                .frame(width: 48, height: 48)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(.systemGray5))
+                    .frame(width: 140, height: 14)
+                
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(.systemGray5))
+                    .frame(width: 220, height: 10)
+            }
+            Spacer()
+        }
+        .padding(16)
+        .background(Color.surfacePrimary)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(Color.borderLight, lineWidth: 1)
+        )
+        .shimmering()
+    }
+}
+
+struct DSTSkeletonList: View {
+    var count: Int = 5
+    
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(0..<count, id: \.self) { _ in
+                DSTSkeletonRow()
+            }
+        }
+    }
+}

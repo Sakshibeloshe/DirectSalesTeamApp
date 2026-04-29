@@ -18,7 +18,9 @@ struct EarningsView: View {
                 DSTHeaderGradientBackground(height: 230)
                 
                 if viewModel.isLoading && viewModel.earnings.isEmpty {
-                    ProgressView("Loading earnings...")
+                    DSTSkeletonList()
+                        .padding(.horizontal, AppSpacing.md)
+                        .padding(.top, AppSpacing.md)
                 } else if let error = viewModel.errorMessage {
                     VStack(spacing: 16) {
                         Image(systemName: "exclamationmark.triangle")
@@ -54,34 +56,6 @@ struct EarningsView: View {
                                                 .foregroundColor(Color.textPrimary)
                                         }
                                         
-                                        if #available(iOS 16.0, *) {
-                                            Chart {
-                                                ForEach(sampleData) { data in
-                                                    LineMark(
-                                                        x: .value("Month", data.month),
-                                                        y: .value("Earnings", data.value)
-                                                    )
-                                                    .interpolationMethod(.catmullRom)
-                                                    .foregroundStyle(Color.brandBlue)
-                                                    
-                                                    AreaMark(
-                                                        x: .value("Month", data.month),
-                                                        y: .value("Earnings", data.value)
-                                                    )
-                                                    .interpolationMethod(.catmullRom)
-                                                    .foregroundStyle(
-                                                        LinearGradient(
-                                                            colors: [Color.brandBlue.opacity(0.15), Color.brandBlue.opacity(0.0)],
-                                                            startPoint: .top,
-                                                            endPoint: .bottom
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                            .chartXAxis(.hidden)
-                                            .chartYAxis(.hidden)
-                                            .frame(height: 50)
-                                        }
                                         
                                         HStack(spacing: 32) {
                                             summaryDetail(label: "LIFETIME", value: stats.formattedLifetimeEarnings)
@@ -182,9 +156,9 @@ struct EarningsView: View {
             .navigationTitle("Earnings")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 16) {
-                        Button { } label: { Image(systemName: "square.and.arrow.down").font(.system(size: 18)) }
-                        Button { viewModel.showCalculator = true } label: { Image(systemName: "plus.forwardslash.minus").font(.system(size: 18)) }
+                    Button { viewModel.showCalculator = true } label: {
+                        Image(systemName: "plus.forwardslash.minus")
+                            .font(.system(size: 18))
                     }
                 }
             }
