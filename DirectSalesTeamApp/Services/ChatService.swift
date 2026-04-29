@@ -14,7 +14,7 @@ import Combine
 @available(iOS 18.0, *)
 public protocol ChatServiceProtocol: Sendable {
     func listEligibleUsers(query: String, limit: Int, offset: Int) async throws -> [ChatUser]
-    func createOrGetDirectRoom(targetUserID: String, contextApplicationID: String?) async throws -> ChatRoom
+    func createOrGetDirectRoom(targetUserID: String) async throws -> ChatRoom
     func listMyChatRooms(limit: Int, offset: Int) async throws -> [ChatRoom]
     func listRoomMessages(roomID: String, limit: Int, offset: Int) async throws -> [ChatDomainMessage]
     func sendMessage(roomID: String, body: String, messageType: ChatMessageType, metadataJSON: String?) async throws -> ChatDomainMessage
@@ -70,15 +70,11 @@ public final class ChatService: ChatServiceProtocol {
     // MARK: - Room Management
 
     public func createOrGetDirectRoom(
-        targetUserID: String,
-        contextApplicationID: String? = nil
+        targetUserID: String
     ) async throws -> ChatRoom {
         let accessToken = try requireAccessToken()
         let request = Chat_V1_CreateOrGetDirectRoomRequest.with {
             $0.targetUserID = targetUserID
-            if let appID = contextApplicationID {
-                $0.contextApplicationID = appID
-            }
         }
 
         let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: accessToken)

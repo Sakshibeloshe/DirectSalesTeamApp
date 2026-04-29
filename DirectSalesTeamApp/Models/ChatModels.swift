@@ -183,7 +183,6 @@ public struct ChatRoom: Identifiable, Equatable {
     public let userAID: String
     public let userBID: String
     public let createdByUserID: String
-    public let contextApplicationID: String?
     public let createdAt: Date
     public let updatedAt: Date
     public let latestMessage: ChatDomainMessage?
@@ -194,7 +193,6 @@ public struct ChatRoom: Identifiable, Equatable {
         userAID: String,
         userBID: String,
         createdByUserID: String,
-        contextApplicationID: String?,
         createdAt: Date,
         updatedAt: Date,
         latestMessage: ChatDomainMessage?
@@ -204,7 +202,6 @@ public struct ChatRoom: Identifiable, Equatable {
         self.userAID = userAID
         self.userBID = userBID
         self.createdByUserID = createdByUserID
-        self.contextApplicationID = contextApplicationID
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.latestMessage = latestMessage
@@ -217,7 +214,6 @@ public struct ChatRoom: Identifiable, Equatable {
         self.userAID = proto.userAID
         self.userBID = proto.userBID
         self.createdByUserID = proto.createdByUserID
-        self.contextApplicationID = proto.contextApplicationID.isEmpty ? nil : proto.contextApplicationID
         self.createdAt = ISO8601DateFormatter().date(from: proto.createdAt) ?? Date()
         self.updatedAt = ISO8601DateFormatter().date(from: proto.updatedAt) ?? Date()
         self.latestMessage = proto.hasLatestMessage ? ChatDomainMessage(from: proto.latestMessage) : nil

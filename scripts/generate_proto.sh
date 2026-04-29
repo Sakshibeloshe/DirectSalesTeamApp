@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DST_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PROTO_ROOT="${DST_ROOT}/../lms-monorepo-main/proto"
+PROTO_ROOT="${DST_ROOT}/../lms-monorepo/proto"
 OUT_ROOT="${DST_ROOT}/DirectSalesTeamApp/Networking/Generated"
 GRPC_SWIFT_PLUGIN="/opt/homebrew/opt/protoc-gen-grpc-swift/bin/protoc-gen-grpc-swift-2"
 

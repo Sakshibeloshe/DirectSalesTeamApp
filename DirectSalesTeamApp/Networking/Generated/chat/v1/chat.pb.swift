@@ -149,8 +149,6 @@ public struct Chat_V1_ChatRoom: Sendable {
 
   public var createdByUserID: String = String()
 
-  public var contextApplicationID: String = String()
-
   public var createdAt: String = String()
 
   public var updatedAt: String = String()
@@ -205,8 +203,6 @@ public struct Chat_V1_CreateOrGetDirectRoomRequest: Sendable {
   // methods supported on all messages.
 
   public var targetUserID: String = String()
-
-  public var contextApplicationID: String = String()
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -504,7 +500,7 @@ extension Chat_V1_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 
 extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ChatRoom"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}room_type\0\u{3}user_a_id\0\u{3}user_b_id\0\u{3}created_by_user_id\0\u{3}context_application_id\0\u{3}created_at\0\u{3}updated_at\0\u{3}latest_message\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}room_type\0\u{3}user_a_id\0\u{3}user_b_id\0\u{3}created_by_user_id\0\u{3}created_at\0\u{3}updated_at\0\u{3}latest_message\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -517,10 +513,9 @@ extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case 3: try { try decoder.decodeSingularStringField(value: &self.userAID) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.userBID) }()
       case 5: try { try decoder.decodeSingularStringField(value: &self.createdByUserID) }()
-      case 6: try { try decoder.decodeSingularStringField(value: &self.contextApplicationID) }()
-      case 7: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
-      case 8: try { try decoder.decodeSingularStringField(value: &self.updatedAt) }()
-      case 9: try { try decoder.decodeSingularMessageField(value: &self._latestMessage) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.updatedAt) }()
+      case 8: try { try decoder.decodeSingularMessageField(value: &self._latestMessage) }()
       default: break
       }
     }
@@ -546,17 +541,14 @@ extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if !self.createdByUserID.isEmpty {
       try visitor.visitSingularStringField(value: self.createdByUserID, fieldNumber: 5)
     }
-    if !self.contextApplicationID.isEmpty {
-      try visitor.visitSingularStringField(value: self.contextApplicationID, fieldNumber: 6)
-    }
     if !self.createdAt.isEmpty {
-      try visitor.visitSingularStringField(value: self.createdAt, fieldNumber: 7)
+      try visitor.visitSingularStringField(value: self.createdAt, fieldNumber: 6)
     }
     if !self.updatedAt.isEmpty {
-      try visitor.visitSingularStringField(value: self.updatedAt, fieldNumber: 8)
+      try visitor.visitSingularStringField(value: self.updatedAt, fieldNumber: 7)
     }
     try { if let v = self._latestMessage {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -567,7 +559,6 @@ extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if lhs.userAID != rhs.userAID {return false}
     if lhs.userBID != rhs.userBID {return false}
     if lhs.createdByUserID != rhs.createdByUserID {return false}
-    if lhs.contextApplicationID != rhs.contextApplicationID {return false}
     if lhs.createdAt != rhs.createdAt {return false}
     if lhs.updatedAt != rhs.updatedAt {return false}
     if lhs._latestMessage != rhs._latestMessage {return false}
@@ -648,7 +639,7 @@ extension Chat_V1_ListChatEligibleUsersResponse: SwiftProtobuf.Message, SwiftPro
 
 extension Chat_V1_CreateOrGetDirectRoomRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CreateOrGetDirectRoomRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}target_user_id\0\u{3}context_application_id\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}target_user_id\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -657,7 +648,6 @@ extension Chat_V1_CreateOrGetDirectRoomRequest: SwiftProtobuf.Message, SwiftProt
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.targetUserID) }()
-      case 2: try { try decoder.decodeSingularStringField(value: &self.contextApplicationID) }()
       default: break
       }
     }
@@ -667,15 +657,11 @@ extension Chat_V1_CreateOrGetDirectRoomRequest: SwiftProtobuf.Message, SwiftProt
     if !self.targetUserID.isEmpty {
       try visitor.visitSingularStringField(value: self.targetUserID, fieldNumber: 1)
     }
-    if !self.contextApplicationID.isEmpty {
-      try visitor.visitSingularStringField(value: self.contextApplicationID, fieldNumber: 2)
-    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Chat_V1_CreateOrGetDirectRoomRequest, rhs: Chat_V1_CreateOrGetDirectRoomRequest) -> Bool {
     if lhs.targetUserID != rhs.targetUserID {return false}
-    if lhs.contextApplicationID != rhs.contextApplicationID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

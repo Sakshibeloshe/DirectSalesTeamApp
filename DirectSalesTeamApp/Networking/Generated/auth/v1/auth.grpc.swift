@@ -267,6 +267,45 @@ public enum Auth_V1_AuthService: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "GetUser" metadata.
+        public enum GetUser: Sendable {
+            /// Request type for "GetUser".
+            public typealias Input = Auth_V1_GetUserRequest
+            /// Response type for "GetUser".
+            public typealias Output = Auth_V1_GetUserResponse
+            /// Descriptor for "GetUser".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "GetUser",
+                type: .unary
+            )
+        }
+        /// Namespace for "GetOfficerProfileByUserID" metadata.
+        public enum GetOfficerProfileByUserID: Sendable {
+            /// Request type for "GetOfficerProfileByUserID".
+            public typealias Input = Auth_V1_GetUserRequest
+            /// Response type for "GetOfficerProfileByUserID".
+            public typealias Output = Auth_V1_OfficerProfile
+            /// Descriptor for "GetOfficerProfileByUserID".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "GetOfficerProfileByUserID",
+                type: .unary
+            )
+        }
+        /// Namespace for "GetManagerProfileByUserID" metadata.
+        public enum GetManagerProfileByUserID: Sendable {
+            /// Request type for "GetManagerProfileByUserID".
+            public typealias Input = Auth_V1_GetUserRequest
+            /// Response type for "GetManagerProfileByUserID".
+            public typealias Output = Auth_V1_ManagerProfile
+            /// Descriptor for "GetManagerProfileByUserID".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "auth.v1.AuthService"),
+                method: "GetManagerProfileByUserID",
+                type: .unary
+            )
+        }
         /// Namespace for "SearchBorrowerSignupStatus" metadata.
         public enum SearchBorrowerSignupStatus: Sendable {
             /// Request type for "SearchBorrowerSignupStatus".
@@ -327,6 +366,9 @@ public enum Auth_V1_AuthService: Sendable {
             FinishWebAuthnLogin.descriptor,
             GetMyProfile.descriptor,
             GetBorrowerProfile.descriptor,
+            GetUser.descriptor,
+            GetOfficerProfileByUserID.descriptor,
+            GetManagerProfileByUserID.descriptor,
             SearchBorrowerSignupStatus.descriptor,
             RefreshToken.descriptor,
             Logout.descriptor
@@ -620,6 +662,48 @@ extension Auth_V1_AuthService {
             request: GRPCCore.StreamingServerRequest<Auth_V1_GetBorrowerProfileRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_BorrowerProfile>
+
+        /// Handle the "GetUser" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_GetUserRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_GetUserResponse` messages.
+        func getUser(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_GetUserRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_GetUserResponse>
+
+        /// Handle the "GetOfficerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_GetUserRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_OfficerProfile` messages.
+        func getOfficerProfileByUserID(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_GetUserRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_OfficerProfile>
+
+        /// Handle the "GetManagerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Auth_V1_GetUserRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Auth_V1_ManagerProfile` messages.
+        func getManagerProfileByUserID(
+            request: GRPCCore.StreamingServerRequest<Auth_V1_GetUserRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_ManagerProfile>
 
         /// Handle the "SearchBorrowerSignupStatus" method.
         ///
@@ -938,6 +1022,48 @@ extension Auth_V1_AuthService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Auth_V1_BorrowerProfile>
 
+        /// Handle the "GetUser" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_GetUserResponse` message.
+        func getUser(
+            request: GRPCCore.ServerRequest<Auth_V1_GetUserRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_GetUserResponse>
+
+        /// Handle the "GetOfficerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_OfficerProfile` message.
+        func getOfficerProfileByUserID(
+            request: GRPCCore.ServerRequest<Auth_V1_GetUserRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_OfficerProfile>
+
+        /// Handle the "GetManagerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Auth_V1_ManagerProfile` message.
+        func getManagerProfileByUserID(
+            request: GRPCCore.ServerRequest<Auth_V1_GetUserRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Auth_V1_ManagerProfile>
+
         /// Handle the "SearchBorrowerSignupStatus" method.
         ///
         /// - Parameters:
@@ -1253,6 +1379,48 @@ extension Auth_V1_AuthService {
             context: GRPCCore.ServerContext
         ) async throws -> Auth_V1_BorrowerProfile
 
+        /// Handle the "GetUser" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_GetUserRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_GetUserResponse` to respond with.
+        func getUser(
+            request: Auth_V1_GetUserRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_GetUserResponse
+
+        /// Handle the "GetOfficerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_GetUserRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_OfficerProfile` to respond with.
+        func getOfficerProfileByUserID(
+            request: Auth_V1_GetUserRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_OfficerProfile
+
+        /// Handle the "GetManagerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A `Auth_V1_GetUserRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Auth_V1_ManagerProfile` to respond with.
+        func getManagerProfileByUserID(
+            request: Auth_V1_GetUserRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Auth_V1_ManagerProfile
+
         /// Handle the "SearchBorrowerSignupStatus" method.
         ///
         /// - Parameters:
@@ -1511,6 +1679,39 @@ extension Auth_V1_AuthService.StreamingServiceProtocol {
             }
         )
         router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.GetUser.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_GetUserRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetUserResponse>(),
+            handler: { request, context in
+                try await self.getUser(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.GetOfficerProfileByUserID.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_GetUserRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_OfficerProfile>(),
+            handler: { request, context in
+                try await self.getOfficerProfileByUserID(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Auth_V1_AuthService.Method.GetManagerProfileByUserID.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_GetUserRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_ManagerProfile>(),
+            handler: { request, context in
+                try await self.getManagerProfileByUserID(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
             forMethod: Auth_V1_AuthService.Method.SearchBorrowerSignupStatus.descriptor,
             deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_SearchBorrowerSignupStatusRequest>(),
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_SearchBorrowerSignupStatusResponse>(),
@@ -1752,6 +1953,39 @@ extension Auth_V1_AuthService.ServiceProtocol {
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_BorrowerProfile> {
         let response = try await self.getBorrowerProfile(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func getUser(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_GetUserRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_GetUserResponse> {
+        let response = try await self.getUser(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func getOfficerProfileByUserID(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_GetUserRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_OfficerProfile> {
+        let response = try await self.getOfficerProfileByUserID(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func getManagerProfileByUserID(
+        request: GRPCCore.StreamingServerRequest<Auth_V1_GetUserRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Auth_V1_ManagerProfile> {
+        let response = try await self.getManagerProfileByUserID(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -2035,6 +2269,45 @@ extension Auth_V1_AuthService.SimpleServiceProtocol {
     ) async throws -> GRPCCore.ServerResponse<Auth_V1_BorrowerProfile> {
         return GRPCCore.ServerResponse<Auth_V1_BorrowerProfile>(
             message: try await self.getBorrowerProfile(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func getUser(
+        request: GRPCCore.ServerRequest<Auth_V1_GetUserRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_GetUserResponse> {
+        return GRPCCore.ServerResponse<Auth_V1_GetUserResponse>(
+            message: try await self.getUser(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func getOfficerProfileByUserID(
+        request: GRPCCore.ServerRequest<Auth_V1_GetUserRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_OfficerProfile> {
+        return GRPCCore.ServerResponse<Auth_V1_OfficerProfile>(
+            message: try await self.getOfficerProfileByUserID(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func getManagerProfileByUserID(
+        request: GRPCCore.ServerRequest<Auth_V1_GetUserRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Auth_V1_ManagerProfile> {
+        return GRPCCore.ServerResponse<Auth_V1_ManagerProfile>(
+            message: try await self.getManagerProfileByUserID(
                 request: request.message,
                 context: context
             ),
@@ -2450,6 +2723,63 @@ extension Auth_V1_AuthService {
             deserializer: some GRPCCore.MessageDeserializer<Auth_V1_BorrowerProfile>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_BorrowerProfile>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "GetUser" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetUserRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_GetUserResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func getUser<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetUserRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_GetUserResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetUserResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "GetOfficerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetUserRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_OfficerProfile` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func getOfficerProfileByUserID<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetUserRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_OfficerProfile>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_OfficerProfile>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "GetManagerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetUserRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_ManagerProfile` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func getManagerProfileByUserID<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetUserRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_ManagerProfile>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ManagerProfile>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
         /// Call the "SearchBorrowerSignupStatus" method.
@@ -3096,6 +3426,96 @@ extension Auth_V1_AuthService {
             )
         }
 
+        /// Call the "GetUser" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetUserRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_GetUserResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func getUser<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetUserRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_GetUserResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetUserResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.GetUser.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "GetOfficerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetUserRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_OfficerProfile` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func getOfficerProfileByUserID<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetUserRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_OfficerProfile>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_OfficerProfile>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.GetOfficerProfileByUserID.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "GetManagerProfileByUserID" method.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+        ///   - serializer: A serializer for `Auth_V1_GetUserRequest` messages.
+        ///   - deserializer: A deserializer for `Auth_V1_ManagerProfile` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func getManagerProfileByUserID<Result>(
+            request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+            serializer: some GRPCCore.MessageSerializer<Auth_V1_GetUserRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Auth_V1_ManagerProfile>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ManagerProfile>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Auth_V1_AuthService.Method.GetManagerProfileByUserID.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
         /// Call the "SearchBorrowerSignupStatus" method.
         ///
         /// - Parameters:
@@ -3661,6 +4081,81 @@ extension Auth_V1_AuthService.ClientProtocol {
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetBorrowerProfileRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_BorrowerProfile>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetUser" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getUser<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetUserResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.getUser(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetUserRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_GetUserResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetOfficerProfileByUserID" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getOfficerProfileByUserID<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_OfficerProfile>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.getOfficerProfileByUserID(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetUserRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_OfficerProfile>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetManagerProfileByUserID" method.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Auth_V1_GetUserRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getManagerProfileByUserID<Result>(
+        request: GRPCCore.ClientRequest<Auth_V1_GetUserRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ManagerProfile>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.getManagerProfileByUserID(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Auth_V1_GetUserRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Auth_V1_ManagerProfile>(),
             options: options,
             onResponse: handleResponse
         )
@@ -4290,6 +4785,93 @@ extension Auth_V1_AuthService.ClientProtocol {
             metadata: metadata
         )
         return try await self.getBorrowerProfile(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetUser" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getUser<Result>(
+        _ message: Auth_V1_GetUserRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_GetUserResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_GetUserRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.getUser(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetOfficerProfileByUserID" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getOfficerProfileByUserID<Result>(
+        _ message: Auth_V1_GetUserRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_OfficerProfile>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_GetUserRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.getOfficerProfileByUserID(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "GetManagerProfileByUserID" method.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func getManagerProfileByUserID<Result>(
+        _ message: Auth_V1_GetUserRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Auth_V1_ManagerProfile>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Auth_V1_GetUserRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.getManagerProfileByUserID(
             request: request,
             options: options,
             onResponse: handleResponse

@@ -384,6 +384,45 @@ public enum Loan_V1_LoanService: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "RescheduleLoan" metadata.
+        public enum RescheduleLoan: Sendable {
+            /// Request type for "RescheduleLoan".
+            public typealias Input = Loan_V1_RescheduleLoanRequest
+            /// Response type for "RescheduleLoan".
+            public typealias Output = Loan_V1_RescheduleLoanResponse
+            /// Descriptor for "RescheduleLoan".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "loan.v1.LoanService"),
+                method: "RescheduleLoan",
+                type: .unary
+            )
+        }
+        /// Namespace for "InitiatePayment" metadata.
+        public enum InitiatePayment: Sendable {
+            /// Request type for "InitiatePayment".
+            public typealias Input = Loan_V1_InitiatePaymentRequest
+            /// Response type for "InitiatePayment".
+            public typealias Output = Loan_V1_InitiatePaymentResponse
+            /// Descriptor for "InitiatePayment".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "loan.v1.LoanService"),
+                method: "InitiatePayment",
+                type: .unary
+            )
+        }
+        /// Namespace for "VerifyPayment" metadata.
+        public enum VerifyPayment: Sendable {
+            /// Request type for "VerifyPayment".
+            public typealias Input = Loan_V1_VerifyPaymentRequest
+            /// Response type for "VerifyPayment".
+            public typealias Output = Loan_V1_VerifyPaymentResponse
+            /// Descriptor for "VerifyPayment".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "loan.v1.LoanService"),
+                method: "VerifyPayment",
+                type: .unary
+            )
+        }
         /// Descriptors for all methods in the "loan.v1.LoanService" service.
         public static let descriptors: [GRPCCore.MethodDescriptor] = [
             CreateLoanProduct.descriptor,
@@ -413,7 +452,10 @@ public enum Loan_V1_LoanService: Sendable {
             AddEmiScheduleItem.descriptor,
             ListEmiSchedule.descriptor,
             RecordPayment.descriptor,
-            ListPayments.descriptor
+            ListPayments.descriptor,
+            RescheduleLoan.descriptor,
+            InitiatePayment.descriptor,
+            VerifyPayment.descriptor
         ]
     }
 }
@@ -438,8 +480,16 @@ extension Loan_V1_LoanService {
     ///
     /// Where possible, prefer using the stricter, less-verbose ``ServiceProtocol``
     /// or ``SimpleServiceProtocol`` instead.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > LoanService manages loan products, applications, and loan lifecycle.
     public protocol StreamingServiceProtocol: GRPCCore.RegistrableRPCService {
         /// Handle the "CreateLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a new loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_CreateLoanProductRequest` messages.
@@ -455,6 +505,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update an existing loan product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpdateLoanProductRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -468,6 +522,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpdateLoanProductResponse>
 
         /// Handle the "DeleteLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Soft-delete a loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_DeleteLoanProductRequest` messages.
@@ -483,6 +541,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "GetLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a single loan product by ID.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_GetLoanProductRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -496,6 +558,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_GetLoanProductResponse>
 
         /// Handle the "ListLoanProducts" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan products with pagination.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_ListLoanProductsRequest` messages.
@@ -511,6 +577,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertProductEligibilityRule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or replace) eligibility rules for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpsertProductEligibilityRuleRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -524,6 +594,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpsertProductEligibilityRuleResponse>
 
         /// Handle the "ReplaceProductFees" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all fees for a product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_ReplaceProductFeesRequest` messages.
@@ -539,6 +613,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ReplaceProductRequiredDocuments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all required documents for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_ReplaceProductRequiredDocumentsRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -552,6 +630,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_ReplaceProductRequiredDocumentsResponse>
 
         /// Handle the "CreateLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan application. Borrower/officer/DST can create.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_CreateLoanApplicationRequest` messages.
@@ -567,6 +649,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "GetLoanApplication" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan application with all sub-resources (coapplicants, collateral, documents, bureau scores).
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_GetLoanApplicationRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -580,6 +666,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_GetLoanApplicationResponse>
 
         /// Handle the "ListLoanApplications" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan applications with optional branch filter.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_ListLoanApplicationsRequest` messages.
@@ -595,6 +685,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateLoanApplicationStatus" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Advance the application status through the approval workflow.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpdateLoanApplicationStatusRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -608,6 +702,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpdateLoanApplicationStatusResponse>
 
         /// Handle the "UpdateLoanApplicationTerms" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update offered terms (tenure, interest rate) on an application.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpdateLoanApplicationTermsRequest` messages.
@@ -623,6 +721,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "AssignLoanApplicationOfficer" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Assign a loan officer to an application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_AssignLoanApplicationOfficerRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -636,6 +738,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_AssignLoanApplicationOfficerResponse>
 
         /// Handle the "AddApplicationCoapplicant" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a coapplicant to an application.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_AddApplicationCoapplicantRequest` messages.
@@ -651,6 +757,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertApplicationCollateral" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) collateral details for an application.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpsertApplicationCollateralRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -664,6 +774,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpsertApplicationCollateralResponse>
 
         /// Handle the "UpsertLoanVehicle" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) vehicle details for an application.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpsertLoanVehicleRequest` messages.
@@ -679,6 +793,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertLoanRealEstate" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) real-estate details for an application.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpsertLoanRealEstateRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -692,6 +810,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpsertLoanRealEstateResponse>
 
         /// Handle the "AddApplicationDocument" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upload a document against an application's required document slot.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_AddApplicationDocumentRequest` messages.
@@ -707,6 +829,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateApplicationDocumentVerification" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify (pass/fail) an application document. Officer/manager/admin only. Immutable once set.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_UpdateApplicationDocumentVerificationRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -720,6 +846,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpdateApplicationDocumentVerificationResponse>
 
         /// Handle the "AddBureauScore" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a bureau score for a borrower on an application.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_AddBureauScoreRequest` messages.
@@ -735,6 +865,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "CreateLoan" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan from a fully-approved application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_CreateLoanRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -748,6 +882,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_CreateLoanResponse>
 
         /// Handle the "GetLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan by ID or application ID.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_GetLoanRequest` messages.
@@ -763,6 +901,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListLoans" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List all loans with pagination.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_ListLoansRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -776,6 +918,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_ListLoansResponse>
 
         /// Handle the "AddEmiScheduleItem" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a single EMI schedule entry to a loan. Manager/admin only.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_AddEmiScheduleItemRequest` messages.
@@ -791,6 +937,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListEmiSchedule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List the EMI schedule for a loan.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_ListEmiScheduleRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -804,6 +954,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_ListEmiScheduleResponse>
 
         /// Handle the "RecordPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Record a payment against a specific EMI. Officer/manager/admin.
         ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_RecordPaymentRequest` messages.
@@ -819,6 +973,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListPayments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List payments for a loan.
+        ///
         /// - Parameters:
         ///   - request: A streaming request of `Loan_V1_ListPaymentsRequest` messages.
         ///   - context: Context providing information about the RPC.
@@ -830,6 +988,60 @@ extension Loan_V1_LoanService {
             request: GRPCCore.StreamingServerRequest<Loan_V1_ListPaymentsRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_ListPaymentsResponse>
+
+        /// Handle the "RescheduleLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Reschedule an active loan by changing its tenure. Manager/admin only.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Loan_V1_RescheduleLoanRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Loan_V1_RescheduleLoanResponse` messages.
+        func rescheduleLoan(
+            request: GRPCCore.StreamingServerRequest<Loan_V1_RescheduleLoanRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_RescheduleLoanResponse>
+
+        /// Handle the "InitiatePayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Initiate a Razorpay payment for a loan/EMI.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Loan_V1_InitiatePaymentRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Loan_V1_InitiatePaymentResponse` messages.
+        func initiatePayment(
+            request: GRPCCore.StreamingServerRequest<Loan_V1_InitiatePaymentRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_InitiatePaymentResponse>
+
+        /// Handle the "VerifyPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify a completed Razorpay payment.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Loan_V1_VerifyPaymentRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Loan_V1_VerifyPaymentResponse` messages.
+        func verifyPayment(
+            request: GRPCCore.StreamingServerRequest<Loan_V1_VerifyPaymentRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_VerifyPaymentResponse>
     }
 
     /// Service protocol for the "loan.v1.LoanService" service.
@@ -839,8 +1051,16 @@ extension Loan_V1_LoanService {
     /// trailing response metadata. If you don't need these then consider using
     /// the ``SimpleServiceProtocol``. If you need fine grained control over your RPCs then
     /// use ``StreamingServiceProtocol``.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > LoanService manages loan products, applications, and loan lifecycle.
     public protocol ServiceProtocol: Loan_V1_LoanService.StreamingServiceProtocol {
         /// Handle the "CreateLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a new loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanProductRequest` message.
@@ -856,6 +1076,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update an existing loan product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanProductRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -869,6 +1093,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpdateLoanProductResponse>
 
         /// Handle the "DeleteLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Soft-delete a loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_DeleteLoanProductRequest` message.
@@ -884,6 +1112,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "GetLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a single loan product by ID.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanProductRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -897,6 +1129,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_GetLoanProductResponse>
 
         /// Handle the "ListLoanProducts" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan products with pagination.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoanProductsRequest` message.
@@ -912,6 +1148,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertProductEligibilityRule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or replace) eligibility rules for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertProductEligibilityRuleRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -925,6 +1165,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpsertProductEligibilityRuleResponse>
 
         /// Handle the "ReplaceProductFees" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all fees for a product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ReplaceProductFeesRequest` message.
@@ -940,6 +1184,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ReplaceProductRequiredDocuments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all required documents for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ReplaceProductRequiredDocumentsRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -953,6 +1201,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_ReplaceProductRequiredDocumentsResponse>
 
         /// Handle the "CreateLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan application. Borrower/officer/DST can create.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanApplicationRequest` message.
@@ -968,6 +1220,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "GetLoanApplication" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan application with all sub-resources (coapplicants, collateral, documents, bureau scores).
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanApplicationRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -981,6 +1237,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_GetLoanApplicationResponse>
 
         /// Handle the "ListLoanApplications" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan applications with optional branch filter.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoanApplicationsRequest` message.
@@ -996,6 +1256,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateLoanApplicationStatus" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Advance the application status through the approval workflow.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationStatusRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1009,6 +1273,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpdateLoanApplicationStatusResponse>
 
         /// Handle the "UpdateLoanApplicationTerms" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update offered terms (tenure, interest rate) on an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationTermsRequest` message.
@@ -1024,6 +1292,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "AssignLoanApplicationOfficer" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Assign a loan officer to an application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AssignLoanApplicationOfficerRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1037,6 +1309,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_AssignLoanApplicationOfficerResponse>
 
         /// Handle the "AddApplicationCoapplicant" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a coapplicant to an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddApplicationCoapplicantRequest` message.
@@ -1052,6 +1328,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertApplicationCollateral" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) collateral details for an application.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertApplicationCollateralRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1065,6 +1345,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpsertApplicationCollateralResponse>
 
         /// Handle the "UpsertLoanVehicle" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) vehicle details for an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertLoanVehicleRequest` message.
@@ -1080,6 +1364,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertLoanRealEstate" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) real-estate details for an application.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertLoanRealEstateRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1093,6 +1381,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpsertLoanRealEstateResponse>
 
         /// Handle the "AddApplicationDocument" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upload a document against an application's required document slot.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddApplicationDocumentRequest` message.
@@ -1108,6 +1400,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateApplicationDocumentVerification" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify (pass/fail) an application document. Officer/manager/admin only. Immutable once set.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateApplicationDocumentVerificationRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1121,6 +1417,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpdateApplicationDocumentVerificationResponse>
 
         /// Handle the "AddBureauScore" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a bureau score for a borrower on an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddBureauScoreRequest` message.
@@ -1136,6 +1436,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "CreateLoan" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan from a fully-approved application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1149,6 +1453,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_CreateLoanResponse>
 
         /// Handle the "GetLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan by ID or application ID.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanRequest` message.
@@ -1164,6 +1472,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListLoans" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List all loans with pagination.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoansRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1177,6 +1489,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_ListLoansResponse>
 
         /// Handle the "AddEmiScheduleItem" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a single EMI schedule entry to a loan. Manager/admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddEmiScheduleItemRequest` message.
@@ -1192,6 +1508,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListEmiSchedule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List the EMI schedule for a loan.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListEmiScheduleRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1205,6 +1525,10 @@ extension Loan_V1_LoanService {
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_ListEmiScheduleResponse>
 
         /// Handle the "RecordPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Record a payment against a specific EMI. Officer/manager/admin.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_RecordPaymentRequest` message.
@@ -1220,6 +1544,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListPayments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List payments for a loan.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListPaymentsRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1231,6 +1559,60 @@ extension Loan_V1_LoanService {
             request: GRPCCore.ServerRequest<Loan_V1_ListPaymentsRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_ListPaymentsResponse>
+
+        /// Handle the "RescheduleLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Reschedule an active loan by changing its tenure. Manager/admin only.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_RescheduleLoanRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Loan_V1_RescheduleLoanResponse` message.
+        func rescheduleLoan(
+            request: GRPCCore.ServerRequest<Loan_V1_RescheduleLoanRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Loan_V1_RescheduleLoanResponse>
+
+        /// Handle the "InitiatePayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Initiate a Razorpay payment for a loan/EMI.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_InitiatePaymentRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Loan_V1_InitiatePaymentResponse` message.
+        func initiatePayment(
+            request: GRPCCore.ServerRequest<Loan_V1_InitiatePaymentRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Loan_V1_InitiatePaymentResponse>
+
+        /// Handle the "VerifyPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify a completed Razorpay payment.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_VerifyPaymentRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Loan_V1_VerifyPaymentResponse` message.
+        func verifyPayment(
+            request: GRPCCore.ServerRequest<Loan_V1_VerifyPaymentRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Loan_V1_VerifyPaymentResponse>
     }
 
     /// Simple service protocol for the "loan.v1.LoanService" service.
@@ -1238,8 +1620,16 @@ extension Loan_V1_LoanService {
     /// This is the highest level protocol for the service. The API is the easiest to use but
     /// doesn't provide access to request or response metadata. If you need access to these
     /// then use ``ServiceProtocol`` instead.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > LoanService manages loan products, applications, and loan lifecycle.
     public protocol SimpleServiceProtocol: Loan_V1_LoanService.ServiceProtocol {
         /// Handle the "CreateLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a new loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_CreateLoanProductRequest` message.
@@ -1255,6 +1645,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update an existing loan product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpdateLoanProductRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1268,6 +1662,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_UpdateLoanProductResponse
 
         /// Handle the "DeleteLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Soft-delete a loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_DeleteLoanProductRequest` message.
@@ -1283,6 +1681,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "GetLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a single loan product by ID.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_GetLoanProductRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1296,6 +1698,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_GetLoanProductResponse
 
         /// Handle the "ListLoanProducts" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan products with pagination.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_ListLoanProductsRequest` message.
@@ -1311,6 +1717,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertProductEligibilityRule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or replace) eligibility rules for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpsertProductEligibilityRuleRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1324,6 +1734,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_UpsertProductEligibilityRuleResponse
 
         /// Handle the "ReplaceProductFees" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all fees for a product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_ReplaceProductFeesRequest` message.
@@ -1339,6 +1753,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ReplaceProductRequiredDocuments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all required documents for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_ReplaceProductRequiredDocumentsRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1352,6 +1770,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_ReplaceProductRequiredDocumentsResponse
 
         /// Handle the "CreateLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan application. Borrower/officer/DST can create.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_CreateLoanApplicationRequest` message.
@@ -1367,6 +1789,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "GetLoanApplication" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan application with all sub-resources (coapplicants, collateral, documents, bureau scores).
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_GetLoanApplicationRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1380,6 +1806,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_GetLoanApplicationResponse
 
         /// Handle the "ListLoanApplications" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan applications with optional branch filter.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_ListLoanApplicationsRequest` message.
@@ -1395,6 +1825,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateLoanApplicationStatus" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Advance the application status through the approval workflow.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpdateLoanApplicationStatusRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1408,6 +1842,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_UpdateLoanApplicationStatusResponse
 
         /// Handle the "UpdateLoanApplicationTerms" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update offered terms (tenure, interest rate) on an application.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpdateLoanApplicationTermsRequest` message.
@@ -1423,6 +1861,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "AssignLoanApplicationOfficer" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Assign a loan officer to an application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_AssignLoanApplicationOfficerRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1436,6 +1878,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_AssignLoanApplicationOfficerResponse
 
         /// Handle the "AddApplicationCoapplicant" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a coapplicant to an application.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_AddApplicationCoapplicantRequest` message.
@@ -1451,6 +1897,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertApplicationCollateral" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) collateral details for an application.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpsertApplicationCollateralRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1464,6 +1914,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_UpsertApplicationCollateralResponse
 
         /// Handle the "UpsertLoanVehicle" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) vehicle details for an application.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpsertLoanVehicleRequest` message.
@@ -1479,6 +1933,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpsertLoanRealEstate" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) real-estate details for an application.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpsertLoanRealEstateRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1492,6 +1950,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_UpsertLoanRealEstateResponse
 
         /// Handle the "AddApplicationDocument" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upload a document against an application's required document slot.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_AddApplicationDocumentRequest` message.
@@ -1507,6 +1969,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "UpdateApplicationDocumentVerification" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify (pass/fail) an application document. Officer/manager/admin only. Immutable once set.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_UpdateApplicationDocumentVerificationRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1520,6 +1986,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_UpdateApplicationDocumentVerificationResponse
 
         /// Handle the "AddBureauScore" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a bureau score for a borrower on an application.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_AddBureauScoreRequest` message.
@@ -1535,6 +2005,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "CreateLoan" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan from a fully-approved application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_CreateLoanRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1548,6 +2022,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_CreateLoanResponse
 
         /// Handle the "GetLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan by ID or application ID.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_GetLoanRequest` message.
@@ -1563,6 +2041,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListLoans" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List all loans with pagination.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_ListLoansRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1576,6 +2058,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_ListLoansResponse
 
         /// Handle the "AddEmiScheduleItem" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a single EMI schedule entry to a loan. Manager/admin only.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_AddEmiScheduleItemRequest` message.
@@ -1591,6 +2077,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListEmiSchedule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List the EMI schedule for a loan.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_ListEmiScheduleRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1604,6 +2094,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Loan_V1_ListEmiScheduleResponse
 
         /// Handle the "RecordPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Record a payment against a specific EMI. Officer/manager/admin.
         ///
         /// - Parameters:
         ///   - request: A `Loan_V1_RecordPaymentRequest` message.
@@ -1619,6 +2113,10 @@ extension Loan_V1_LoanService {
 
         /// Handle the "ListPayments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List payments for a loan.
+        ///
         /// - Parameters:
         ///   - request: A `Loan_V1_ListPaymentsRequest` message.
         ///   - context: Context providing information about the RPC.
@@ -1630,6 +2128,60 @@ extension Loan_V1_LoanService {
             request: Loan_V1_ListPaymentsRequest,
             context: GRPCCore.ServerContext
         ) async throws -> Loan_V1_ListPaymentsResponse
+
+        /// Handle the "RescheduleLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Reschedule an active loan by changing its tenure. Manager/admin only.
+        ///
+        /// - Parameters:
+        ///   - request: A `Loan_V1_RescheduleLoanRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Loan_V1_RescheduleLoanResponse` to respond with.
+        func rescheduleLoan(
+            request: Loan_V1_RescheduleLoanRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Loan_V1_RescheduleLoanResponse
+
+        /// Handle the "InitiatePayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Initiate a Razorpay payment for a loan/EMI.
+        ///
+        /// - Parameters:
+        ///   - request: A `Loan_V1_InitiatePaymentRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Loan_V1_InitiatePaymentResponse` to respond with.
+        func initiatePayment(
+            request: Loan_V1_InitiatePaymentRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Loan_V1_InitiatePaymentResponse
+
+        /// Handle the "VerifyPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify a completed Razorpay payment.
+        ///
+        /// - Parameters:
+        ///   - request: A `Loan_V1_VerifyPaymentRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Loan_V1_VerifyPaymentResponse` to respond with.
+        func verifyPayment(
+            request: Loan_V1_VerifyPaymentRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Loan_V1_VerifyPaymentResponse
     }
 }
 
@@ -1945,6 +2497,39 @@ extension Loan_V1_LoanService.StreamingServiceProtocol {
                 )
             }
         )
+        router.registerHandler(
+            forMethod: Loan_V1_LoanService.Method.RescheduleLoan.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_RescheduleLoanRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_RescheduleLoanResponse>(),
+            handler: { request, context in
+                try await self.rescheduleLoan(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Loan_V1_LoanService.Method.InitiatePayment.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_InitiatePaymentRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_InitiatePaymentResponse>(),
+            handler: { request, context in
+                try await self.initiatePayment(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: Loan_V1_LoanService.Method.VerifyPayment.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_VerifyPaymentRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_VerifyPaymentResponse>(),
+            handler: { request, context in
+                try await self.verifyPayment(
+                    request: request,
+                    context: context
+                )
+            }
+        )
     }
 }
 
@@ -2253,6 +2838,39 @@ extension Loan_V1_LoanService.ServiceProtocol {
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_ListPaymentsResponse> {
         let response = try await self.listPayments(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func rescheduleLoan(
+        request: GRPCCore.StreamingServerRequest<Loan_V1_RescheduleLoanRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_RescheduleLoanResponse> {
+        let response = try await self.rescheduleLoan(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func initiatePayment(
+        request: GRPCCore.StreamingServerRequest<Loan_V1_InitiatePaymentRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_InitiatePaymentResponse> {
+        let response = try await self.initiatePayment(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func verifyPayment(
+        request: GRPCCore.StreamingServerRequest<Loan_V1_VerifyPaymentRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_VerifyPaymentResponse> {
+        let response = try await self.verifyPayment(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -2626,6 +3244,45 @@ extension Loan_V1_LoanService.SimpleServiceProtocol {
             metadata: [:]
         )
     }
+
+    public func rescheduleLoan(
+        request: GRPCCore.ServerRequest<Loan_V1_RescheduleLoanRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Loan_V1_RescheduleLoanResponse> {
+        return GRPCCore.ServerResponse<Loan_V1_RescheduleLoanResponse>(
+            message: try await self.rescheduleLoan(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func initiatePayment(
+        request: GRPCCore.ServerRequest<Loan_V1_InitiatePaymentRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Loan_V1_InitiatePaymentResponse> {
+        return GRPCCore.ServerResponse<Loan_V1_InitiatePaymentResponse>(
+            message: try await self.initiatePayment(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func verifyPayment(
+        request: GRPCCore.ServerRequest<Loan_V1_VerifyPaymentRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Loan_V1_VerifyPaymentResponse> {
+        return GRPCCore.ServerResponse<Loan_V1_VerifyPaymentResponse>(
+            message: try await self.verifyPayment(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
 }
 
 // MARK: loan.v1.LoanService (client)
@@ -2636,8 +3293,16 @@ extension Loan_V1_LoanService {
     ///
     /// You don't need to implement this protocol directly, use the generated
     /// implementation, ``Client``.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > LoanService manages loan products, applications, and loan lifecycle.
     public protocol ClientProtocol: Sendable {
         /// Call the "CreateLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a new loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanProductRequest` message.
@@ -2658,6 +3323,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpdateLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update an existing loan product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanProductRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpdateLoanProductRequest` messages.
@@ -2676,6 +3345,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "DeleteLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Soft-delete a loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_DeleteLoanProductRequest` message.
@@ -2696,6 +3369,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "GetLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a single loan product by ID.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanProductRequest` message.
         ///   - serializer: A serializer for `Loan_V1_GetLoanProductRequest` messages.
@@ -2714,6 +3391,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "ListLoanProducts" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan products with pagination.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoanProductsRequest` message.
@@ -2734,6 +3415,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpsertProductEligibilityRule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or replace) eligibility rules for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertProductEligibilityRuleRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpsertProductEligibilityRuleRequest` messages.
@@ -2752,6 +3437,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "ReplaceProductFees" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all fees for a product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ReplaceProductFeesRequest` message.
@@ -2772,6 +3461,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ReplaceProductRequiredDocuments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all required documents for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ReplaceProductRequiredDocumentsRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ReplaceProductRequiredDocumentsRequest` messages.
@@ -2790,6 +3483,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "CreateLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan application. Borrower/officer/DST can create.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanApplicationRequest` message.
@@ -2810,6 +3507,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "GetLoanApplication" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan application with all sub-resources (coapplicants, collateral, documents, bureau scores).
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanApplicationRequest` message.
         ///   - serializer: A serializer for `Loan_V1_GetLoanApplicationRequest` messages.
@@ -2828,6 +3529,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "ListLoanApplications" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan applications with optional branch filter.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoanApplicationsRequest` message.
@@ -2848,6 +3553,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpdateLoanApplicationStatus" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Advance the application status through the approval workflow.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationStatusRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpdateLoanApplicationStatusRequest` messages.
@@ -2866,6 +3575,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "UpdateLoanApplicationTerms" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update offered terms (tenure, interest rate) on an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationTermsRequest` message.
@@ -2886,6 +3599,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "AssignLoanApplicationOfficer" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Assign a loan officer to an application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AssignLoanApplicationOfficerRequest` message.
         ///   - serializer: A serializer for `Loan_V1_AssignLoanApplicationOfficerRequest` messages.
@@ -2904,6 +3621,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "AddApplicationCoapplicant" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a coapplicant to an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddApplicationCoapplicantRequest` message.
@@ -2924,6 +3645,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpsertApplicationCollateral" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) collateral details for an application.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertApplicationCollateralRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpsertApplicationCollateralRequest` messages.
@@ -2942,6 +3667,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "UpsertLoanVehicle" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) vehicle details for an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertLoanVehicleRequest` message.
@@ -2962,6 +3691,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpsertLoanRealEstate" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) real-estate details for an application.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertLoanRealEstateRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpsertLoanRealEstateRequest` messages.
@@ -2980,6 +3713,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "AddApplicationDocument" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upload a document against an application's required document slot.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddApplicationDocumentRequest` message.
@@ -3000,6 +3737,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpdateApplicationDocumentVerification" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify (pass/fail) an application document. Officer/manager/admin only. Immutable once set.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateApplicationDocumentVerificationRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpdateApplicationDocumentVerificationRequest` messages.
@@ -3018,6 +3759,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "AddBureauScore" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a bureau score for a borrower on an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddBureauScoreRequest` message.
@@ -3038,6 +3783,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "CreateLoan" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan from a fully-approved application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanRequest` message.
         ///   - serializer: A serializer for `Loan_V1_CreateLoanRequest` messages.
@@ -3056,6 +3805,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "GetLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan by ID or application ID.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanRequest` message.
@@ -3076,6 +3829,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ListLoans" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List all loans with pagination.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoansRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ListLoansRequest` messages.
@@ -3094,6 +3851,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "AddEmiScheduleItem" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a single EMI schedule entry to a loan. Manager/admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddEmiScheduleItemRequest` message.
@@ -3114,6 +3875,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ListEmiSchedule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List the EMI schedule for a loan.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListEmiScheduleRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ListEmiScheduleRequest` messages.
@@ -3132,6 +3897,10 @@ extension Loan_V1_LoanService {
         ) async throws -> Result where Result: Sendable
 
         /// Call the "RecordPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Record a payment against a specific EMI. Officer/manager/admin.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_RecordPaymentRequest` message.
@@ -3152,6 +3921,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ListPayments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List payments for a loan.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListPaymentsRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ListPaymentsRequest` messages.
@@ -3168,6 +3941,75 @@ extension Loan_V1_LoanService {
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_ListPaymentsResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
+
+        /// Call the "RescheduleLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Reschedule an active loan by changing its tenure. Manager/admin only.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_RescheduleLoanRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_RescheduleLoanRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_RescheduleLoanResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func rescheduleLoan<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_RescheduleLoanRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_RescheduleLoanRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_RescheduleLoanResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_RescheduleLoanResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "InitiatePayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Initiate a Razorpay payment for a loan/EMI.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_InitiatePaymentRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_InitiatePaymentRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_InitiatePaymentResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func initiatePayment<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_InitiatePaymentRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_InitiatePaymentRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_InitiatePaymentResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_InitiatePaymentResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "VerifyPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify a completed Razorpay payment.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_VerifyPaymentRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_VerifyPaymentRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_VerifyPaymentResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func verifyPayment<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_VerifyPaymentRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_VerifyPaymentRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_VerifyPaymentResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_VerifyPaymentResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
     }
 
     /// Generated client for the "loan.v1.LoanService" service.
@@ -3175,6 +4017,10 @@ extension Loan_V1_LoanService {
     /// The ``Client`` provides an implementation of ``ClientProtocol`` which wraps
     /// a `GRPCCore.GRPCCClient`. The underlying `GRPCClient` provides the long-lived
     /// means of communication with the remote peer.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > LoanService manages loan products, applications, and loan lifecycle.
     public struct Client<Transport>: ClientProtocol where Transport: GRPCCore.ClientTransport {
         private let client: GRPCCore.GRPCClient<Transport>
 
@@ -3187,6 +4033,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "CreateLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a new loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanProductRequest` message.
@@ -3218,6 +4068,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpdateLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update an existing loan product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanProductRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpdateLoanProductRequest` messages.
@@ -3247,6 +4101,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "DeleteLoanProduct" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Soft-delete a loan product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_DeleteLoanProductRequest` message.
@@ -3278,6 +4136,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "GetLoanProduct" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a single loan product by ID.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanProductRequest` message.
         ///   - serializer: A serializer for `Loan_V1_GetLoanProductRequest` messages.
@@ -3307,6 +4169,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "ListLoanProducts" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan products with pagination.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoanProductsRequest` message.
@@ -3338,6 +4204,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpsertProductEligibilityRule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or replace) eligibility rules for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertProductEligibilityRuleRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpsertProductEligibilityRuleRequest` messages.
@@ -3367,6 +4237,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "ReplaceProductFees" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all fees for a product. Admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ReplaceProductFeesRequest` message.
@@ -3398,6 +4272,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ReplaceProductRequiredDocuments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Replace all required documents for a product. Admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ReplaceProductRequiredDocumentsRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ReplaceProductRequiredDocumentsRequest` messages.
@@ -3427,6 +4305,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "CreateLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan application. Borrower/officer/DST can create.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanApplicationRequest` message.
@@ -3458,6 +4340,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "GetLoanApplication" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan application with all sub-resources (coapplicants, collateral, documents, bureau scores).
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanApplicationRequest` message.
         ///   - serializer: A serializer for `Loan_V1_GetLoanApplicationRequest` messages.
@@ -3487,6 +4373,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "ListLoanApplications" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List loan applications with optional branch filter.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoanApplicationsRequest` message.
@@ -3518,6 +4408,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpdateLoanApplicationStatus" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Advance the application status through the approval workflow.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationStatusRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpdateLoanApplicationStatusRequest` messages.
@@ -3547,6 +4441,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "UpdateLoanApplicationTerms" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Update offered terms (tenure, interest rate) on an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationTermsRequest` message.
@@ -3578,6 +4476,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "AssignLoanApplicationOfficer" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Assign a loan officer to an application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AssignLoanApplicationOfficerRequest` message.
         ///   - serializer: A serializer for `Loan_V1_AssignLoanApplicationOfficerRequest` messages.
@@ -3607,6 +4509,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "AddApplicationCoapplicant" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a coapplicant to an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddApplicationCoapplicantRequest` message.
@@ -3638,6 +4544,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpsertApplicationCollateral" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) collateral details for an application.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertApplicationCollateralRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpsertApplicationCollateralRequest` messages.
@@ -3667,6 +4577,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "UpsertLoanVehicle" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) vehicle details for an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertLoanVehicleRequest` message.
@@ -3698,6 +4612,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpsertLoanRealEstate" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upsert (create or update) real-estate details for an application.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpsertLoanRealEstateRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpsertLoanRealEstateRequest` messages.
@@ -3727,6 +4645,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "AddApplicationDocument" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Upload a document against an application's required document slot.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddApplicationDocumentRequest` message.
@@ -3758,6 +4680,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "UpdateApplicationDocumentVerification" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify (pass/fail) an application document. Officer/manager/admin only. Immutable once set.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_UpdateApplicationDocumentVerificationRequest` message.
         ///   - serializer: A serializer for `Loan_V1_UpdateApplicationDocumentVerificationRequest` messages.
@@ -3787,6 +4713,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "AddBureauScore" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a bureau score for a borrower on an application.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddBureauScoreRequest` message.
@@ -3818,6 +4748,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "CreateLoan" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Create a loan from a fully-approved application. Manager/admin only.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_CreateLoanRequest` message.
         ///   - serializer: A serializer for `Loan_V1_CreateLoanRequest` messages.
@@ -3847,6 +4781,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "GetLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Get a loan by ID or application ID.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_GetLoanRequest` message.
@@ -3878,6 +4816,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ListLoans" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List all loans with pagination.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListLoansRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ListLoansRequest` messages.
@@ -3907,6 +4849,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "AddEmiScheduleItem" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Add a single EMI schedule entry to a loan. Manager/admin only.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_AddEmiScheduleItemRequest` message.
@@ -3938,6 +4884,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ListEmiSchedule" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List the EMI schedule for a loan.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListEmiScheduleRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ListEmiScheduleRequest` messages.
@@ -3967,6 +4917,10 @@ extension Loan_V1_LoanService {
         }
 
         /// Call the "RecordPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Record a payment against a specific EMI. Officer/manager/admin.
         ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_RecordPaymentRequest` message.
@@ -3998,6 +4952,10 @@ extension Loan_V1_LoanService {
 
         /// Call the "ListPayments" method.
         ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > List payments for a loan.
+        ///
         /// - Parameters:
         ///   - request: A request containing a single `Loan_V1_ListPaymentsRequest` message.
         ///   - serializer: A serializer for `Loan_V1_ListPaymentsRequest` messages.
@@ -4025,6 +4983,108 @@ extension Loan_V1_LoanService {
                 onResponse: handleResponse
             )
         }
+
+        /// Call the "RescheduleLoan" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Reschedule an active loan by changing its tenure. Manager/admin only.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_RescheduleLoanRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_RescheduleLoanRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_RescheduleLoanResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func rescheduleLoan<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_RescheduleLoanRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_RescheduleLoanRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_RescheduleLoanResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_RescheduleLoanResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Loan_V1_LoanService.Method.RescheduleLoan.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "InitiatePayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Initiate a Razorpay payment for a loan/EMI.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_InitiatePaymentRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_InitiatePaymentRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_InitiatePaymentResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func initiatePayment<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_InitiatePaymentRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_InitiatePaymentRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_InitiatePaymentResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_InitiatePaymentResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Loan_V1_LoanService.Method.InitiatePayment.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "VerifyPayment" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Verify a completed Razorpay payment.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_VerifyPaymentRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_VerifyPaymentRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_VerifyPaymentResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func verifyPayment<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_VerifyPaymentRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_VerifyPaymentRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_VerifyPaymentResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_VerifyPaymentResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Loan_V1_LoanService.Method.VerifyPayment.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
     }
 }
 
@@ -4032,6 +5092,10 @@ extension Loan_V1_LoanService {
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Loan_V1_LoanService.ClientProtocol {
     /// Call the "CreateLoanProduct" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Create a new loan product. Admin only.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_CreateLoanProductRequest` message.
@@ -4058,6 +5122,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpdateLoanProduct" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Update an existing loan product. Admin only.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpdateLoanProductRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4082,6 +5150,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "DeleteLoanProduct" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Soft-delete a loan product. Admin only.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_DeleteLoanProductRequest` message.
@@ -4108,6 +5180,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "GetLoanProduct" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Get a single loan product by ID.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_GetLoanProductRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4132,6 +5208,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "ListLoanProducts" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List loan products with pagination.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_ListLoanProductsRequest` message.
@@ -4158,6 +5238,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpsertProductEligibilityRule" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or replace) eligibility rules for a product. Admin only.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpsertProductEligibilityRuleRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4182,6 +5266,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "ReplaceProductFees" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Replace all fees for a product. Admin only.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_ReplaceProductFeesRequest` message.
@@ -4208,6 +5296,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ReplaceProductRequiredDocuments" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Replace all required documents for a product. Admin only.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_ReplaceProductRequiredDocumentsRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4232,6 +5324,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "CreateLoanApplication" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Create a loan application. Borrower/officer/DST can create.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_CreateLoanApplicationRequest` message.
@@ -4258,6 +5354,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "GetLoanApplication" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Get a loan application with all sub-resources (coapplicants, collateral, documents, bureau scores).
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_GetLoanApplicationRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4282,6 +5382,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "ListLoanApplications" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List loan applications with optional branch filter.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_ListLoanApplicationsRequest` message.
@@ -4308,6 +5412,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpdateLoanApplicationStatus" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Advance the application status through the approval workflow.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationStatusRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4332,6 +5440,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "UpdateLoanApplicationTerms" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Update offered terms (tenure, interest rate) on an application.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpdateLoanApplicationTermsRequest` message.
@@ -4358,6 +5470,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "AssignLoanApplicationOfficer" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Assign a loan officer to an application. Manager/admin only.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_AssignLoanApplicationOfficerRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4382,6 +5498,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddApplicationCoapplicant" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Add a coapplicant to an application.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_AddApplicationCoapplicantRequest` message.
@@ -4408,6 +5528,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpsertApplicationCollateral" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or update) collateral details for an application.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpsertApplicationCollateralRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4432,6 +5556,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "UpsertLoanVehicle" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or update) vehicle details for an application.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpsertLoanVehicleRequest` message.
@@ -4458,6 +5586,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpsertLoanRealEstate" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or update) real-estate details for an application.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpsertLoanRealEstateRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4482,6 +5614,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddApplicationDocument" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upload a document against an application's required document slot.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_AddApplicationDocumentRequest` message.
@@ -4508,6 +5644,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpdateApplicationDocumentVerification" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Verify (pass/fail) an application document. Officer/manager/admin only. Immutable once set.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_UpdateApplicationDocumentVerificationRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4532,6 +5672,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddBureauScore" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Add a bureau score for a borrower on an application.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_AddBureauScoreRequest` message.
@@ -4558,6 +5702,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "CreateLoan" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Create a loan from a fully-approved application. Manager/admin only.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_CreateLoanRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4582,6 +5730,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "GetLoan" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Get a loan by ID or application ID.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_GetLoanRequest` message.
@@ -4608,6 +5760,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ListLoans" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List all loans with pagination.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_ListLoansRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4632,6 +5788,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddEmiScheduleItem" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Add a single EMI schedule entry to a loan. Manager/admin only.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_AddEmiScheduleItemRequest` message.
@@ -4658,6 +5818,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ListEmiSchedule" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List the EMI schedule for a loan.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_ListEmiScheduleRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4682,6 +5846,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "RecordPayment" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Record a payment against a specific EMI. Officer/manager/admin.
     ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_RecordPaymentRequest` message.
@@ -4708,6 +5876,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ListPayments" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List payments for a loan.
+    ///
     /// - Parameters:
     ///   - request: A request containing a single `Loan_V1_ListPaymentsRequest` message.
     ///   - options: Options to apply to this RPC.
@@ -4730,12 +5902,103 @@ extension Loan_V1_LoanService.ClientProtocol {
             onResponse: handleResponse
         )
     }
+
+    /// Call the "RescheduleLoan" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Reschedule an active loan by changing its tenure. Manager/admin only.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Loan_V1_RescheduleLoanRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func rescheduleLoan<Result>(
+        request: GRPCCore.ClientRequest<Loan_V1_RescheduleLoanRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_RescheduleLoanResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.rescheduleLoan(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_RescheduleLoanRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_RescheduleLoanResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "InitiatePayment" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Initiate a Razorpay payment for a loan/EMI.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Loan_V1_InitiatePaymentRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func initiatePayment<Result>(
+        request: GRPCCore.ClientRequest<Loan_V1_InitiatePaymentRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_InitiatePaymentResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.initiatePayment(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_InitiatePaymentRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_InitiatePaymentResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "VerifyPayment" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Verify a completed Razorpay payment.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Loan_V1_VerifyPaymentRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func verifyPayment<Result>(
+        request: GRPCCore.ClientRequest<Loan_V1_VerifyPaymentRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_VerifyPaymentResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.verifyPayment(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_VerifyPaymentRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_VerifyPaymentResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
 }
 
 // Helpers providing sugared APIs for 'ClientProtocol' methods.
 @available(macOS 15.0, iOS 18.0, watchOS 11.0, tvOS 18.0, visionOS 2.0, *)
 extension Loan_V1_LoanService.ClientProtocol {
     /// Call the "CreateLoanProduct" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Create a new loan product. Admin only.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -4766,6 +6029,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpdateLoanProduct" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Update an existing loan product. Admin only.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -4794,6 +6061,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "DeleteLoanProduct" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Soft-delete a loan product. Admin only.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -4824,6 +6095,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "GetLoanProduct" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Get a single loan product by ID.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -4852,6 +6127,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "ListLoanProducts" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List loan products with pagination.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -4882,6 +6161,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpsertProductEligibilityRule" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or replace) eligibility rules for a product. Admin only.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -4910,6 +6193,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "ReplaceProductFees" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Replace all fees for a product. Admin only.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -4940,6 +6227,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ReplaceProductRequiredDocuments" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Replace all required documents for a product. Admin only.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -4968,6 +6259,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "CreateLoanApplication" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Create a loan application. Borrower/officer/DST can create.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -4998,6 +6293,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "GetLoanApplication" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Get a loan application with all sub-resources (coapplicants, collateral, documents, bureau scores).
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5026,6 +6325,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "ListLoanApplications" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List loan applications with optional branch filter.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5056,6 +6359,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpdateLoanApplicationStatus" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Advance the application status through the approval workflow.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5084,6 +6391,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "UpdateLoanApplicationTerms" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Update offered terms (tenure, interest rate) on an application.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5114,6 +6425,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "AssignLoanApplicationOfficer" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Assign a loan officer to an application. Manager/admin only.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5142,6 +6457,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddApplicationCoapplicant" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Add a coapplicant to an application.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5172,6 +6491,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpsertApplicationCollateral" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or update) collateral details for an application.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5200,6 +6523,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "UpsertLoanVehicle" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or update) vehicle details for an application.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5230,6 +6557,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpsertLoanRealEstate" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upsert (create or update) real-estate details for an application.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5258,6 +6589,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddApplicationDocument" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Upload a document against an application's required document slot.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5288,6 +6623,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "UpdateApplicationDocumentVerification" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Verify (pass/fail) an application document. Officer/manager/admin only. Immutable once set.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5316,6 +6655,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddBureauScore" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Add a bureau score for a borrower on an application.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5346,6 +6689,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "CreateLoan" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Create a loan from a fully-approved application. Manager/admin only.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5374,6 +6721,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "GetLoan" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Get a loan by ID or application ID.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5404,6 +6755,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ListLoans" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List all loans with pagination.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5432,6 +6787,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "AddEmiScheduleItem" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Add a single EMI schedule entry to a loan. Manager/admin only.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5462,6 +6821,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ListEmiSchedule" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List the EMI schedule for a loan.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5490,6 +6853,10 @@ extension Loan_V1_LoanService.ClientProtocol {
     }
 
     /// Call the "RecordPayment" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Record a payment against a specific EMI. Officer/manager/admin.
     ///
     /// - Parameters:
     ///   - message: request message to send.
@@ -5520,6 +6887,10 @@ extension Loan_V1_LoanService.ClientProtocol {
 
     /// Call the "ListPayments" method.
     ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > List payments for a loan.
+    ///
     /// - Parameters:
     ///   - message: request message to send.
     ///   - metadata: Additional metadata to send, defaults to empty.
@@ -5541,6 +6912,105 @@ extension Loan_V1_LoanService.ClientProtocol {
             metadata: metadata
         )
         return try await self.listPayments(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "RescheduleLoan" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Reschedule an active loan by changing its tenure. Manager/admin only.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func rescheduleLoan<Result>(
+        _ message: Loan_V1_RescheduleLoanRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_RescheduleLoanResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Loan_V1_RescheduleLoanRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.rescheduleLoan(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "InitiatePayment" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Initiate a Razorpay payment for a loan/EMI.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func initiatePayment<Result>(
+        _ message: Loan_V1_InitiatePaymentRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_InitiatePaymentResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Loan_V1_InitiatePaymentRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.initiatePayment(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "VerifyPayment" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Verify a completed Razorpay payment.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func verifyPayment<Result>(
+        _ message: Loan_V1_VerifyPaymentRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_VerifyPaymentResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Loan_V1_VerifyPaymentRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.verifyPayment(
             request: request,
             options: options,
             onResponse: handleResponse
