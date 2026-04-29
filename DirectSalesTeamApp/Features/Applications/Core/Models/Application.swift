@@ -100,7 +100,6 @@ struct LoanApplication: Identifiable, Codable, Hashable {
     }
 
     var displayName: String {
-        // if name looks like a reference ID, use the loan type + amount
         if name.hasPrefix("LMS-") || name == referenceNumber {
             return "\(loanType.rawValue) · \(formattedAmount)"
         }

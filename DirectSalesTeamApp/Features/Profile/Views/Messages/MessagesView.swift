@@ -18,7 +18,7 @@ struct MessagesView: View {
                     if vm.isLoading {
                         DSTSkeletonList()
                             .padding(.horizontal, AppSpacing.md)
-                            .padding(.top, AppSpacing.sm)
+                            .padding(.top, AppSpacing.md)
                     } else if vm.threads.isEmpty {
                         VStack(spacing: AppSpacing.md) {
                             messagesHero
@@ -87,12 +87,11 @@ struct MessagesView: View {
         DSTSurfaceCard {
             VStack(alignment: .leading, spacing: AppSpacing.md) {
                 DSTSectionTitle("Conversation Hub")
-                HStack(spacing: AppSpacing.md) {
+                HStack(spacing: AppSpacing.sm) {
                     summaryMetric(title: "Threads", value: "\(vm.threads.count)", color: Color.textPrimary)
                     summaryMetric(title: "Unread", value: "\(vm.totalUnread)", color: Color.brandBlue)
                     summaryMetric(title: "Need Officer", value: "\(vm.connectableLeads.count)", color: Color.statusPending)
                         .onTapGesture { vm.showComposeSheet = true }
-                    Spacer()
                 }
             }
         }

@@ -82,7 +82,6 @@ final class ProfileViewModel: ObservableObject {
 
     // MARK: - Actions
 
-    @available(iOS 18.0, *)
     func loadProfile() async {
         isLoading = true
         isUsingMockData = false

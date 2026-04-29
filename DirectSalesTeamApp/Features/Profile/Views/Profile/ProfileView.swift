@@ -49,17 +49,16 @@ struct ProfileView: View {
             .navigationDestination(isPresented: $vm.showTerms) {
                 TermsView()
             }
-            .confirmationDialog("Log out of DST Agent?", isPresented: $vm.showLogoutConfirm, titleVisibility: .visible) {
+            .alert("Log Out", isPresented: $vm.showLogoutConfirm) {
                 Button("Log Out", role: .destructive) {
-                    vm.showLogoutConfirm = false
                     session.logout()
                 }
                 Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Are you sure you want to log out of DST Agent?")
             }
             .task {
-                if #available(iOS 18.0, *) {
-                    await vm.loadProfile()
-                }
+                await vm.loadProfile()
             }
         }
     }
@@ -354,44 +353,55 @@ struct TrustScoreRing: View {
 
     var body: some View {
         ZStack {
-            if score == 0 {
-                // Dashed ring for unearned state — not a failure, just unstarted
-                ZStack {
-                    Circle()
-                        .stroke(style: StrokeStyle(lineWidth: 8, dash: [6, 4]))
-                        .foregroundColor(Color.borderMedium)
-                        .frame(width: 80, height: 80)
-                    VStack(spacing: 2) {
-                        Image(systemName: "arrow.up.circle")
-                            .font(.system(size: 18))
-                            .foregroundColor(Color.textTertiary)
-                        Text("NEW")
-                            .font(.system(size: 9, weight: .semibold))
-                            .foregroundColor(Color.textTertiary)
-                            .tracking(0.5)
-                    }
-                }
-            } else {
-                Circle()
-                    .stroke(color.opacity(0.15), lineWidth: 8)
-                    .frame(width: 76, height: 76)
-                
+            // Background Track
+            Circle()
+                .stroke(Color.borderLight, lineWidth: 6)
+                .frame(width: 78, height: 78)
+
+            if score > 0 {
+                // Glow effect for progress
                 Circle()
                     .trim(from: 0, to: Double(score) / 100)
-                    .stroke(color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                    .frame(width: 76, height: 76)
+                    .stroke(color.opacity(0.3), style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .frame(width: 78, height: 78)
                     .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 0.8), value: score)
+                    .blur(radius: 4)
 
-                VStack(spacing: 1) {
+                // Main Progress Ring
+                Circle()
+                    .trim(from: 0, to: Double(score) / 100)
+                    .stroke(
+                        LinearGradient(
+                            colors: [color, color.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                    )
+                    .frame(width: 78, height: 78)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.6, dampingFraction: 0.7), value: score)
+            } else {
+                // Empty state dashed ring
+                Circle()
+                    .stroke(Color.textTertiary.opacity(0.3), style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [4, 4]))
+                    .frame(width: 78, height: 78)
+            }
+
+            VStack(spacing: 0) {
+                if score == 0 {
+                    Text("—")
+                        .font(AppFont.title2())
+                        .foregroundColor(Color.textTertiary)
+                } else {
                     Text("\(score)")
-                        .font(.title2).fontWeight(.bold)
-                        .foregroundStyle(color)
-                    Text("TRUST")
-                        .font(.system(size: 9)).fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
-                        .tracking(0.5)
+                        .font(AppFont.title2())
+                        .foregroundColor(Color.textPrimary)
                 }
+                Text("SCORE")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundColor(Color.textSecondary)
+                    .tracking(1)
             }
         }
     }

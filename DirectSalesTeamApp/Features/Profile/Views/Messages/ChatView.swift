@@ -58,6 +58,7 @@ struct ChatView: View {
             composerBar
         }
         .background(Color.surfaceSecondary)
+        .toolbar(.hidden, for: .tabBar)
         .navigationTitle(vm.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -184,13 +185,13 @@ struct MessageBubble: View {
     private let maxBubbleWidth: CGFloat = 290
 
     var body: some View {
-        HStack {
+        HStack(spacing: 0) {
             if message.isFromMe {
-                Spacer()
+                Spacer(minLength: 60)
                 bubble
             } else {
                 bubble
-                Spacer()
+                Spacer(minLength: 60)
             }
         }
         .padding(.vertical, 2)
@@ -204,7 +205,7 @@ struct MessageBubble: View {
                         .foregroundStyle(message.isFromMe ? Color.brandBlue : Color.textSecondary)
                     Text(message.content)
                         .font(.subheadline)
-                        .foregroundStyle(Color.textPrimary)
+                        .foregroundStyle(message.isFromMe ? .white : Color.textPrimary)
                 }
             } else {
                 Text(message.content)
@@ -214,7 +215,6 @@ struct MessageBubble: View {
             }
 
             HStack(spacing: 4) {
-                Spacer(minLength: 0)
                 Text(message.timeString)
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(message.isFromMe ? .white.opacity(0.75) : Color.textTertiary)
@@ -228,7 +228,6 @@ struct MessageBubble: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 9)
-        .frame(maxWidth: maxBubbleWidth, alignment: message.isFromMe ? .trailing : .leading)
         .background(bubbleBackground)
         .clipShape(bubbleShape)
     }
