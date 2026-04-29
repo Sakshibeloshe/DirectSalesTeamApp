@@ -158,6 +158,15 @@ final class LeadsViewModel: ObservableObject {
         guard var lead = leads.first(where: { $0.id == id }) else { return }
         lead.status = status
         lead.updatedAt = Date()
+        
+        // If the lead is now submitted, it should disappear from the Leads tab.
+        // We remove it from the local 'leads' array immediately for instant UI feedback.
+        if status == .submitted {
+            withAnimation(.easeInOut) {
+                self.leads.removeAll { $0.id == id }
+            }
+        }
+        
         updateLead(lead)
     }
 

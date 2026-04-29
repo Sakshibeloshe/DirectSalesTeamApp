@@ -255,27 +255,6 @@ struct LeadDetailView: View {
         VStack(spacing: 0) {
             Divider()
             
-            if vm.canSubmit && !loanAppVM.branches.isEmpty {
-                VStack(alignment: .leading, spacing: AppSpacing.xs) {
-                    Text("Select Branch")
-                        .font(AppFont.caption())
-                        .foregroundColor(Color.textSecondary)
-                        .padding(.horizontal, AppSpacing.md)
-                        .padding(.top, AppSpacing.sm)
-                    
-                    Picker("Branch", selection: $loanAppVM.selectedBranchID) {
-                        ForEach(loanAppVM.branches) { branch in
-                            Text("\(branch.name) (\(branch.city))")
-                                .tag(Optional(branch.id))
-                        }
-                    }
-                    .pickerStyle(.menu)
-                    .tint(Color.textPrimary)
-                    .padding(.horizontal, AppSpacing.sm)
-                }
-                .padding(.bottom, AppSpacing.xs)
-            }
-            
             Button {
                 if vm.canSubmit {
                     // Use product ID set at lead-creation; fall back to picker selection
@@ -284,14 +263,10 @@ struct LeadDetailView: View {
                         loanAppVM.submissionError = "Please select a loan product first."
                         return
                     }
-                    guard let branchID = loanAppVM.selectedBranchID else {
-                        loanAppVM.submissionError = "Please select a branch first."
-                        return
-                    }
                     Task {
                         let success = await loanAppVM.submitApplication(
                             productID: productID,
-                            branchID: branchID,
+                            branchID: nil, // ViewModel will fetch DST branch automatically
                             requestedAmount: "\(lead.loanAmount)",
                             tenureMonths: lead.loanType.defaultTenureMonths,
                             leadDocuments: vm.documents

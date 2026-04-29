@@ -4,6 +4,7 @@
 import Foundation
 import Combine
 import SwiftUI
+import GRPCCore
 
 @available(iOS 18.0, *)
 @MainActor
@@ -52,6 +53,7 @@ final class LoanApplicationViewModel: ObservableObject {
     private let mediaRepository: MediaRepository
     private let loanService: LoanServiceProtocol
     private let branchService: BranchServiceProtocol
+    private let authService: AuthGRPCClient
     /// Called whenever KYC state changes so the caller can persist the updated Lead.
     var onLeadUpdated: ((Lead) -> Void)?
     var onDocumentUploaded: ((UUID, String, String) -> Void)?
@@ -61,13 +63,15 @@ final class LoanApplicationViewModel: ObservableObject {
         kycRepository: KYCRepository = KYCRepository(),
         mediaRepository: MediaRepository = MediaRepository(),
         loanService: LoanServiceProtocol = LoanGRPCClient(),
-        branchService: BranchServiceProtocol = BranchGRPCClient()
+        branchService: BranchServiceProtocol = BranchGRPCClient(),
+        authService: AuthGRPCClient = AuthGRPCClient()
     ) {
         self.lead = lead
         self.kycRepository = kycRepository
         self.mediaRepository = mediaRepository
         self.loanService = loanService
         self.branchService = branchService
+        self.authService = authService
         // Restore persisted KYC state
         self.isAadhaarVerified = lead.isAadhaarKycVerified
         self.isPanVerified = lead.isPanKycVerified
@@ -219,7 +223,7 @@ final class LoanApplicationViewModel: ObservableObject {
     
     func submitApplication(
         productID: String,
-        branchID: String,
+        branchID: String?,
         requestedAmount: String,
         tenureMonths: Int,
         leadDocuments: [LeadDocument]
@@ -230,11 +234,24 @@ final class LoanApplicationViewModel: ObservableObject {
         submissionError = nil
         
         do {
-            // 1. Create the application
+            // 0. Ensure products are loaded (needed for document mapping)
+            if loanProducts.isEmpty {
+                await fetchLoanProducts()
+            }
+            
+            // 1. Resolve Branch ID if not provided
+            let finalBranchID: String
+            if let bID = branchID, !bID.isEmpty {
+                finalBranchID = bID
+            } else {
+                finalBranchID = try await fetchDstBranchID()
+            }
+
+            // 2. Create the application
             let application = try await loanService.createLoanApplication(
                 primaryBorrowerProfileId: lead.borrowerProfileID ?? "",
                 loanProductId: productID,
-                branchId: branchID,
+                branchId: finalBranchID,
                 requestedAmount: requestedAmount,
                 tenureMonths: tenureMonths
             )
@@ -242,7 +259,7 @@ final class LoanApplicationViewModel: ObservableObject {
             let product = self.loanProducts.first(where: { $0.id == productID })
             var availableReqDocs = product?.requiredDocuments ?? []
             
-            // 2. Add each uploaded document
+            // 3. Add each uploaded document
             for (docID, mediaFileID) in uploadedDocuments {
                 let leadDoc = leadDocuments.first(where: { $0.id == docID })
                 var matchedReqDocID: String?
@@ -264,9 +281,12 @@ final class LoanApplicationViewModel: ObservableObject {
                     matchedReqDocID = availableReqDocs.removeFirst().id
                 }
                 
-                // Fallback to random valid UUID to satisfy basic UUID validation if we run out,
-                // though the backend might reject if it strict-checks against the product.
-                let finalRequiredDocId = matchedReqDocID ?? UUID().uuidString
+                // CRITICAL FIX: Do not send random UUID if mapping fails. 
+                // Only proceed if we have a valid requiredDocId for this product.
+                guard let finalRequiredDocId = matchedReqDocID else {
+                    print("DEBUG: Skipping document \(docID) as no matching requirement found in product \(productID)")
+                    continue
+                }
                 
                 _ = try await loanService.addApplicationDocument(
                     applicationId: application.id,
@@ -274,6 +294,12 @@ final class LoanApplicationViewModel: ObservableObject {
                     requiredDocId: finalRequiredDocId,
                     mediaFileId: mediaFileID
                 )
+            }
+            
+            // 4. Cleanup: Delete/Cancel the original draft lead so it disappears from the Leads list
+            if let oldDraftID = lead.applicationID, !oldDraftID.isEmpty {
+                print("DEBUG: Cleaning up original draft lead \(oldDraftID)")
+                try? await loanService.deleteLoanApplication(applicationId: oldDraftID)
             }
             
             self.submittedApplicationID = application.id
@@ -288,6 +314,20 @@ final class LoanApplicationViewModel: ObservableObject {
             submissionError = "Failed to submit application: \(error.localizedDescription)"
             return false
         }
+    }
+
+    private func fetchDstBranchID() async throws -> String {
+        guard let token = try TokenStore.shared.accessToken(), !token.isEmpty else {
+            throw LoanError.unauthenticated
+        }
+        let (options, metadata) = AuthCallOptionsFactory.authenticated(accessToken: token)
+        let response = try await authService.getMyProfile(request: .init(), metadata: metadata, options: options)
+        
+        if case .dstProfile(let dstProfile) = response.profile {
+            let bID = dstProfile.branch.branchID.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            if !bID.isEmpty { return bID }
+        }
+        throw LoanError.preconditionFailed("DST branch is missing in profile.")
     }
     
     // MARK: - Private Helpers

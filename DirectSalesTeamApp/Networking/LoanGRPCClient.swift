@@ -171,6 +171,26 @@ final class LoanGRPCClient: LoanServiceProtocol {
         }
     }
 
+    func deleteLoanApplication(applicationId: String) async throws {
+        // Since a dedicated Delete endpoint isn't available yet, we use UpdateLoanApplicationStatus
+        // to set the status to CANCELLED. This ensures the lead disappears from the active list.
+        var request = Loan_V1_UpdateLoanApplicationStatusRequest()
+        request.applicationID = applicationId
+        request.status = .cancelled
+        request.escalationReason = "Lead converted to application"
+
+        do {
+            let (options, metadata) = try authContext()
+            _ = try await client.updateLoanApplicationStatus(
+                request: .init(message: request, metadata: metadata),
+                options: options
+            )
+        } catch {
+            // Silently fail if deletion fails, as the main submission already succeeded
+            print("DEBUG: Failed to delete/cancel draft lead \(applicationId): \(error.localizedDescription)")
+        }
+    }
+
     func addApplicationDocument(
         applicationId: String,
         borrowerProfileId: String,

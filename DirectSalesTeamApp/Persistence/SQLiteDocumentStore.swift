@@ -74,6 +74,12 @@ final class SQLiteDocumentStore {
         try? db.write { db in try record.save(db) }
     }
 
+    func delete(_ id: UUID, leadID: String) {
+        try? db.write { db in
+            try LeadDocumentRecord.filter(Column("id") == id.uuidString && Column("leadID") == leadID).deleteAll(db)
+        }
+    }
+
     private func kindStr(_ k: LeadDocumentKind) -> String {
         switch k { case .aadhaar: return "aadhaar"; case .pan: return "pan"; case .supporting: return "supporting" }
     }

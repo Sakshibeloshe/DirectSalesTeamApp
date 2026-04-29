@@ -90,48 +90,56 @@ final class LeadDetailViewModel: ObservableObject {
     func syncRequiredDocuments(from requirements: [ProductRequiredDocument]) {
         guard !requirements.isEmpty else { return }
 
-        // All backend required docs (identity + income + collateral) need upload slots
-        let existingSupportingCount = documents.filter { $0.kind == .supporting }.count
-        let neededExtra = max(0, requirements.count - existingSupportingCount)
-        guard neededExtra > 0 else { return }
-
-        let existingReqs = requirements.prefix(existingSupportingCount)
-        let newReqs = requirements.dropFirst(existingSupportingCount)
-
-        // Rename existing supporting docs to match product requirement types
-        var supportingIdx = 0
-        for req in existingReqs {
-            while supportingIdx < documents.count && documents[supportingIdx].kind != .supporting {
-                supportingIdx += 1
-            }
-            if supportingIdx < documents.count {
-                let expectedName = req.requirementType.displayName
-                if documents[supportingIdx].name != expectedName {
-                    let updated = LeadDocument(
-                        id: documents[supportingIdx].id,
-                        name: expectedName,
-                        kind: .supporting,
-                        status: documents[supportingIdx].status,
-                        verification: documents[supportingIdx].verification
-                    )
-                    documents[supportingIdx] = updated
-                    documentStore.save(updated, leadID: leadID)
+        var finalDocs: [LeadDocument] = []
+        var existingDocs = self.documents
+        
+        for req in requirements {
+            let expectedName = req.requirementType.displayName
+            
+            // Try to find a match in existing documents to preserve upload status
+            var matchIdx: Int?
+            
+            // 1. Try exact name match
+            if let idx = existingDocs.firstIndex(where: { $0.name == expectedName }) {
+                matchIdx = idx
+            } 
+            // 2. Special case for identity docs (Aadhaar/PAN are local defaults for Identity Proof)
+            else if req.requirementType == .identity {
+                if let idx = existingDocs.firstIndex(where: { $0.name == "Aadhaar Card" || $0.name == "PAN Card" }) {
+                    matchIdx = idx
                 }
-                supportingIdx += 1
+            }
+            
+            if let idx = matchIdx {
+                let matched = existingDocs.remove(at: idx)
+                let updated = LeadDocument(
+                    id: matched.id,
+                    name: expectedName,
+                    kind: .supporting,
+                    status: matched.status,
+                    verification: matched.verification
+                )
+                finalDocs.append(updated)
+                documentStore.save(updated, leadID: leadID)
+            } else {
+                // Create new required slot
+                let newDoc = LeadDocument(
+                    id: UUID(),
+                    name: expectedName,
+                    kind: .supporting,
+                    status: .notUploaded
+                )
+                finalDocs.append(newDoc)
+                documentStore.save(newDoc, leadID: leadID)
             }
         }
-
-        // Append any genuinely new required docs
-        for req in newReqs {
-            let doc = LeadDocument(
-                id: UUID(),
-                name: req.requirementType.displayName,
-                kind: .supporting,
-                status: .notUploaded
-            )
-            documents.append(doc)
-            documentStore.save(doc, leadID: leadID)
+        
+        // Remove local documents that are no longer required by the backend
+        for leftover in existingDocs {
+            documentStore.delete(leftover.id, leadID: leadID)
         }
+        
+        self.documents = finalDocs
     }
 
 

@@ -32,6 +32,10 @@ protocol LoanServiceProtocol {
     // Backend: LoanService.ListLoanApplications (loan.proto line 19)
     func listLoanApplications(limit: Int, offset: Int) async throws -> [BorrowerLoanApplication]
 
+    // Backend: LoanService.DeleteLoanApplication (loan.proto - placeholder implementation)
+    // Used to clean up DRAFT leads after they are converted to SUBMITTED applications.
+    func deleteLoanApplication(applicationId: String) async throws -> Void
+
     // MARK: - Documents
     // Backend: LoanService.AddApplicationDocument (loan.proto line 27)
     // NOTE: media_file_id comes from MediaGRPCClient upload — pass it here
