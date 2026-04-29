@@ -64,7 +64,8 @@ final class ProfileViewModel: ObservableObject {
     }
 
     var rankText: String {
-        "Ranked #\(agent.zoneRank) in \(agent.zone)"
+        guard agent.zoneRank > 0 else { return "" }
+        return "Ranked #\(agent.zoneRank) in \(agent.zone)"
     }
 
     var settingsItems: [(section: SettingsSection, items: [SettingsItem])] {

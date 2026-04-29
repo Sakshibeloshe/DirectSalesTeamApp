@@ -186,23 +186,8 @@ struct LeadsView: View {
     }
 
     private var shimmerLoadingView: some View {
-        VStack(spacing: 0) {
-            ForEach(0..<6) { _ in
-                HStack(spacing: 12) {
-                    Circle().fill(Color.surfaceTertiary).frame(width: 40, height: 40)
-                    VStack(alignment: .leading, spacing: 8) {
-                        RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 140, height: 14)
-                        RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 100, height: 10)
-                    }
-                    Spacer()
-                    RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 60, height: 20)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                Divider().padding(.leading, 68)
-            }
-        }
-        .shimmering()
+        DSTSkeletonList()
+            .padding(.horizontal, AppSpacing.md)
     }
 
     private var emptyView: some View {

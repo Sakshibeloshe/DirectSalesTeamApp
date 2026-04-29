@@ -354,37 +354,44 @@ struct TrustScoreRing: View {
 
     var body: some View {
         ZStack {
-            Circle()
-                .stroke(score == 0 ? Color.secondary.opacity(0.1) : color.opacity(0.15), lineWidth: 8)
-                .frame(width: 76, height: 76)
-            
             if score == 0 {
-                Circle()
-                    .stroke(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [4, 4]))
-                    .frame(width: 76, height: 76)
+                // Dashed ring for unearned state — not a failure, just unstarted
+                ZStack {
+                    Circle()
+                        .stroke(style: StrokeStyle(lineWidth: 8, dash: [6, 4]))
+                        .foregroundColor(Color.borderMedium)
+                        .frame(width: 80, height: 80)
+                    VStack(spacing: 2) {
+                        Image(systemName: "arrow.up.circle")
+                            .font(.system(size: 18))
+                            .foregroundColor(Color.textTertiary)
+                        Text("NEW")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(Color.textTertiary)
+                            .tracking(0.5)
+                    }
+                }
             } else {
+                Circle()
+                    .stroke(color.opacity(0.15), lineWidth: 8)
+                    .frame(width: 76, height: 76)
+                
                 Circle()
                     .trim(from: 0, to: Double(score) / 100)
                     .stroke(color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .frame(width: 76, height: 76)
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 0.8), value: score)
-            }
 
-            VStack(spacing: 1) {
-                if score == 0 {
-                    Text("—")
-                        .font(.title2).fontWeight(.bold)
-                        .foregroundStyle(.secondary)
-                } else {
+                VStack(spacing: 1) {
                     Text("\(score)")
                         .font(.title2).fontWeight(.bold)
                         .foregroundStyle(color)
+                    Text("TRUST")
+                        .font(.system(size: 9)).fontWeight(.semibold)
+                        .foregroundStyle(.secondary)
+                        .tracking(0.5)
                 }
-                Text("TRUST")
-                    .font(.system(size: 9)).fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .tracking(0.5)
             }
         }
     }

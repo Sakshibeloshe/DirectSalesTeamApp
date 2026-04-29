@@ -18,7 +18,9 @@ struct EarningsView: View {
                 DSTHeaderGradientBackground(height: 230)
                 
                 if viewModel.isLoading && viewModel.earnings.isEmpty {
-                    ProgressView("Loading earnings...")
+                    DSTSkeletonList()
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
                 } else if let error = viewModel.errorMessage {
                     VStack(spacing: 16) {
                         Image(systemName: "exclamationmark.triangle")

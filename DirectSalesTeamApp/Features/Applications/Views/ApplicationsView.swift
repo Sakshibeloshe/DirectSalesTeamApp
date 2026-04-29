@@ -194,26 +194,8 @@ struct ApplicationsView: View {
 
     // MARK: - Loading
     private var shimmerLoadingView: some View {
-        VStack(spacing: 12) {
-            ForEach(0..<6) { _ in
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Circle().fill(Color.surfaceTertiary).frame(width: 48, height: 48)
-                        VStack(alignment: .leading, spacing: 6) {
-                            RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 140, height: 16)
-                            RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 200, height: 12)
-                        }
-                    }
-                    RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(height: 4)
-                    RoundedRectangle(cornerRadius: 4).fill(Color.surfaceTertiary).frame(width: 100, height: 10)
-                }
-                .padding(AppSpacing.md)
-                .background(Color.surfacePrimary)
-                .clipShape(RoundedRectangle(cornerRadius: AppRadius.md))
-                .padding(.horizontal, AppSpacing.md)
-            }
-        }
-        .shimmering()
+        DSTSkeletonList()
+            .padding(.horizontal, AppSpacing.md)
     }
 
     // MARK: - Empty

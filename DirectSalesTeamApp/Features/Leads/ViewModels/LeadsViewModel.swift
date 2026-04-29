@@ -120,6 +120,7 @@ final class LeadsViewModel: ObservableObject {
     }
 
     func addLead(_ lead: Lead, completion: ((Bool) -> Void)? = nil) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         print("DEBUG: Adding lead for \(lead.name)...")
         service.addLead(lead)
             .receive(on: RunLoop.main)
@@ -172,6 +173,7 @@ final class LeadsViewModel: ObservableObject {
     }
 
     func deleteLead(_ lead: Lead) {
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
         // All leads are now backend applications (DRAFT or later);
         // cancellation is always allowed from the Leads tab.
         isLoading = true

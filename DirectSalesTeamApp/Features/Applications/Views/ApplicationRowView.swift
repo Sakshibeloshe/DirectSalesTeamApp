@@ -20,7 +20,7 @@ struct ApplicationRowView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     // Row 1: Name + Status badge
                     HStack(alignment: .center, spacing: AppSpacing.xs) {
-                        Text(application.name)
+                        Text(application.displayName)
                             .font(.system(size: 16, weight: .bold))
                             .foregroundColor(Color.textPrimary)
                             .lineLimit(1)
@@ -31,7 +31,7 @@ struct ApplicationRowView: View {
                             .scaleEffect(0.85)
                     }
 
-                    // Row 2: Type + Amount + Ref
+                    // Row 2: Type + Amount
                     HStack(spacing: 6) {
                         Text(application.loanType.rawValue)
                             .font(.system(size: 12, weight: .medium))
@@ -41,14 +41,6 @@ struct ApplicationRowView: View {
                         Text(application.formattedAmount)
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(Color.brandBlue)
-                        
-                        if let referenceNumber = application.referenceNumber, !referenceNumber.isEmpty {
-                            Text("•")
-                                .foregroundColor(Color.textTertiary)
-                            Text(referenceNumber)
-                                .font(.system(size: 11, weight: .medium, design: .monospaced))
-                                .foregroundColor(Color.textTertiary)
-                        }
                     }
 
                     // Row 3: Pipeline progress bar

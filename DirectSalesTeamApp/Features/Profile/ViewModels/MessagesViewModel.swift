@@ -648,6 +648,7 @@ final class ChatViewModel: ObservableObject {
     }
 
     func sendMessage() {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         guard canSend else { return }
         let text = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
         draftText = ""
@@ -676,6 +677,7 @@ final class ChatViewModel: ObservableObject {
     }
 
     func sendAttachment(fileName: String) {
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         Task {
             do {
                 let sentMessage = try await chatService.sendMessage(
