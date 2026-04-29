@@ -164,7 +164,7 @@ public final class ChatService: ChatServiceProtocol {
         afterMessageID: String? = nil
     ) -> AsyncThrowingStream<ChatMessageEvent, Error> {
         return AsyncThrowingStream { continuation in
-            Task {
+            let task = Task {
                 do {
                     let accessToken: String
                     do {
@@ -189,6 +189,7 @@ public final class ChatService: ChatServiceProtocol {
                     )
 
                     for try await protoEvent in protoStream {
+                        guard !Task.isCancelled else { break }
                         let event = ChatMessageEvent(from: protoEvent)
                         continuation.yield(event)
                     }
@@ -197,6 +198,10 @@ public final class ChatService: ChatServiceProtocol {
                 } catch {
                     continuation.finish(throwing: ChatError.from(error))
                 }
+            }
+
+            continuation.onTermination = { @Sendable _ in
+                task.cancel()
             }
         }
     }
