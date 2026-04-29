@@ -3,6 +3,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import GRPCCore
 
 @MainActor
 @available(iOS 18.0, *)
@@ -136,7 +137,14 @@ final class MessagesViewModel: ObservableObject {
                             throw ChatError.networkError("Stream heartbeat timeout")
                         }
                     }
-                    break
+                    
+                    if Task.isCancelled { break }
+                    
+                    // Reconnect on normal termination
+                    await reconcileRoomMessages(roomID: room.id)
+                    attempt += 1
+                    let delaySeconds = min(UInt64(1 << min(attempt, 5)), maxReconnectDelaySeconds)
+                    try? await Task.sleep(nanoseconds: (delaySeconds * 1_000_000_000) + UInt64.random(in: 0...500_000_000))
                 } catch {
                     if Task.isCancelled { break }
                     await reconcileRoomMessages(roomID: room.id)
@@ -542,16 +550,54 @@ final class ChatViewModel: ObservableObject {
                             throw ChatError.networkError("Stream heartbeat timeout")
                         }
                     }
-                    break
+                    
+                    if Task.isCancelled { break }
+                    
+                    // Reconnect on normal termination
+                    await reconcileLatestMessages()
+                    attempt += 1
+                    let delaySeconds = min(UInt64(1 << min(attempt, 5)), maxReconnectDelaySeconds)
+                    try? await Task.sleep(nanoseconds: (delaySeconds * 1_000_000_000) + UInt64.random(in: 0...500_000_000))
                 } catch {
                     if Task.isCancelled { break }
+                    
                     await reconcileLatestMessages()
+                    
+                    // Suppress alert for transient network/RPC errors
+                    handleTransientError(error)
+                    
                     attempt += 1
                     let delaySeconds = min(UInt64(1 << min(attempt, 5)), maxReconnectDelaySeconds)
                     try? await Task.sleep(nanoseconds: (delaySeconds * 1_000_000_000) + UInt64.random(in: 0...500_000_000))
                 }
             }
         }
+    }
+
+    private func handleTransientError(_ error: Error) {
+        let errorDesc = "\(error)"
+        
+        if let chatError = error as? ChatError {
+            switch chatError {
+            case .networkError:
+                return // Suppress
+            case .underlyingError(let rpc):
+                if rpc.code == .unavailable || rpc.code == .deadlineExceeded || rpc.code == .cancelled {
+                    return // Suppress
+                }
+                if rpc.code == .unknown && (errorDesc.contains("CancellationError") || rpc.message.contains("unexpected error")) {
+                    return // Suppress
+                }
+            default:
+                break
+            }
+        }
+        
+        if errorDesc.contains("CancellationError") {
+            return // Suppress
+        }
+        
+        self.errorMessage = error.localizedDescription
     }
 
     private func reconcileLatestMessages() async {

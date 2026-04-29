@@ -194,8 +194,8 @@ public final class ChatGRPCClient: ChatGRPCClientProtocol {
         metadata: Metadata,
         options: CallOptions
     ) async throws -> AsyncThrowingStream<Chat_V1_ChatMessageEvent, Error> {
-        AsyncThrowingStream { continuation in
-            Task {
+        return AsyncThrowingStream { continuation in
+            let task = Task {
                 do {
                     try await client.subscribeRoomMessages(
                         request,
@@ -203,14 +203,23 @@ public final class ChatGRPCClient: ChatGRPCClientProtocol {
                         options: options,
                         onResponse: { streamingResponse in
                             for try await message in streamingResponse.messages {
+                                guard !Task.isCancelled else { break }
                                 continuation.yield(message)
                             }
                         }
                     )
                     continuation.finish()
                 } catch {
-                    continuation.finish(throwing: error)
+                    if Task.isCancelled {
+                        continuation.finish()
+                    } else {
+                        continuation.finish(throwing: error)
+                    }
                 }
+            }
+
+            continuation.onTermination = { @Sendable _ in
+                task.cancel()
             }
         }
     }
