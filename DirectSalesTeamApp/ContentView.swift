@@ -66,8 +66,8 @@ struct ContentView: View {
             MessagesView(vm: messagesViewModel)
                 .tabItem {
                     Label("Messages", systemImage: selectedTab == .messages
-                          ? "bubble.left.and.bubble.right.fill"
-                          : "bubble.left.and.bubble.right")
+                          ? "message.fill"
+                          : "message")
                 }
                 .tabBadge(messagesViewModel.totalUnread)
                 .tag(Tab.messages)
@@ -76,8 +76,8 @@ struct ContentView: View {
             EarningsView()
                 .tabItem {
                     Label("Earnings", systemImage: selectedTab == .earnings
-                          ? "indianrupeesign.circle.fill"
-                          : "indianrupeesign.circle")
+                          ? "banknote.fill"
+                          : "banknote")
                 }
                 .tag(Tab.earnings)
 

@@ -28,7 +28,7 @@ struct DSTAgent: Identifiable, Codable {
     var displayZone: String { "\(zone) — \(city)" }
     var approvalRatePercent: Int { Int(approvalRate * 100) }
     var rejectionRatePercent: Int { Int(rejectionRate * 100) }
-    var isTopPerformer: Bool { zoneRank <= 5 }
+    var isTopPerformer: Bool { zoneRank > 0 && zoneRank <= 3 }
 }
 
 enum AgentTier: String, Codable, CaseIterable {

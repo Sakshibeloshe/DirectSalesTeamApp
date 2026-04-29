@@ -181,3 +181,78 @@ struct DSTPrimaryActionButton: View {
         .elevatedCardShadow()
     }
 }
+
+// MARK: - Skeleton Components
+
+struct DSTSkeletonRow: View {
+    @State private var phase: CGFloat = 0
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(Color.borderLight)
+                .frame(width: 48, height: 48)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.borderLight)
+                    .frame(width: 140, height: 14)
+                
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color.borderLight)
+                    .frame(width: 220, height: 10)
+            }
+            Spacer()
+        }
+        .padding(16)
+        .background(Color.surfacePrimary)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.borderLight, lineWidth: 1)
+        )
+        .shimmering(phase: phase)
+        .onAppear {
+            withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                phase = 1.0
+            }
+        }
+    }
+}
+
+struct DSTSkeletonList: View {
+    var count: Int = 5
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(0..<count, id: \.self) { _ in
+                DSTSkeletonRow()
+            }
+        }
+    }
+}
+
+extension View {
+    func shimmering(phase: CGFloat) -> some View {
+        self.modifier(ShimmerModifier(phase: phase))
+    }
+}
+
+struct ShimmerModifier: ViewModifier {
+    var phase: CGFloat
+    
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geo in
+                    LinearGradient(
+                        colors: [.clear, .white.opacity(0.3), .clear],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geo.size.width * 2)
+                    .offset(x: -geo.size.width + (geo.size.width * 2 * phase))
+                }
+                .mask(content)
+            )
+    }
+}
