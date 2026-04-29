@@ -20,6 +20,7 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+/// Category of a loan product.
 public enum Loan_V1_LoanProductCategory: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -66,6 +67,7 @@ public enum Loan_V1_LoanProductCategory: SwiftProtobuf.Enum, Swift.CaseIterable 
 
 }
 
+/// Whether the interest rate is fixed or floating.
 public enum Loan_V1_InterestType: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -104,6 +106,7 @@ public enum Loan_V1_InterestType: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Type of fee associated with a loan product.
 public enum Loan_V1_ProductFeeType: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -146,6 +149,7 @@ public enum Loan_V1_ProductFeeType: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// How a product fee is calculated.
 public enum Loan_V1_FeeCalcMethod: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -184,6 +188,7 @@ public enum Loan_V1_FeeCalcMethod: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Category of document required for a loan product.
 public enum Loan_V1_DocumentRequirementType: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -230,6 +235,7 @@ public enum Loan_V1_DocumentRequirementType: SwiftProtobuf.Enum, Swift.CaseItera
 
 }
 
+/// Status of a loan application through its approval lifecycle.
 public enum Loan_V1_LoanApplicationStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -312,6 +318,7 @@ public enum Loan_V1_LoanApplicationStatus: SwiftProtobuf.Enum, Swift.CaseIterabl
 
 }
 
+/// Relationship of a coapplicant to the primary borrower.
 public enum Loan_V1_CoapplicantRelationship: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -358,6 +365,7 @@ public enum Loan_V1_CoapplicantRelationship: SwiftProtobuf.Enum, Swift.CaseItera
 
 }
 
+/// Type of collateral asset backing a loan.
 public enum Loan_V1_CollateralAssetType: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -396,6 +404,7 @@ public enum Loan_V1_CollateralAssetType: SwiftProtobuf.Enum, Swift.CaseIterable 
 
 }
 
+/// Verification status of a collateral asset.
 public enum Loan_V1_CollateralVerificationStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -438,6 +447,7 @@ public enum Loan_V1_CollateralVerificationStatus: SwiftProtobuf.Enum, Swift.Case
 
 }
 
+/// Type of property for real-estate collateral.
 public enum Loan_V1_PropertyType: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -480,6 +490,7 @@ public enum Loan_V1_PropertyType: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Construction status of a property.
 public enum Loan_V1_PropertyStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -518,6 +529,8 @@ public enum Loan_V1_PropertyStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Verification status of an uploaded application document.
+/// Once changed from PENDING, verification_status is immutable.
 public enum Loan_V1_DocumentVerificationStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -560,6 +573,7 @@ public enum Loan_V1_DocumentVerificationStatus: SwiftProtobuf.Enum, Swift.CaseIt
 
 }
 
+/// Bureau score provider.
 public enum Loan_V1_BureauProvider: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -602,6 +616,7 @@ public enum Loan_V1_BureauProvider: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Status of an active loan.
 public enum Loan_V1_LoanStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -644,6 +659,7 @@ public enum Loan_V1_LoanStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Status of a single EMI installment.
 public enum Loan_V1_EmiStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -686,6 +702,7 @@ public enum Loan_V1_EmiStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Status of a payment transaction.
 public enum Loan_V1_PaymentStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -728,6 +745,7 @@ public enum Loan_V1_PaymentStatus: SwiftProtobuf.Enum, Swift.CaseIterable {
 
 }
 
+/// Channel through which an application was created.
 public enum Loan_V1_ApplicationCreatedByChannel: SwiftProtobuf.Enum, Swift.CaseIterable {
   public typealias RawValue = Int
   case unspecified // = 0
@@ -770,6 +788,7 @@ public enum Loan_V1_ApplicationCreatedByChannel: SwiftProtobuf.Enum, Swift.CaseI
 
 }
 
+/// Fee associated with a loan product.
 public struct Loan_V1_ProductFee: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -788,6 +807,7 @@ public struct Loan_V1_ProductFee: Sendable {
   public init() {}
 }
 
+/// A required document type for a loan product.
 public struct Loan_V1_ProductRequiredDocument: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -804,6 +824,7 @@ public struct Loan_V1_ProductRequiredDocument: Sendable {
   public init() {}
 }
 
+/// Eligibility rules for a loan product (age, income, bureau score, employment).
 public struct Loan_V1_ProductEligibilityRule: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -824,6 +845,7 @@ public struct Loan_V1_ProductEligibilityRule: Sendable {
   public init() {}
 }
 
+/// A loan product definition with fees, required documents, and eligibility rules.
 public struct Loan_V1_LoanProduct: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -915,6 +937,7 @@ public struct Loan_V1_LoanProduct: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
+/// Request to create a new loan product.
 public struct Loan_V1_CreateLoanProductRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -941,6 +964,7 @@ public struct Loan_V1_CreateLoanProductRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the created loan product.
 public struct Loan_V1_CreateLoanProductResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -962,6 +986,7 @@ public struct Loan_V1_CreateLoanProductResponse: Sendable {
   fileprivate var _product: Loan_V1_LoanProduct? = nil
 }
 
+/// Request to update an existing loan product.
 public struct Loan_V1_UpdateLoanProductRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -990,6 +1015,7 @@ public struct Loan_V1_UpdateLoanProductRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the updated loan product.
 public struct Loan_V1_UpdateLoanProductResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1011,6 +1037,7 @@ public struct Loan_V1_UpdateLoanProductResponse: Sendable {
   fileprivate var _product: Loan_V1_LoanProduct? = nil
 }
 
+/// Request to soft-delete a loan product.
 public struct Loan_V1_DeleteLoanProductRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1023,6 +1050,7 @@ public struct Loan_V1_DeleteLoanProductRequest: Sendable {
   public init() {}
 }
 
+/// Response for loan product deletion.
 public struct Loan_V1_DeleteLoanProductResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1035,6 +1063,7 @@ public struct Loan_V1_DeleteLoanProductResponse: Sendable {
   public init() {}
 }
 
+/// Request to get a single loan product by ID.
 public struct Loan_V1_GetLoanProductRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1047,6 +1076,7 @@ public struct Loan_V1_GetLoanProductRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the requested loan product.
 public struct Loan_V1_GetLoanProductResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1068,6 +1098,7 @@ public struct Loan_V1_GetLoanProductResponse: Sendable {
   fileprivate var _product: Loan_V1_LoanProduct? = nil
 }
 
+/// Request to list loan products with pagination.
 public struct Loan_V1_ListLoanProductsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1084,6 +1115,7 @@ public struct Loan_V1_ListLoanProductsRequest: Sendable {
   public init() {}
 }
 
+/// Response containing a paginated list of loan products.
 public struct Loan_V1_ListLoanProductsResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1096,6 +1128,7 @@ public struct Loan_V1_ListLoanProductsResponse: Sendable {
   public init() {}
 }
 
+/// Request to upsert eligibility rules for a loan product.
 public struct Loan_V1_UpsertProductEligibilityRuleRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1116,6 +1149,7 @@ public struct Loan_V1_UpsertProductEligibilityRuleRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the upserted eligibility rule.
 public struct Loan_V1_UpsertProductEligibilityRuleResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1137,6 +1171,7 @@ public struct Loan_V1_UpsertProductEligibilityRuleResponse: Sendable {
   fileprivate var _rule: Loan_V1_ProductEligibilityRule? = nil
 }
 
+/// Input for a single product fee.
 public struct Loan_V1_ProductFeeInput: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1153,6 +1188,7 @@ public struct Loan_V1_ProductFeeInput: Sendable {
   public init() {}
 }
 
+/// Request to replace all fees for a loan product.
 public struct Loan_V1_ReplaceProductFeesRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1167,6 +1203,7 @@ public struct Loan_V1_ReplaceProductFeesRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the replaced product fees.
 public struct Loan_V1_ReplaceProductFeesResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1179,6 +1216,7 @@ public struct Loan_V1_ReplaceProductFeesResponse: Sendable {
   public init() {}
 }
 
+/// Input for a single required document.
 public struct Loan_V1_ProductRequiredDocumentInput: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1193,6 +1231,7 @@ public struct Loan_V1_ProductRequiredDocumentInput: Sendable {
   public init() {}
 }
 
+/// Request to replace all required documents for a loan product.
 public struct Loan_V1_ReplaceProductRequiredDocumentsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1207,6 +1246,7 @@ public struct Loan_V1_ReplaceProductRequiredDocumentsRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the replaced required documents.
 public struct Loan_V1_ReplaceProductRequiredDocumentsResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1219,6 +1259,7 @@ public struct Loan_V1_ReplaceProductRequiredDocumentsResponse: Sendable {
   public init() {}
 }
 
+/// A loan application with status, assignment, and product snapshot.
 public struct Loan_V1_LoanApplication: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1319,6 +1360,26 @@ public struct Loan_V1_LoanApplication: @unchecked Sendable {
     set {_uniqueStorage()._offeredInterestRate = newValue}
   }
 
+  public var disbursementAccountNumber: String {
+    get {_storage._disbursementAccountNumber}
+    set {_uniqueStorage()._disbursementAccountNumber = newValue}
+  }
+
+  public var disbursementIfscCode: String {
+    get {_storage._disbursementIfscCode}
+    set {_uniqueStorage()._disbursementIfscCode = newValue}
+  }
+
+  public var disbursementBankName: String {
+    get {_storage._disbursementBankName}
+    set {_uniqueStorage()._disbursementBankName = newValue}
+  }
+
+  public var disbursementAccountHolderName: String {
+    get {_storage._disbursementAccountHolderName}
+    set {_uniqueStorage()._disbursementAccountHolderName = newValue}
+  }
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -1326,6 +1387,7 @@ public struct Loan_V1_LoanApplication: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
+/// Request to create a loan application.
 public struct Loan_V1_CreateLoanApplicationRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1343,11 +1405,20 @@ public struct Loan_V1_CreateLoanApplicationRequest: Sendable {
 
   public var status: Loan_V1_LoanApplicationStatus = .unspecified
 
+  public var disbursementAccountNumber: String = String()
+
+  public var disbursementIfscCode: String = String()
+
+  public var disbursementBankName: String = String()
+
+  public var disbursementAccountHolderName: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 }
 
+/// Response containing the created loan application.
 public struct Loan_V1_CreateLoanApplicationResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1369,6 +1440,7 @@ public struct Loan_V1_CreateLoanApplicationResponse: Sendable {
   fileprivate var _application: Loan_V1_LoanApplication? = nil
 }
 
+/// Request to get a single loan application by ID.
 public struct Loan_V1_GetLoanApplicationRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1381,6 +1453,7 @@ public struct Loan_V1_GetLoanApplicationRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the loan application and all sub-resources.
 public struct Loan_V1_GetLoanApplicationResponse: @unchecked Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1444,6 +1517,7 @@ public struct Loan_V1_GetLoanApplicationResponse: @unchecked Sendable {
   fileprivate var _storage = _StorageClass.defaultInstance
 }
 
+/// Request to list loan applications with optional branch filter.
 public struct Loan_V1_ListLoanApplicationsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1460,6 +1534,7 @@ public struct Loan_V1_ListLoanApplicationsRequest: Sendable {
   public init() {}
 }
 
+/// Response containing a paginated list of loan applications.
 public struct Loan_V1_ListLoanApplicationsResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1472,6 +1547,7 @@ public struct Loan_V1_ListLoanApplicationsResponse: Sendable {
   public init() {}
 }
 
+/// Request to advance the status of a loan application.
 public struct Loan_V1_UpdateLoanApplicationStatusRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1488,6 +1564,7 @@ public struct Loan_V1_UpdateLoanApplicationStatusRequest: Sendable {
   public init() {}
 }
 
+/// Response for loan application status update.
 public struct Loan_V1_UpdateLoanApplicationStatusResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1500,6 +1577,7 @@ public struct Loan_V1_UpdateLoanApplicationStatusResponse: Sendable {
   public init() {}
 }
 
+/// Request to update offered terms on a loan application.
 public struct Loan_V1_UpdateLoanApplicationTermsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1516,6 +1594,7 @@ public struct Loan_V1_UpdateLoanApplicationTermsRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the updated loan application.
 public struct Loan_V1_UpdateLoanApplicationTermsResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1537,6 +1616,7 @@ public struct Loan_V1_UpdateLoanApplicationTermsResponse: Sendable {
   fileprivate var _application: Loan_V1_LoanApplication? = nil
 }
 
+/// Request to assign a loan officer to an application.
 public struct Loan_V1_AssignLoanApplicationOfficerRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1551,6 +1631,7 @@ public struct Loan_V1_AssignLoanApplicationOfficerRequest: Sendable {
   public init() {}
 }
 
+/// Response for officer assignment.
 public struct Loan_V1_AssignLoanApplicationOfficerResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1563,6 +1644,7 @@ public struct Loan_V1_AssignLoanApplicationOfficerResponse: Sendable {
   public init() {}
 }
 
+/// A coapplicant linked to a loan application.
 public struct Loan_V1_ApplicationCoapplicant: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1585,6 +1667,7 @@ public struct Loan_V1_ApplicationCoapplicant: Sendable {
   public init() {}
 }
 
+/// Request to add a coapplicant to an application.
 public struct Loan_V1_AddApplicationCoapplicantRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1603,6 +1686,7 @@ public struct Loan_V1_AddApplicationCoapplicantRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the added coapplicant.
 public struct Loan_V1_AddApplicationCoapplicantResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1624,6 +1708,7 @@ public struct Loan_V1_AddApplicationCoapplicantResponse: Sendable {
   fileprivate var _item: Loan_V1_ApplicationCoapplicant? = nil
 }
 
+/// Collateral details for a loan application.
 public struct Loan_V1_ApplicationCollateral: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1650,6 +1735,7 @@ public struct Loan_V1_ApplicationCollateral: Sendable {
   public init() {}
 }
 
+/// Request to upsert collateral for an application.
 public struct Loan_V1_UpsertApplicationCollateralRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1670,6 +1756,7 @@ public struct Loan_V1_UpsertApplicationCollateralRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the upserted collateral.
 public struct Loan_V1_UpsertApplicationCollateralResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1691,6 +1778,7 @@ public struct Loan_V1_UpsertApplicationCollateralResponse: Sendable {
   fileprivate var _collateral: Loan_V1_ApplicationCollateral? = nil
 }
 
+/// Vehicle details for a loan application.
 public struct Loan_V1_LoanVehicle: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1725,6 +1813,7 @@ public struct Loan_V1_LoanVehicle: Sendable {
   public init() {}
 }
 
+/// Request to upsert vehicle details for an application.
 public struct Loan_V1_UpsertLoanVehicleRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1753,6 +1842,7 @@ public struct Loan_V1_UpsertLoanVehicleRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the upserted vehicle.
 public struct Loan_V1_UpsertLoanVehicleResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1774,6 +1864,7 @@ public struct Loan_V1_UpsertLoanVehicleResponse: Sendable {
   fileprivate var _vehicle: Loan_V1_LoanVehicle? = nil
 }
 
+/// Real-estate details for a loan application.
 public struct Loan_V1_LoanRealEstate: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1806,6 +1897,7 @@ public struct Loan_V1_LoanRealEstate: Sendable {
   public init() {}
 }
 
+/// Request to upsert real-estate details for an application.
 public struct Loan_V1_UpsertLoanRealEstateRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1832,6 +1924,7 @@ public struct Loan_V1_UpsertLoanRealEstateRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the upserted real-estate.
 public struct Loan_V1_UpsertLoanRealEstateResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1853,6 +1946,8 @@ public struct Loan_V1_UpsertLoanRealEstateResponse: Sendable {
   fileprivate var _realEstate: Loan_V1_LoanRealEstate? = nil
 }
 
+/// An uploaded document against an application's required document slot.
+/// verification_status is immutable once changed from PENDING.
 public struct Loan_V1_ApplicationDocument: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1878,11 +1973,16 @@ public struct Loan_V1_ApplicationDocument: Sendable {
 
   public var updatedAt: String = String()
 
+  public var reviewedByUserID: String = String()
+
+  public var reviewedAt: String = String()
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
 }
 
+/// Request to upload a document against an application.
 public struct Loan_V1_AddApplicationDocumentRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1905,6 +2005,7 @@ public struct Loan_V1_AddApplicationDocumentRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the added application document.
 public struct Loan_V1_AddApplicationDocumentResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1926,6 +2027,9 @@ public struct Loan_V1_AddApplicationDocumentResponse: Sendable {
   fileprivate var _document: Loan_V1_ApplicationDocument? = nil
 }
 
+/// Request to verify (pass/fail) an application document.
+/// Only the assigned officer or branch manager can change verification status.
+/// Once verification_status is changed from PENDING, it cannot be changed again.
 public struct Loan_V1_UpdateApplicationDocumentVerificationRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1942,18 +2046,29 @@ public struct Loan_V1_UpdateApplicationDocumentVerificationRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the updated document after verification.
 public struct Loan_V1_UpdateApplicationDocumentVerificationResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
-  public var success: Bool = false
+  public var document: Loan_V1_ApplicationDocument {
+    get {_document ?? Loan_V1_ApplicationDocument()}
+    set {_document = newValue}
+  }
+  /// Returns true if `document` has been explicitly set.
+  public var hasDocument: Bool {self._document != nil}
+  /// Clears the value of `document`. Subsequent reads from it will return its default value.
+  public mutating func clearDocument() {self._document = nil}
 
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+
+  fileprivate var _document: Loan_V1_ApplicationDocument? = nil
 }
 
+/// A bureau score entry for a borrower on an application.
 public struct Loan_V1_BureauScore: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1978,6 +2093,7 @@ public struct Loan_V1_BureauScore: Sendable {
   public init() {}
 }
 
+/// Request to add a bureau score.
 public struct Loan_V1_AddBureauScoreRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -1998,6 +2114,7 @@ public struct Loan_V1_AddBureauScoreRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the added bureau score.
 public struct Loan_V1_AddBureauScoreResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2019,6 +2136,7 @@ public struct Loan_V1_AddBureauScoreResponse: Sendable {
   fileprivate var _item: Loan_V1_BureauScore? = nil
 }
 
+/// An active loan created from a fully-approved application.
 public struct Loan_V1_Loan: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2047,6 +2165,8 @@ public struct Loan_V1_Loan: Sendable {
   public init() {}
 }
 
+/// Request to create a loan from a manager-approved application.
+/// All mandatory required documents must have at least one PASS verification.
 public struct Loan_V1_CreateLoanRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2063,6 +2183,7 @@ public struct Loan_V1_CreateLoanRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the created loan.
 public struct Loan_V1_CreateLoanResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2084,6 +2205,7 @@ public struct Loan_V1_CreateLoanResponse: Sendable {
   fileprivate var _loan: Loan_V1_Loan? = nil
 }
 
+/// Request to get a loan by ID or application ID.
 public struct Loan_V1_GetLoanRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2098,6 +2220,7 @@ public struct Loan_V1_GetLoanRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the loan.
 public struct Loan_V1_GetLoanResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2119,6 +2242,7 @@ public struct Loan_V1_GetLoanResponse: Sendable {
   fileprivate var _loan: Loan_V1_Loan? = nil
 }
 
+/// Request to list loans with pagination.
 public struct Loan_V1_ListLoansRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2133,6 +2257,7 @@ public struct Loan_V1_ListLoansRequest: Sendable {
   public init() {}
 }
 
+/// Response containing a paginated list of loans.
 public struct Loan_V1_ListLoansResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2145,6 +2270,7 @@ public struct Loan_V1_ListLoansResponse: Sendable {
   public init() {}
 }
 
+/// A single EMI schedule entry for a loan.
 public struct Loan_V1_EmiScheduleItem: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2167,6 +2293,7 @@ public struct Loan_V1_EmiScheduleItem: Sendable {
   public init() {}
 }
 
+/// Request to add a single EMI schedule item.
 public struct Loan_V1_AddEmiScheduleItemRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2187,6 +2314,7 @@ public struct Loan_V1_AddEmiScheduleItemRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the added EMI schedule item.
 public struct Loan_V1_AddEmiScheduleItemResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2208,6 +2336,7 @@ public struct Loan_V1_AddEmiScheduleItemResponse: Sendable {
   fileprivate var _item: Loan_V1_EmiScheduleItem? = nil
 }
 
+/// Request to list the EMI schedule for a loan.
 public struct Loan_V1_ListEmiScheduleRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2220,6 +2349,7 @@ public struct Loan_V1_ListEmiScheduleRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the EMI schedule.
 public struct Loan_V1_ListEmiScheduleResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2232,6 +2362,7 @@ public struct Loan_V1_ListEmiScheduleResponse: Sendable {
   public init() {}
 }
 
+/// A payment recorded against an EMI.
 public struct Loan_V1_Payment: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2256,6 +2387,7 @@ public struct Loan_V1_Payment: Sendable {
   public init() {}
 }
 
+/// Request to record a payment against an EMI.
 public struct Loan_V1_RecordPaymentRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2276,6 +2408,7 @@ public struct Loan_V1_RecordPaymentRequest: Sendable {
   public init() {}
 }
 
+/// Response containing the recorded payment.
 public struct Loan_V1_RecordPaymentResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2297,6 +2430,7 @@ public struct Loan_V1_RecordPaymentResponse: Sendable {
   fileprivate var _payment: Loan_V1_Payment? = nil
 }
 
+/// Request to list payments for a loan.
 public struct Loan_V1_ListPaymentsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2309,6 +2443,7 @@ public struct Loan_V1_ListPaymentsRequest: Sendable {
   public init() {}
 }
 
+/// Response containing a list of payments.
 public struct Loan_V1_ListPaymentsResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -2319,6 +2454,121 @@ public struct Loan_V1_ListPaymentsResponse: Sendable {
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
+}
+
+/// Request to reschedule an active loan.
+public struct Loan_V1_RescheduleLoanRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var loanID: String = String()
+
+  public var newTenureMonths: Int32 = 0
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+/// Response containing the updated loan after rescheduling.
+public struct Loan_V1_RescheduleLoanResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var loan: Loan_V1_Loan {
+    get {_loan ?? Loan_V1_Loan()}
+    set {_loan = newValue}
+  }
+  /// Returns true if `loan` has been explicitly set.
+  public var hasLoan: Bool {self._loan != nil}
+  /// Clears the value of `loan`. Subsequent reads from it will return its default value.
+  public mutating func clearLoan() {self._loan = nil}
+
+  public var newSchedule: [Loan_V1_EmiScheduleItem] = []
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _loan: Loan_V1_Loan? = nil
+}
+
+/// Request to initiate a Razorpay payment.
+public struct Loan_V1_InitiatePaymentRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var loanID: String = String()
+
+  /// Optional, for specific EMI payment
+  public var emiScheduleID: String = String()
+
+  public var amount: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+/// Response containing the Razorpay order details.
+public struct Loan_V1_InitiatePaymentResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var razorpayOrderID: String = String()
+
+  public var amount: String = String()
+
+  public var currency: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+/// Request to verify a Razorpay payment.
+public struct Loan_V1_VerifyPaymentRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var razorpayOrderID: String = String()
+
+  public var razorpayPaymentID: String = String()
+
+  public var razorpaySignature: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+/// Response for payment verification.
+public struct Loan_V1_VerifyPaymentResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var success: Bool = false
+
+  public var payment: Loan_V1_Payment {
+    get {_payment ?? Loan_V1_Payment()}
+    set {_payment = newValue}
+  }
+  /// Returns true if `payment` has been explicitly set.
+  public var hasPayment: Bool {self._payment != nil}
+  /// Clears the value of `payment`. Subsequent reads from it will return its default value.
+  public mutating func clearPayment() {self._payment = nil}
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+
+  fileprivate var _payment: Loan_V1_Payment? = nil
 }
 
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
@@ -3384,7 +3634,7 @@ extension Loan_V1_ReplaceProductRequiredDocumentsResponse: SwiftProtobuf.Message
 
 extension Loan_V1_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".LoanApplication"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}reference_number\0\u{3}primary_borrower_profile_id\0\u{3}loan_product_id\0\u{3}loan_product_name\0\u{3}branch_id\0\u{3}branch_name\0\u{3}requested_amount\0\u{3}tenure_months\0\u{1}status\0\u{3}assigned_officer_user_id\0\u{3}escalation_reason\0\u{3}created_by_user_id\0\u{3}created_by_role\0\u{3}created_by_channel\0\u{3}created_at\0\u{3}updated_at\0\u{3}product_snapshot_json\0\u{3}offered_interest_rate\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}reference_number\0\u{3}primary_borrower_profile_id\0\u{3}loan_product_id\0\u{3}loan_product_name\0\u{3}branch_id\0\u{3}branch_name\0\u{3}requested_amount\0\u{3}tenure_months\0\u{1}status\0\u{3}assigned_officer_user_id\0\u{3}escalation_reason\0\u{3}created_by_user_id\0\u{3}created_by_role\0\u{3}created_by_channel\0\u{3}created_at\0\u{3}updated_at\0\u{3}product_snapshot_json\0\u{3}offered_interest_rate\0\u{3}disbursement_account_number\0\u{3}disbursement_ifsc_code\0\u{3}disbursement_bank_name\0\u{3}disbursement_account_holder_name\0")
 
   fileprivate class _StorageClass {
     var _id: String = String()
@@ -3406,6 +3656,10 @@ extension Loan_V1_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._Message
     var _updatedAt: String = String()
     var _productSnapshotJson: String = String()
     var _offeredInterestRate: String = String()
+    var _disbursementAccountNumber: String = String()
+    var _disbursementIfscCode: String = String()
+    var _disbursementBankName: String = String()
+    var _disbursementAccountHolderName: String = String()
 
       // This property is used as the initial default value for new instances of the type.
       // The type itself is protecting the reference to its storage via CoW semantics.
@@ -3435,6 +3689,10 @@ extension Loan_V1_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._Message
       _updatedAt = source._updatedAt
       _productSnapshotJson = source._productSnapshotJson
       _offeredInterestRate = source._offeredInterestRate
+      _disbursementAccountNumber = source._disbursementAccountNumber
+      _disbursementIfscCode = source._disbursementIfscCode
+      _disbursementBankName = source._disbursementBankName
+      _disbursementAccountHolderName = source._disbursementAccountHolderName
     }
   }
 
@@ -3472,6 +3730,10 @@ extension Loan_V1_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._Message
         case 17: try { try decoder.decodeSingularStringField(value: &_storage._updatedAt) }()
         case 18: try { try decoder.decodeSingularStringField(value: &_storage._productSnapshotJson) }()
         case 19: try { try decoder.decodeSingularStringField(value: &_storage._offeredInterestRate) }()
+        case 20: try { try decoder.decodeSingularStringField(value: &_storage._disbursementAccountNumber) }()
+        case 21: try { try decoder.decodeSingularStringField(value: &_storage._disbursementIfscCode) }()
+        case 22: try { try decoder.decodeSingularStringField(value: &_storage._disbursementBankName) }()
+        case 23: try { try decoder.decodeSingularStringField(value: &_storage._disbursementAccountHolderName) }()
         default: break
         }
       }
@@ -3537,6 +3799,18 @@ extension Loan_V1_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._Message
       if !_storage._offeredInterestRate.isEmpty {
         try visitor.visitSingularStringField(value: _storage._offeredInterestRate, fieldNumber: 19)
       }
+      if !_storage._disbursementAccountNumber.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._disbursementAccountNumber, fieldNumber: 20)
+      }
+      if !_storage._disbursementIfscCode.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._disbursementIfscCode, fieldNumber: 21)
+      }
+      if !_storage._disbursementBankName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._disbursementBankName, fieldNumber: 22)
+      }
+      if !_storage._disbursementAccountHolderName.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._disbursementAccountHolderName, fieldNumber: 23)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -3565,6 +3839,10 @@ extension Loan_V1_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._Message
         if _storage._updatedAt != rhs_storage._updatedAt {return false}
         if _storage._productSnapshotJson != rhs_storage._productSnapshotJson {return false}
         if _storage._offeredInterestRate != rhs_storage._offeredInterestRate {return false}
+        if _storage._disbursementAccountNumber != rhs_storage._disbursementAccountNumber {return false}
+        if _storage._disbursementIfscCode != rhs_storage._disbursementIfscCode {return false}
+        if _storage._disbursementBankName != rhs_storage._disbursementBankName {return false}
+        if _storage._disbursementAccountHolderName != rhs_storage._disbursementAccountHolderName {return false}
         return true
       }
       if !storagesAreEqual {return false}
@@ -3576,7 +3854,7 @@ extension Loan_V1_LoanApplication: SwiftProtobuf.Message, SwiftProtobuf._Message
 
 extension Loan_V1_CreateLoanApplicationRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".CreateLoanApplicationRequest"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}primary_borrower_profile_id\0\u{3}loan_product_id\0\u{3}branch_id\0\u{3}requested_amount\0\u{3}tenure_months\0\u{1}status\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}primary_borrower_profile_id\0\u{3}loan_product_id\0\u{3}branch_id\0\u{3}requested_amount\0\u{3}tenure_months\0\u{1}status\0\u{3}disbursement_account_number\0\u{3}disbursement_ifsc_code\0\u{3}disbursement_bank_name\0\u{3}disbursement_account_holder_name\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -3590,6 +3868,10 @@ extension Loan_V1_CreateLoanApplicationRequest: SwiftProtobuf.Message, SwiftProt
       case 4: try { try decoder.decodeSingularStringField(value: &self.requestedAmount) }()
       case 5: try { try decoder.decodeSingularInt32Field(value: &self.tenureMonths) }()
       case 6: try { try decoder.decodeSingularEnumField(value: &self.status) }()
+      case 7: try { try decoder.decodeSingularStringField(value: &self.disbursementAccountNumber) }()
+      case 8: try { try decoder.decodeSingularStringField(value: &self.disbursementIfscCode) }()
+      case 9: try { try decoder.decodeSingularStringField(value: &self.disbursementBankName) }()
+      case 10: try { try decoder.decodeSingularStringField(value: &self.disbursementAccountHolderName) }()
       default: break
       }
     }
@@ -3614,6 +3896,18 @@ extension Loan_V1_CreateLoanApplicationRequest: SwiftProtobuf.Message, SwiftProt
     if self.status != .unspecified {
       try visitor.visitSingularEnumField(value: self.status, fieldNumber: 6)
     }
+    if !self.disbursementAccountNumber.isEmpty {
+      try visitor.visitSingularStringField(value: self.disbursementAccountNumber, fieldNumber: 7)
+    }
+    if !self.disbursementIfscCode.isEmpty {
+      try visitor.visitSingularStringField(value: self.disbursementIfscCode, fieldNumber: 8)
+    }
+    if !self.disbursementBankName.isEmpty {
+      try visitor.visitSingularStringField(value: self.disbursementBankName, fieldNumber: 9)
+    }
+    if !self.disbursementAccountHolderName.isEmpty {
+      try visitor.visitSingularStringField(value: self.disbursementAccountHolderName, fieldNumber: 10)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3624,6 +3918,10 @@ extension Loan_V1_CreateLoanApplicationRequest: SwiftProtobuf.Message, SwiftProt
     if lhs.requestedAmount != rhs.requestedAmount {return false}
     if lhs.tenureMonths != rhs.tenureMonths {return false}
     if lhs.status != rhs.status {return false}
+    if lhs.disbursementAccountNumber != rhs.disbursementAccountNumber {return false}
+    if lhs.disbursementIfscCode != rhs.disbursementIfscCode {return false}
+    if lhs.disbursementBankName != rhs.disbursementBankName {return false}
+    if lhs.disbursementAccountHolderName != rhs.disbursementAccountHolderName {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4737,7 +5035,7 @@ extension Loan_V1_UpsertLoanRealEstateResponse: SwiftProtobuf.Message, SwiftProt
 
 extension Loan_V1_ApplicationDocument: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ApplicationDocument"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}application_id\0\u{3}borrower_profile_id\0\u{3}required_doc_id\0\u{3}media_file_id\0\u{3}quality_flags\0\u{3}verification_status\0\u{3}rejection_reason\0\u{3}created_at\0\u{3}updated_at\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}application_id\0\u{3}borrower_profile_id\0\u{3}required_doc_id\0\u{3}media_file_id\0\u{3}quality_flags\0\u{3}verification_status\0\u{3}rejection_reason\0\u{3}created_at\0\u{3}updated_at\0\u{3}reviewed_by_user_id\0\u{3}reviewed_at\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4755,6 +5053,8 @@ extension Loan_V1_ApplicationDocument: SwiftProtobuf.Message, SwiftProtobuf._Mes
       case 8: try { try decoder.decodeSingularStringField(value: &self.rejectionReason) }()
       case 9: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
       case 10: try { try decoder.decodeSingularStringField(value: &self.updatedAt) }()
+      case 11: try { try decoder.decodeSingularStringField(value: &self.reviewedByUserID) }()
+      case 12: try { try decoder.decodeSingularStringField(value: &self.reviewedAt) }()
       default: break
       }
     }
@@ -4791,6 +5091,12 @@ extension Loan_V1_ApplicationDocument: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if !self.updatedAt.isEmpty {
       try visitor.visitSingularStringField(value: self.updatedAt, fieldNumber: 10)
     }
+    if !self.reviewedByUserID.isEmpty {
+      try visitor.visitSingularStringField(value: self.reviewedByUserID, fieldNumber: 11)
+    }
+    if !self.reviewedAt.isEmpty {
+      try visitor.visitSingularStringField(value: self.reviewedAt, fieldNumber: 12)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4805,6 +5111,8 @@ extension Loan_V1_ApplicationDocument: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if lhs.rejectionReason != rhs.rejectionReason {return false}
     if lhs.createdAt != rhs.createdAt {return false}
     if lhs.updatedAt != rhs.updatedAt {return false}
+    if lhs.reviewedByUserID != rhs.reviewedByUserID {return false}
+    if lhs.reviewedAt != rhs.reviewedAt {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4941,7 +5249,7 @@ extension Loan_V1_UpdateApplicationDocumentVerificationRequest: SwiftProtobuf.Me
 
 extension Loan_V1_UpdateApplicationDocumentVerificationResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".UpdateApplicationDocumentVerificationResponse"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}document\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -4949,21 +5257,25 @@ extension Loan_V1_UpdateApplicationDocumentVerificationResponse: SwiftProtobuf.M
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._document) }()
       default: break
       }
     }
   }
 
   public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    if self.success != false {
-      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
-    }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._document {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   public static func ==(lhs: Loan_V1_UpdateApplicationDocumentVerificationResponse, rhs: Loan_V1_UpdateApplicationDocumentVerificationResponse) -> Bool {
-    if lhs.success != rhs.success {return false}
+    if lhs._document != rhs._document {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5789,6 +6101,239 @@ extension Loan_V1_ListPaymentsResponse: SwiftProtobuf.Message, SwiftProtobuf._Me
 
   public static func ==(lhs: Loan_V1_ListPaymentsResponse, rhs: Loan_V1_ListPaymentsResponse) -> Bool {
     if lhs.items != rhs.items {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_RescheduleLoanRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RescheduleLoanRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}loan_id\0\u{3}new_tenure_months\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.loanID) }()
+      case 2: try { try decoder.decodeSingularInt32Field(value: &self.newTenureMonths) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.loanID.isEmpty {
+      try visitor.visitSingularStringField(value: self.loanID, fieldNumber: 1)
+    }
+    if self.newTenureMonths != 0 {
+      try visitor.visitSingularInt32Field(value: self.newTenureMonths, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_RescheduleLoanRequest, rhs: Loan_V1_RescheduleLoanRequest) -> Bool {
+    if lhs.loanID != rhs.loanID {return false}
+    if lhs.newTenureMonths != rhs.newTenureMonths {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_RescheduleLoanResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".RescheduleLoanResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}loan\0\u{3}new_schedule\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._loan) }()
+      case 2: try { try decoder.decodeRepeatedMessageField(value: &self.newSchedule) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._loan {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    if !self.newSchedule.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.newSchedule, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_RescheduleLoanResponse, rhs: Loan_V1_RescheduleLoanResponse) -> Bool {
+    if lhs._loan != rhs._loan {return false}
+    if lhs.newSchedule != rhs.newSchedule {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_InitiatePaymentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InitiatePaymentRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}loan_id\0\u{3}emi_schedule_id\0\u{1}amount\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.loanID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.emiScheduleID) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.amount) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.loanID.isEmpty {
+      try visitor.visitSingularStringField(value: self.loanID, fieldNumber: 1)
+    }
+    if !self.emiScheduleID.isEmpty {
+      try visitor.visitSingularStringField(value: self.emiScheduleID, fieldNumber: 2)
+    }
+    if !self.amount.isEmpty {
+      try visitor.visitSingularStringField(value: self.amount, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_InitiatePaymentRequest, rhs: Loan_V1_InitiatePaymentRequest) -> Bool {
+    if lhs.loanID != rhs.loanID {return false}
+    if lhs.emiScheduleID != rhs.emiScheduleID {return false}
+    if lhs.amount != rhs.amount {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_InitiatePaymentResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".InitiatePaymentResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}razorpay_order_id\0\u{1}amount\0\u{1}currency\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.razorpayOrderID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.amount) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.currency) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.razorpayOrderID.isEmpty {
+      try visitor.visitSingularStringField(value: self.razorpayOrderID, fieldNumber: 1)
+    }
+    if !self.amount.isEmpty {
+      try visitor.visitSingularStringField(value: self.amount, fieldNumber: 2)
+    }
+    if !self.currency.isEmpty {
+      try visitor.visitSingularStringField(value: self.currency, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_InitiatePaymentResponse, rhs: Loan_V1_InitiatePaymentResponse) -> Bool {
+    if lhs.razorpayOrderID != rhs.razorpayOrderID {return false}
+    if lhs.amount != rhs.amount {return false}
+    if lhs.currency != rhs.currency {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_VerifyPaymentRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VerifyPaymentRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}razorpay_order_id\0\u{3}razorpay_payment_id\0\u{3}razorpay_signature\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.razorpayOrderID) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.razorpayPaymentID) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.razorpaySignature) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.razorpayOrderID.isEmpty {
+      try visitor.visitSingularStringField(value: self.razorpayOrderID, fieldNumber: 1)
+    }
+    if !self.razorpayPaymentID.isEmpty {
+      try visitor.visitSingularStringField(value: self.razorpayPaymentID, fieldNumber: 2)
+    }
+    if !self.razorpaySignature.isEmpty {
+      try visitor.visitSingularStringField(value: self.razorpaySignature, fieldNumber: 3)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_VerifyPaymentRequest, rhs: Loan_V1_VerifyPaymentRequest) -> Bool {
+    if lhs.razorpayOrderID != rhs.razorpayOrderID {return false}
+    if lhs.razorpayPaymentID != rhs.razorpayPaymentID {return false}
+    if lhs.razorpaySignature != rhs.razorpaySignature {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_VerifyPaymentResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".VerifyPaymentResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0\u{1}payment\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._payment) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    try { if let v = self._payment {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_VerifyPaymentResponse, rhs: Loan_V1_VerifyPaymentResponse) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs._payment != rhs._payment {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -16,7 +16,6 @@ final class MessagesViewModel: ObservableObject {
 
     // Backend-driven compose data
     @Published var eligibleParticipants: [ThreadParticipant] = []
-    @Published var connectableLeads: [LeadMessagingConnection] = []
 
     private let chatService: ChatServiceProtocol
     private var chatRooms: [ChatRoom] = []
@@ -25,8 +24,6 @@ final class MessagesViewModel: ObservableObject {
     private var lastRoomEventAt: [String: Date] = [:]
     private var currentUserID: String = ""
     private var userRolesCache: [String: String] = [:]
-    private let applicationService: ApplicationServiceProtocol
-    private var applicationCache: [String: LoanApplication] = [:]
     private var cancellables = Set<AnyCancellable>()
     private let heartbeatTimeout: TimeInterval = 90
     private let maxReconnectDelaySeconds: UInt64 = 30
@@ -34,38 +31,11 @@ final class MessagesViewModel: ObservableObject {
     var totalUnread: Int { threads.reduce(0) { $0 + $1.unreadCount } }
 
     init(
-        chatService: ChatServiceProtocol = ChatService(),
-        applicationService: ApplicationServiceProtocol = BackendApplicationService()
+        chatService: ChatServiceProtocol = ChatService()
     ) {
         self.chatService = chatService
-        self.applicationService = applicationService
         self.currentUserID = getCurrentUserID()
-        loadApplications()
         Task { async let threads = loadThreads(); async let users = loadEligibleUsers(); await threads; await users }
-    }
-
-    private func loadApplications() {
-        applicationService.fetchApplications()
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { _ in },
-                receiveValue: { [weak self] applications in
-                    guard let self else { return }
-                    for app in applications {
-                        let key = app.id
-                        self.applicationCache[key] = app
-                    }
-                    self.connectableLeads = applications.map { app in
-                        LeadMessagingConnection(
-                            id: app.id,
-                            leadName: app.name,
-                            applicationRef: app.referenceNumber ?? app.id,
-                            loanType: app.loanType.rawValue
-                        )
-                    }
-                }
-            )
-            .store(in: &cancellables)
     }
 
     private func loadEligibleUsers() async {
@@ -221,17 +191,10 @@ final class MessagesViewModel: ObservableObject {
             // Continue with empty messages on error
         }
 
-        var leadName: String? = nil
-        if let appID = room.contextApplicationID {
-            leadName = applicationCache[appID]?.name
-        }
-
         return MessageThread(
             id: room.id,
             participant: participant,
-            messages: messages,
-            linkedApplicationRef: room.contextApplicationID,
-            linkedLeadName: leadName
+            messages: messages
         )
     }
 
@@ -281,9 +244,7 @@ final class MessagesViewModel: ObservableObject {
         threads[threadIdx] = MessageThread(
             id: current.id,
             participant: current.participant,
-            messages: merged,
-            linkedApplicationRef: current.linkedApplicationRef,
-            linkedLeadName: current.linkedLeadName
+            messages: merged
         )
         if selectedThread?.id == roomID {
             selectedThread = threads[threadIdx]
@@ -299,7 +260,6 @@ final class MessagesViewModel: ObservableObject {
                 userAID: updatedRoom.userAID,
                 userBID: updatedRoom.userBID,
                 createdByUserID: updatedRoom.createdByUserID,
-                contextApplicationID: updatedRoom.contextApplicationID,
                 createdAt: updatedRoom.createdAt,
                 updatedAt: Date(),
                 latestMessage: protoMessage
@@ -332,9 +292,7 @@ final class MessagesViewModel: ObservableObject {
         threads[idx] = MessageThread(
             id: updated.id,
             participant: updated.participant,
-            messages: readMessages,
-            linkedApplicationRef: updated.linkedApplicationRef,
-            linkedLeadName: updated.linkedLeadName
+            messages: readMessages
         )
         selectedThread = threads[idx]
     }
@@ -346,9 +304,7 @@ final class MessagesViewModel: ObservableObject {
         threads[idx] = MessageThread(
             id: updated.id,
             participant: updated.participant,
-            messages: normalizeMessages(messages),
-            linkedApplicationRef: updated.linkedApplicationRef,
-            linkedLeadName: updated.linkedLeadName
+            messages: normalizeMessages(messages)
         )
 
         moveThreadToTop(threadId)
@@ -358,17 +314,10 @@ final class MessagesViewModel: ObservableObject {
         }
     }
 
-    func createThread(lead: LeadMessagingConnection?, participant: ThreadParticipant, openingMessage: String) async {
+    func createThread(participant: ThreadParticipant, openingMessage: String) async {
         do {
-            let contextAppID: String?
-            if participant.role == .borrower {
-                contextAppID = lead?.applicationRef
-            } else {
-                contextAppID = nil
-            }
             let room = try await chatService.createOrGetDirectRoom(
-                targetUserID: participant.id,
-                contextApplicationID: contextAppID
+                targetUserID: participant.id
             )
 
             // Avoid duplicate thread insertion
@@ -395,9 +344,7 @@ final class MessagesViewModel: ObservableObject {
                         thread = MessageThread(
                             id: thread.id,
                             participant: thread.participant,
-                            messages: normalizeMessages(thread.messages + [chatMsg]),
-                            linkedApplicationRef: thread.linkedApplicationRef,
-                            linkedLeadName: lead?.leadName ?? thread.linkedLeadName
+                            messages: normalizeMessages(thread.messages + [chatMsg])
                         )
                     } catch {
                         await MainActor.run {
@@ -482,10 +429,6 @@ final class ChatViewModel: ObservableObject {
 
     var navigationTitle: String { thread.participant.name }
     var navigationSubtitle: String { thread.participant.role.rawValue }
-    var linkedLeadSummary: String? {
-        guard let lead = thread.linkedLeadName, let ref = thread.linkedApplicationRef else { return nil }
-        return "\(lead) · \(ref)"
-    }
 
     var canSend: Bool { !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
 

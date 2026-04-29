@@ -76,21 +76,6 @@ struct ChatView: View {
 
     private var chatHeader: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if let summary = vm.linkedLeadSummary {
-                HStack(spacing: 6) {
-                    Image(systemName: "link.circle.fill")
-                        .font(AppFont.captionMed())
-                        .foregroundColor(Color.brandBlue)
-                    Text("Connected")
-                        .font(AppFont.captionMed())
-                        .foregroundColor(Color.brandBlue)
-                    Text(summary)
-                        .font(AppFont.caption())
-                        .foregroundColor(Color.textSecondary)
-                        .lineLimit(1)
-                }
-            }
-
             Text("Direct Sales Team and loan officer are now connected in this thread.")
                 .font(AppFont.subhead())
                 .foregroundColor(Color.textSecondary)

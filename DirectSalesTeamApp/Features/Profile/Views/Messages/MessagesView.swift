@@ -6,7 +6,6 @@ struct MessagesView: View {
 
     @ObservedObject var vm: MessagesViewModel
     @State private var draftParticipant: ThreadParticipant?
-    @State private var draftLead: LeadMessagingConnection?
     @State private var openingMessage: String = ""
 
     var body: some View {
@@ -32,12 +31,6 @@ struct MessagesView: View {
                         ScrollView {
                             VStack(spacing: AppSpacing.md) {
                                 messagesHero
-                                if !vm.connectableLeads.isEmpty {
-                                    ConnectionHubCard(
-                                        pendingConnections: vm.connectableLeads.count,
-                                        onAddMessage: { vm.showComposeSheet = true }
-                                    )
-                                }
                                 threadList
                             }
                             .padding(.horizontal, AppSpacing.md)
@@ -59,21 +52,16 @@ struct MessagesView: View {
                 .sheet(isPresented: $vm.showComposeSheet) {
                     NewConversationSheet(
                         participants: vm.eligibleParticipants,
-                        leads: vm.connectableLeads,
                         selectedParticipant: $draftParticipant,
-                        selectedLead: $draftLead,
                         openingMessage: $openingMessage,
                         onCreate: {
                             guard let participant = draftParticipant else { return }
-                            let lead = draftLead
                             let message = openingMessage
                             draftParticipant = nil
-                            draftLead = nil
                             openingMessage = ""
                             vm.showComposeSheet = false
                             Task {
                                 await vm.createThread(
-                                    lead: lead,
                                     participant: participant,
                                     openingMessage: message
                                 )
@@ -225,13 +213,6 @@ struct ThreadRow: View {
                     .fontWeight(.medium)
                     .foregroundStyle(thread.participant.role.color)
 
-                if let lead = thread.linkedLeadName, let ref = thread.linkedApplicationRef {
-                    Text("\(lead) · \(ref)")
-                        .font(.caption)
-                        .foregroundStyle(Color.textSecondary)
-                        .lineLimit(1)
-                }
-
                 if let last = thread.lastMessage {
                     Text(last.content)
                         .font(.subheadline)
@@ -253,84 +234,16 @@ struct ThreadRow: View {
     }
 }
 
-struct ConnectionHubCard: View {
-    let pendingConnections: Int
-    let onAddMessage: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Connect Leads To Loan Officers")
-                        .font(AppFont.headline())
-                        .foregroundColor(Color.textPrimary)
-                    Text(
-                        pendingConnections > 0
-                            ? "\(pendingConnections) leads still need a messaging connection."
-                            : "All active leads already have a live officer connection."
-                    )
-                    .font(AppFont.subhead())
-                    .foregroundColor(Color.textSecondary)
-                }
-                Spacer()
-                Image(systemName: "person.2.wave.2.fill")
-                    .foregroundColor(Color.brandBlue)
-            }
-
-            Button(action: onAddMessage) {
-                HStack {
-                    Image(systemName: "plus.bubble.fill")
-                    Text("Add Message")
-                        .font(AppFont.bodyMedium())
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                }
-                .foregroundColor(.white)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
-                .background(
-                    LinearGradient(
-                        colors: [Color.mainBlue, Color.secondaryBlue],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(16)
-        .background(Color.surfacePrimary)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.borderLight, lineWidth: 1)
-        )
-    }
-}
-
 struct NewConversationSheet: View {
     let participants: [ThreadParticipant]
-    let leads: [LeadMessagingConnection]
     @Binding var selectedParticipant: ThreadParticipant?
-    @Binding var selectedLead: LeadMessagingConnection?
     @Binding var openingMessage: String
     let onCreate: () -> Void
 
     @Environment(\.dismiss) private var dismiss
 
-    private var selectedRoleNeedsApplication: Bool {
-        guard let participant = selectedParticipant else { return false }
-        return participant.role == .borrower
-    }
-
     private var canCreate: Bool {
-        guard let participant = selectedParticipant else { return false }
-        if participant.role == .borrower {
-            return selectedLead != nil
-        }
-        return true
+        selectedParticipant != nil
     }
 
     var body: some View {
@@ -362,34 +275,6 @@ struct NewConversationSheet: View {
                     }
                 }
 
-                if selectedRoleNeedsApplication {
-                    Section("Linked Application") {
-                        if leads.isEmpty {
-                            Text("No applications available for this borrower")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            NavigationLink {
-                                LeadPickerList(
-                                    leads: leads,
-                                    selectedLead: $selectedLead
-                                )
-                            } label: {
-                                HStack {
-                                    Text("Application")
-                                    Spacer()
-                                    if let l = selectedLead {
-                                        Text("\(l.leadName) · \(l.loanType)")
-                                            .foregroundStyle(.secondary)
-                                    } else {
-                                        Text("Select application")
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 Section("Opening Message") {
                     TextField("Share context for the conversation…", text: $openingMessage, axis: .vertical)
                         .lineLimit(3...6)
@@ -410,42 +295,6 @@ struct NewConversationSheet: View {
                 }
             }
         }
-        .onChange(of: selectedParticipant?.id) { _, _ in
-                    selectedLead = nil
-                }
-    }
-}
-
-struct LeadPickerList: View {
-    let leads: [LeadMessagingConnection]
-    @Binding var selectedLead: LeadMessagingConnection?
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        List(leads) { lead in
-            Button {
-                selectedLead = lead
-                dismiss()
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(lead.leadName)
-                            .font(.body)
-                        Text(lead.loanType)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if selectedLead?.id == lead.id {
-                        Image(systemName: "checkmark")
-                            .foregroundStyle(Color.mainBlue)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-        }
-        .navigationTitle("Select Application")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

@@ -58,8 +58,6 @@ struct MessageThread: Identifiable, Codable {
     let id: String
     let participant: ThreadParticipant
     let messages: [ChatMessage]
-    let linkedApplicationRef: String?
-    let linkedLeadName: String?
 
     var lastMessage: ChatMessage? {
         messages.max {
@@ -96,13 +94,6 @@ struct ThreadParticipant: Codable, Identifiable, Equatable, Hashable {
         let parts = name.split(separator: " ")
         return parts.prefix(2).compactMap { $0.first.map(String.init) }.joined().uppercased()
     }
-}
-
-struct LeadMessagingConnection: Identifiable, Equatable, Hashable {
-    let id: String
-    let leadName: String
-    let applicationRef: String
-    let loanType: String
 }
 
 enum ParticipantRole: String, Codable {
