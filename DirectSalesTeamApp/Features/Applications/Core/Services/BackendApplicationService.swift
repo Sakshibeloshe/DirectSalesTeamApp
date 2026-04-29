@@ -39,6 +39,18 @@ final class BackendApplicationService: ApplicationServiceProtocol {
                                 if let m = meta.metadata(for: proto.id) {
                                     application.name = m.name
                                     application.phone = m.phone
+                                } else if let m = meta.metadataByProfileID(for: proto.primaryBorrowerProfileID) {
+                                    application.name = m.name
+                                    application.phone = m.phone
+                                    // Optionally save it for the current ID to speed up next time
+                                    meta.save(
+                                        applicationID: proto.id,
+                                        name: m.name,
+                                        phone: m.phone,
+                                        email: m.email,
+                                        loanProductID: m.loanProductID,
+                                        profileID: proto.primaryBorrowerProfileID
+                                    )
                                 } else if !proto.primaryBorrowerProfileID.isEmpty {
                                     if let profile = try? await self.authClient.getBorrowerProfile(userID: proto.primaryBorrowerProfileID) {
                                         let fullName = [profile.firstName, profile.lastName]
@@ -46,7 +58,7 @@ final class BackendApplicationService: ApplicationServiceProtocol {
                                             .filter { !$0.isEmpty }
                                             .joined(separator: " ")
                                         let resolvedName = fullName.isEmpty
-                                            ? (proto.referenceNumber.isEmpty ? "Application" : proto.referenceNumber)
+                                            ? "Borrower \(proto.primaryBorrowerProfileID.prefix(6))"
                                             : fullName
                                         application.name = resolvedName
                                         meta.save(
@@ -54,11 +66,14 @@ final class BackendApplicationService: ApplicationServiceProtocol {
                                             name: resolvedName,
                                             phone: "",
                                             email: "",
-                                            loanProductID: nil
+                                            loanProductID: nil,
+                                            profileID: proto.primaryBorrowerProfileID
                                         )
                                     } else {
-                                        application.name = proto.referenceNumber.isEmpty ? "Application" : proto.referenceNumber
+                                        application.name = "Borrower \(proto.primaryBorrowerProfileID.prefix(6))"
                                     }
+                                } else {
+                                    application.name = "New Applicant"
                                 }
                                 return application
                             }

@@ -40,7 +40,7 @@ class EarningsViewModel: ObservableObject {
     }
     
     // MARK: - Dependencies
-    private let service: EarningsServiceProtocol
+    private let appService: ApplicationServiceProtocol
     
     // MARK: - Computed Properties
     var filteredEarnings: [Earning] {
@@ -97,8 +97,8 @@ class EarningsViewModel: ObservableObject {
     }
     
     // MARK: - Initialization
-    init(service: EarningsServiceProtocol = MockEarningsService()) {
-        self.service = service
+    init(appService: ApplicationServiceProtocol = BackendApplicationService()) {
+        self.appService = appService
     }
     
     // MARK: - API Methods
@@ -107,15 +107,49 @@ class EarningsViewModel: ObservableObject {
         errorMessage = nil
         
         do {
-            async let earningsTask = service.fetchEarnings()
-            async let statsTask = service.fetchEarningsStats()
-            async let ratesTask = service.fetchCommissionRates()
+            // Use withCheckedThrowingContinuation or combine to bridge Combine -> Async/Await
+            let apps = try await fetchApplicationsAsync()
             
-            let (fetchedEarnings, fetchedStats, fetchedRates) = try await (earningsTask, statsTask, ratesTask)
+            // 1. Filter disbursed applications
+            let disbursedApps = apps.filter { $0.status == .disbursed }
             
-            earnings = fetchedEarnings
-            stats = fetchedStats
-            commissionRates = fetchedRates
+            // 2. Map to Earnings
+            let fetchedEarnings = disbursedApps.map { app in
+                Earning(
+                    id: app.id,
+                    loanApplicationId: app.referenceNumber ?? app.id,
+                    customerName: app.name,
+                    loanType: mapToEarningLoanType(app.loanType),
+                    loanAmount: app.loanAmount,
+                    commissionRate: 0.35, // 0.35%
+                    commissionAmount: app.loanAmount * 0.0035,
+                    status: .paid, // Disbursed = Paid for this context
+                    transactionDate: app.updatedAt,
+                    expectedPayoutDate: app.updatedAt,
+                    actualPayoutDate: app.updatedAt,
+                    disbursementDate: app.updatedAt
+                )
+            }
+            
+            // 3. Calculate Stats
+            let totalCommission = fetchedEarnings.reduce(0) { $0 + $1.commissionAmount }
+            let thisMonthEarnings = fetchedEarnings.filter { 
+                Calendar.current.isDate($0.transactionDate, equalTo: Date(), toGranularity: .month) 
+            }.reduce(0) { $0 + $1.commissionAmount }
+            
+            let fetchedStats = EarningsStats(
+                totalLifetimeEarnings: totalCommission,
+                thisMonthEarnings: thisMonthEarnings,
+                pendingPayout: 0,
+                paidTransactionsCount: fetchedEarnings.count,
+                pendingTransactionsCount: 0,
+                averagePayoutRate: 0.35,
+                totalTransactionsCount: fetchedEarnings.count
+            )
+            
+            self.earnings = fetchedEarnings
+            self.stats = fetchedStats
+            self.commissionRates = []
             
         } catch {
             errorMessage = "Failed to load earnings: \(error.localizedDescription)"
@@ -124,12 +158,37 @@ class EarningsViewModel: ObservableObject {
         isLoading = false
     }
     
+    private func fetchApplicationsAsync() async throws -> [LoanApplication] {
+        return try await withCheckedThrowingContinuation { continuation in
+            var cancellable: AnyCancellable?
+            cancellable = appService.fetchApplications()
+                .sink { completion in
+                    if case .failure(let error) = completion {
+                        continuation.resume(throwing: error)
+                    }
+                    cancellable?.cancel()
+                } receiveValue: { apps in
+                    continuation.resume(returning: apps)
+                }
+        }
+    }
+    
+    private func mapToEarningLoanType(_ type: LoanType) -> Earning.LoanType {
+        switch type {
+        case .home: return .homeLoan
+        case .personal: return .personalLoan
+        case .business: return .businessLoan
+        case .auto: return .autoLoan
+        case .education: return .educationLoan
+        }
+    }
+    
     func selectFilter(_ filter: EarningFilter) {
         selectedFilter = filter
     }
     
     func calculateCommission(for loanType: Earning.LoanType, amount: Double) -> Double {
-        service.calculateCommission(loanType: loanType, amount: amount)
+        return amount * 0.0035
     }
     
     func getCommissionRates(for loanType: Earning.LoanType) -> [CommissionRate] {

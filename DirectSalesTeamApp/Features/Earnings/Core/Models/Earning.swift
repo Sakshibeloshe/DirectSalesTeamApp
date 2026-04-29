@@ -137,18 +137,7 @@ struct CommissionCalculation {
     var estimatedCommission: Double {
         // Default rates - should come from CommissionRate service
         let rate: Double
-        switch loanType {
-        case .homeLoan:
-            rate = loanAmount >= 5000000 ? 0.015 : 0.012
-        case .personalLoan:
-            rate = 0.02
-        case .businessLoan:
-            rate = loanAmount >= 10000000 ? 0.018 : 0.015
-        case .autoLoan:
-            rate = 0.01
-        case .educationLoan:
-            rate = 0.013
-        }
+        rate = 0.0035
         return loanAmount * rate
     }
     

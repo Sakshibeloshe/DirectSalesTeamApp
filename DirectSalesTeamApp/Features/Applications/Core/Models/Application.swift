@@ -84,7 +84,9 @@ struct LoanApplication: Identifiable, Codable, Hashable {
 
     // MARK: - Computed
     var initials: String {
-        let parts = name.split(separator: " ")
+        let cleaned = name.hasPrefix("LMS-") ? String(name.dropFirst(4)) : name
+        let parts = cleaned.split(separator: " ")
+        if parts.isEmpty { return name.prefix(1).uppercased() }
         return parts.prefix(2).compactMap { $0.first }.map(String.init).joined().uppercased()
     }
 
@@ -100,9 +102,6 @@ struct LoanApplication: Identifiable, Codable, Hashable {
     }
 
     var displayName: String {
-        if name.hasPrefix("LMS-") || name == referenceNumber {
-            return "\(loanType.rawValue) · \(formattedAmount)"
-        }
         return name
     }
 

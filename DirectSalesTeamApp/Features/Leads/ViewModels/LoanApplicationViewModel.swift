@@ -302,6 +302,16 @@ final class LoanApplicationViewModel: ObservableObject {
                 try? await loanService.deleteLoanApplication(applicationId: oldDraftID)
             }
             
+            // 5. Persist name for the new application ID so it shows up in the Applications list
+            LeadMetadataStore().save(
+                applicationID: application.id,
+                name: lead.name,
+                phone: lead.phone,
+                email: lead.email,
+                loanProductID: productID,
+                profileID: lead.borrowerProfileID
+            )
+            
             self.submittedApplicationID = application.id
             isSubmitting = false
             

@@ -222,7 +222,12 @@ struct ApplicationDetailView: View {
     }
 
     private var estimatedCommission: String {
-        formatAmount(application.loanAmount * 0.0025)
+        let value = application.loanAmount * 0.0035
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        formatter.locale = Locale(identifier: "en_IN")
+        return "₹" + (formatter.string(from: NSNumber(value: Int(value))) ?? "\(Int(value))")
     }
 
     enum StageState { case completed, active, rejected, pending }

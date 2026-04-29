@@ -151,7 +151,7 @@ struct LeadDetailView: View {
             // Commission row
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Estimated Commission (0.25%)")
+                    Text("Estimated Commission (0.35%)")
                         .font(AppFont.subhead())
                         .foregroundColor(Color.textSecondary)
                     Text("30-45 days after sanction")

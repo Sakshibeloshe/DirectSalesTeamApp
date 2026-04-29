@@ -35,6 +35,7 @@ final class BackendLeadService: LeadServiceProtocol {
     private let grpcClient: GRPCClient<HTTP2ClientTransport.Posix>
     private let leadMetadataStore = LeadMetadataStore()
     private let deletedLeadStore = DeletedLeadStore()
+    private let authClient: AuthGRPCClient
 
     init(
         tokenStore: TokenStore = .shared,
@@ -42,6 +43,7 @@ final class BackendLeadService: LeadServiceProtocol {
     ) {
         self.tokenStore = tokenStore
         self.grpcClient = grpcClient
+        self.authClient = AuthGRPCClient(grpcClient: grpcClient, tokenStore: tokenStore)
     }
 
     func fetchLeads() -> AnyPublisher<[Lead], Error> {
@@ -52,7 +54,7 @@ final class BackendLeadService: LeadServiceProtocol {
                     // We show DRAFT (new), UNDER_REVIEW (docsPending) and SUBMITTED leads.
                     // Cancelled and already-actioned apps are excluded.
                     let apps = try await self.listLoanApplications()
-                    let leads = apps
+                    let rawLeads = apps
                         .filter { app in
                             guard app.status != .cancelled,
                                   !self.deletedLeadStore.contains(applicationID: app.id)
@@ -60,7 +62,40 @@ final class BackendLeadService: LeadServiceProtocol {
                             return true
                         }
                         .compactMap { self.mapLoanApplicationToLead($0) }
-                        .sorted { $0.createdAt > $1.createdAt }
+
+                    // Resolve names asynchronously if missing
+                    let leads: [Lead] = try await withThrowingTaskGroup(of: Lead.self) { group in
+                        for var lead in rawLeads {
+                            group.addTask {
+                                if lead.name.hasPrefix("Borrower "), let profileID = lead.borrowerProfileID, !profileID.isEmpty {
+                                    if let profile = try? await self.authClient.getBorrowerProfile(userID: profileID) {
+                                        let fullName = [profile.firstName, profile.lastName]
+                                            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                                            .filter { !$0.isEmpty }
+                                            .joined(separator: " ")
+                                        if !fullName.isEmpty {
+                                            lead.name = fullName
+                                            // Cache it for next time
+                                            self.leadMetadataStore.save(
+                                                applicationID: lead.applicationID ?? lead.id,
+                                                name: fullName,
+                                                phone: lead.phone,
+                                                email: lead.email,
+                                                loanProductID: lead.loanProductID,
+                                                profileID: profileID
+                                            )
+                                        }
+                                    }
+                                }
+                                return lead
+                            }
+                        }
+                        var results: [Lead] = []
+                        for try await lead in group {
+                            results.append(lead)
+                        }
+                        return results.sorted { $0.createdAt > $1.createdAt }
+                    }
                     promise(.success(leads))
                 } catch {
                     promise(.failure(error))
@@ -367,12 +402,14 @@ final class BackendLeadService: LeadServiceProtocol {
 
         let createdAt = ISO8601DateFormatter().date(from: application.createdAt) ?? Date()
         let updatedAt = ISO8601DateFormatter().date(from: application.updatedAt) ?? createdAt
-        let cached = leadMetadataStore.metadata(for: application.id)
+        let cached = leadMetadataStore.metadata(for: application.id) ?? leadMetadataStore.metadataByProfileID(for: application.primaryBorrowerProfileID)
+        
+        let resolvedName = cached?.name ?? "Borrower \(application.primaryBorrowerProfileID.prefix(6))"
 
         return Lead(
             id: id,
             applicationID: application.id,
-            name: cached?.name ?? "Borrower \(application.primaryBorrowerProfileID.prefix(6))",
+            name: resolvedName,
             phone: cached?.phone ?? "",
             email: cached?.email ?? "",
             borrowerProfileID: application.primaryBorrowerProfileID,
@@ -918,14 +955,15 @@ extension Loan_UpdateLoanApplicationStatusResponse: SwiftProtobuf.Message, Swift
     }
 }
 
-struct StoredLeadMetadata: Codable {
+public struct StoredLeadMetadata: Codable {
     let name: String
     let phone: String
     let email: String
     var loanProductID: String?   // product chosen at lead-creation time
+    var profileID: String?       // associated borrower profile ID
 }
 
-final class LeadMetadataStore {
+public final class LeadMetadataStore {
     private let key = "dst.lead.metadata.byApplicationID"
     private let defaults: UserDefaults
 
@@ -938,11 +976,16 @@ final class LeadMetadataStore {
         return all()[applicationID]
     }
 
-    func save(applicationID: String, name: String, phone: String, email: String, loanProductID: String? = nil) {
+    func save(applicationID: String, name: String, phone: String, email: String, loanProductID: String? = nil, profileID: String? = nil) {
         guard !applicationID.isEmpty else { return }
         var existing = all()
-        existing[applicationID] = StoredLeadMetadata(name: name, phone: phone, email: email, loanProductID: loanProductID)
+        existing[applicationID] = StoredLeadMetadata(name: name, phone: phone, email: email, loanProductID: loanProductID, profileID: profileID)
         persist(existing)
+    }
+
+    func metadataByProfileID(for profileID: String) -> StoredLeadMetadata? {
+        guard !profileID.isEmpty else { return nil }
+        return all().values.first { $0.profileID == profileID }
     }
 
     func remove(applicationID: String) {

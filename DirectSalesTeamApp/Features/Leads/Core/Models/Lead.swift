@@ -169,7 +169,7 @@ struct Lead: Identifiable, Codable, Hashable {
         return "Just now"
     }
 
-    var estimatedCommission: Double { loanAmount * 0.0025 }
+    var estimatedCommission: Double { loanAmount * 0.0035 }
 
     var formattedCommission: String {
         let v = Int(estimatedCommission)
