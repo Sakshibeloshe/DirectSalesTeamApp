@@ -165,8 +165,6 @@ final class BackendLeadService: LeadServiceProtocol {
     }
 
     func deleteLead(_ lead: Lead) -> AnyPublisher<Void, Error> {
-        // All leads are backend applications; cancel them regardless of status
-        // (DRAFT leads can be cancelled just as SUBMITTED ones can).
         let applicationID = lead.applicationID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !applicationID.isEmpty else {
             // No application ID — nothing to cancel on the backend.
@@ -176,7 +174,11 @@ final class BackendLeadService: LeadServiceProtocol {
         return Future { promise in
             Task {
                 do {
-                    try await self.cancelLoanApplication(applicationID: applicationID)
+                    if lead.status == .new {
+                        try await self.deleteLoanApplication(applicationID: applicationID)
+                    } else {
+                        try await self.cancelLoanApplication(applicationID: applicationID)
+                    }
                     self.leadMetadataStore.remove(applicationID: applicationID)
                     self.deletedLeadStore.save(applicationID: applicationID)
                     promise(.success(()))
@@ -263,6 +265,15 @@ final class BackendLeadService: LeadServiceProtocol {
             request: request
         )
         return response.items
+    }
+
+    private func deleteLoanApplication(applicationID: String) async throws {
+        var request = Loan_DeleteLoanApplicationRequest()
+        request.applicationID = applicationID
+        _ = try await unaryLoanCall(
+            method: "DeleteLoanApplication",
+            request: request
+        ) as Loan_DeleteLoanApplicationResponse
     }
 
     private func cancelLoanApplication(applicationID: String) async throws {

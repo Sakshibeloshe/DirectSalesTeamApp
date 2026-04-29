@@ -176,6 +176,19 @@ public enum Loan_V1_LoanService: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "DeleteLoanApplication" metadata.
+        public enum DeleteLoanApplication: Sendable {
+            /// Request type for "DeleteLoanApplication".
+            public typealias Input = Loan_V1_DeleteLoanApplicationRequest
+            /// Response type for "DeleteLoanApplication".
+            public typealias Output = Loan_V1_DeleteLoanApplicationResponse
+            /// Descriptor for "DeleteLoanApplication".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "loan.v1.LoanService"),
+                method: "DeleteLoanApplication",
+                type: .unary
+            )
+        }
         /// Namespace for "UpdateLoanApplicationTerms" metadata.
         public enum UpdateLoanApplicationTerms: Sendable {
             /// Request type for "UpdateLoanApplicationTerms".
@@ -437,6 +450,7 @@ public enum Loan_V1_LoanService: Sendable {
             GetLoanApplication.descriptor,
             ListLoanApplications.descriptor,
             UpdateLoanApplicationStatus.descriptor,
+            DeleteLoanApplication.descriptor,
             UpdateLoanApplicationTerms.descriptor,
             AssignLoanApplicationOfficer.descriptor,
             AddApplicationCoapplicant.descriptor,
@@ -700,6 +714,24 @@ extension Loan_V1_LoanService {
             request: GRPCCore.StreamingServerRequest<Loan_V1_UpdateLoanApplicationStatusRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpdateLoanApplicationStatusResponse>
+
+        /// Handle the "DeleteLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Delete a draft loan application.
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `Loan_V1_DeleteLoanApplicationRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `Loan_V1_DeleteLoanApplicationResponse` messages.
+        func deleteLoanApplication(
+            request: GRPCCore.StreamingServerRequest<Loan_V1_DeleteLoanApplicationRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_DeleteLoanApplicationResponse>
 
         /// Handle the "UpdateLoanApplicationTerms" method.
         ///
@@ -1272,6 +1304,24 @@ extension Loan_V1_LoanService {
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpdateLoanApplicationStatusResponse>
 
+        /// Handle the "DeleteLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Delete a draft loan application.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_DeleteLoanApplicationRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `Loan_V1_DeleteLoanApplicationResponse` message.
+        func deleteLoanApplication(
+            request: GRPCCore.ServerRequest<Loan_V1_DeleteLoanApplicationRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<Loan_V1_DeleteLoanApplicationResponse>
+
         /// Handle the "UpdateLoanApplicationTerms" method.
         ///
         /// > Source IDL Documentation:
@@ -1841,6 +1891,24 @@ extension Loan_V1_LoanService {
             context: GRPCCore.ServerContext
         ) async throws -> Loan_V1_UpdateLoanApplicationStatusResponse
 
+        /// Handle the "DeleteLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Delete a draft loan application.
+        ///
+        /// - Parameters:
+        ///   - request: A `Loan_V1_DeleteLoanApplicationRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `Loan_V1_DeleteLoanApplicationResponse` to respond with.
+        func deleteLoanApplication(
+            request: Loan_V1_DeleteLoanApplicationRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> Loan_V1_DeleteLoanApplicationResponse
+
         /// Handle the "UpdateLoanApplicationTerms" method.
         ///
         /// > Source IDL Documentation:
@@ -2322,6 +2390,17 @@ extension Loan_V1_LoanService.StreamingServiceProtocol {
             }
         )
         router.registerHandler(
+            forMethod: Loan_V1_LoanService.Method.DeleteLoanApplication.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_DeleteLoanApplicationRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_DeleteLoanApplicationResponse>(),
+            handler: { request, context in
+                try await self.deleteLoanApplication(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
             forMethod: Loan_V1_LoanService.Method.UpdateLoanApplicationTerms.descriptor,
             deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_UpdateLoanApplicationTermsRequest>(),
             serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_UpdateLoanApplicationTermsResponse>(),
@@ -2662,6 +2741,17 @@ extension Loan_V1_LoanService.ServiceProtocol {
         context: GRPCCore.ServerContext
     ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_UpdateLoanApplicationStatusResponse> {
         let response = try await self.updateLoanApplicationStatus(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
+
+    public func deleteLoanApplication(
+        request: GRPCCore.StreamingServerRequest<Loan_V1_DeleteLoanApplicationRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<Loan_V1_DeleteLoanApplicationResponse> {
+        let response = try await self.deleteLoanApplication(
             request: GRPCCore.ServerRequest(stream: request),
             context: context
         )
@@ -3030,6 +3120,19 @@ extension Loan_V1_LoanService.SimpleServiceProtocol {
     ) async throws -> GRPCCore.ServerResponse<Loan_V1_UpdateLoanApplicationStatusResponse> {
         return GRPCCore.ServerResponse<Loan_V1_UpdateLoanApplicationStatusResponse>(
             message: try await self.updateLoanApplicationStatus(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func deleteLoanApplication(
+        request: GRPCCore.ServerRequest<Loan_V1_DeleteLoanApplicationRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<Loan_V1_DeleteLoanApplicationResponse> {
+        return GRPCCore.ServerResponse<Loan_V1_DeleteLoanApplicationResponse>(
+            message: try await self.deleteLoanApplication(
                 request: request.message,
                 context: context
             ),
@@ -3572,6 +3675,29 @@ extension Loan_V1_LoanService {
             deserializer: some GRPCCore.MessageDeserializer<Loan_V1_UpdateLoanApplicationStatusResponse>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_UpdateLoanApplicationStatusResponse>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "DeleteLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Delete a draft loan application.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_DeleteLoanApplicationRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_DeleteLoanApplicationRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_DeleteLoanApplicationResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func deleteLoanApplication<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_DeleteLoanApplicationRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_DeleteLoanApplicationRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_DeleteLoanApplicationResponse>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_DeleteLoanApplicationResponse>) async throws -> Result
         ) async throws -> Result where Result: Sendable
 
         /// Call the "UpdateLoanApplicationTerms" method.
@@ -4433,6 +4559,40 @@ extension Loan_V1_LoanService {
             try await self.client.unary(
                 request: request,
                 descriptor: Loan_V1_LoanService.Method.UpdateLoanApplicationStatus.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
+
+        /// Call the "DeleteLoanApplication" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > Delete a draft loan application.
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `Loan_V1_DeleteLoanApplicationRequest` message.
+        ///   - serializer: A serializer for `Loan_V1_DeleteLoanApplicationRequest` messages.
+        ///   - deserializer: A deserializer for `Loan_V1_DeleteLoanApplicationResponse` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func deleteLoanApplication<Result>(
+            request: GRPCCore.ClientRequest<Loan_V1_DeleteLoanApplicationRequest>,
+            serializer: some GRPCCore.MessageSerializer<Loan_V1_DeleteLoanApplicationRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<Loan_V1_DeleteLoanApplicationResponse>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_DeleteLoanApplicationResponse>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: Loan_V1_LoanService.Method.DeleteLoanApplication.descriptor,
                 serializer: serializer,
                 deserializer: deserializer,
                 options: options,
@@ -5439,6 +5599,35 @@ extension Loan_V1_LoanService.ClientProtocol {
         )
     }
 
+    /// Call the "DeleteLoanApplication" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Delete a draft loan application.
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `Loan_V1_DeleteLoanApplicationRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func deleteLoanApplication<Result>(
+        request: GRPCCore.ClientRequest<Loan_V1_DeleteLoanApplicationRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_DeleteLoanApplicationResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.deleteLoanApplication(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<Loan_V1_DeleteLoanApplicationRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<Loan_V1_DeleteLoanApplicationResponse>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
     /// Call the "UpdateLoanApplicationTerms" method.
     ///
     /// > Source IDL Documentation:
@@ -6384,6 +6573,39 @@ extension Loan_V1_LoanService.ClientProtocol {
             metadata: metadata
         )
         return try await self.updateLoanApplicationStatus(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "DeleteLoanApplication" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > Delete a draft loan application.
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func deleteLoanApplication<Result>(
+        _ message: Loan_V1_DeleteLoanApplicationRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<Loan_V1_DeleteLoanApplicationResponse>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<Loan_V1_DeleteLoanApplicationRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.deleteLoanApplication(
             request: request,
             options: options,
             onResponse: handleResponse

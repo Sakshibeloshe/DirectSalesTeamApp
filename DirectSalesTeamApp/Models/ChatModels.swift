@@ -186,6 +186,7 @@ public struct ChatRoom: Identifiable, Equatable {
     public let createdAt: Date
     public let updatedAt: Date
     public let latestMessage: ChatDomainMessage?
+    public let participants: [ChatUser]
 
     public init(
         id: String,
@@ -195,7 +196,8 @@ public struct ChatRoom: Identifiable, Equatable {
         createdByUserID: String,
         createdAt: Date,
         updatedAt: Date,
-        latestMessage: ChatDomainMessage?
+        latestMessage: ChatDomainMessage?,
+        participants: [ChatUser]
     ) {
         self.id = id
         self.roomType = roomType
@@ -205,6 +207,7 @@ public struct ChatRoom: Identifiable, Equatable {
         self.createdAt = createdAt
         self.updatedAt = updatedAt
         self.latestMessage = latestMessage
+        self.participants = participants
     }
 
     // Mapper from proto
@@ -217,6 +220,7 @@ public struct ChatRoom: Identifiable, Equatable {
         self.createdAt = ISO8601DateFormatter().date(from: proto.createdAt) ?? Date()
         self.updatedAt = ISO8601DateFormatter().date(from: proto.updatedAt) ?? Date()
         self.latestMessage = proto.hasLatestMessage ? ChatDomainMessage(from: proto.latestMessage) : nil
+        self.participants = proto.participants.map { ChatUser(from: $0) }
     }
 
     // Get the other user's ID (not the current user)

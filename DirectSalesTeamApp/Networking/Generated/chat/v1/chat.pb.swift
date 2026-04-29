@@ -162,6 +162,8 @@ public struct Chat_V1_ChatRoom: Sendable {
   /// Clears the value of `latestMessage`. Subsequent reads from it will return its default value.
   public mutating func clearLatestMessage() {self._latestMessage = nil}
 
+  public var participants: [Chat_V1_ChatUser] = []
+
   public var unknownFields = SwiftProtobuf.UnknownStorage()
 
   public init() {}
@@ -500,7 +502,7 @@ extension Chat_V1_ChatMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
 
 extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   public static let protoMessageName: String = _protobuf_package + ".ChatRoom"
-  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}room_type\0\u{3}user_a_id\0\u{3}user_b_id\0\u{3}created_by_user_id\0\u{3}created_at\0\u{3}updated_at\0\u{3}latest_message\0")
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}id\0\u{3}room_type\0\u{3}user_a_id\0\u{3}user_b_id\0\u{3}created_by_user_id\0\u{3}created_at\0\u{3}updated_at\0\u{3}latest_message\0\u{1}participants\0")
 
   public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
     while let fieldNumber = try decoder.nextFieldNumber() {
@@ -516,6 +518,7 @@ extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
       case 6: try { try decoder.decodeSingularStringField(value: &self.createdAt) }()
       case 7: try { try decoder.decodeSingularStringField(value: &self.updatedAt) }()
       case 8: try { try decoder.decodeSingularMessageField(value: &self._latestMessage) }()
+      case 9: try { try decoder.decodeRepeatedMessageField(value: &self.participants) }()
       default: break
       }
     }
@@ -550,6 +553,9 @@ extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     try { if let v = self._latestMessage {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 8)
     } }()
+    if !self.participants.isEmpty {
+      try visitor.visitRepeatedMessageField(value: self.participants, fieldNumber: 9)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -562,6 +568,7 @@ extension Chat_V1_ChatRoom: SwiftProtobuf.Message, SwiftProtobuf._MessageImpleme
     if lhs.createdAt != rhs.createdAt {return false}
     if lhs.updatedAt != rhs.updatedAt {return false}
     if lhs._latestMessage != rhs._latestMessage {return false}
+    if lhs.participants != rhs.participants {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

@@ -139,13 +139,15 @@ final class MessagesViewModel: ObservableObject {
                         if let lastEventAt = self.lastRoomEventAt[room.id], Date().timeIntervalSince(lastEventAt) > self.heartbeatTimeout {
                             throw ChatError.networkError("Stream heartbeat timeout")
                         }
+                        
+                        // Reset attempt on successful event
+                        attempt = 0
                     }
                     
                     if Task.isCancelled { break }
                     
                     // Reconnect on normal termination
                     await reconcileRoomMessages(roomID: room.id)
-                    attempt += 1
                     let delaySeconds = min(UInt64(1 << min(attempt, 5)), maxReconnectDelaySeconds)
                     try? await Task.sleep(nanoseconds: (delaySeconds * 1_000_000_000) + UInt64.random(in: 0...500_000_000))
                 } catch {
@@ -180,9 +182,9 @@ final class MessagesViewModel: ObservableObject {
         let participantName: String
         let participantRole: ParticipantRole
 
-        if let cached = eligibleParticipants.first(where: { $0.id == participantID }) {
-            participantName = cached.name
-            participantRole = cached.role
+        if let participant = room.participants.first(where: { $0.id == participantID }) {
+            participantName = participant.displayName
+            participantRole = ParticipantRole.from(protoRole: participant.role)
         } else {
             participantName = "User"
             participantRole = .loanOfficer

@@ -1577,6 +1577,32 @@ public struct Loan_V1_UpdateLoanApplicationStatusResponse: Sendable {
   public init() {}
 }
 
+/// Request to delete a draft loan application.
+public struct Loan_V1_DeleteLoanApplicationRequest: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var applicationID: String = String()
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
+/// Response for draft loan application deletion.
+public struct Loan_V1_DeleteLoanApplicationResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  public var success: Bool = false
+
+  public var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  public init() {}
+}
+
 /// Request to update offered terms on a loan application.
 public struct Loan_V1_UpdateLoanApplicationTermsRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
@@ -4237,6 +4263,66 @@ extension Loan_V1_UpdateLoanApplicationStatusResponse: SwiftProtobuf.Message, Sw
   }
 
   public static func ==(lhs: Loan_V1_UpdateLoanApplicationStatusResponse, rhs: Loan_V1_UpdateLoanApplicationStatusResponse) -> Bool {
+    if lhs.success != rhs.success {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_DeleteLoanApplicationRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DeleteLoanApplicationRequest"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{3}application_id\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.applicationID) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.applicationID.isEmpty {
+      try visitor.visitSingularStringField(value: self.applicationID, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_DeleteLoanApplicationRequest, rhs: Loan_V1_DeleteLoanApplicationRequest) -> Bool {
+    if lhs.applicationID != rhs.applicationID {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Loan_V1_DeleteLoanApplicationResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  public static let protoMessageName: String = _protobuf_package + ".DeleteLoanApplicationResponse"
+  public static let _protobuf_nameMap = SwiftProtobuf._NameMap(bytecode: "\0\u{1}success\0")
+
+  public mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularBoolField(value: &self.success) }()
+      default: break
+      }
+    }
+  }
+
+  public func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if self.success != false {
+      try visitor.visitSingularBoolField(value: self.success, fieldNumber: 1)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  public static func ==(lhs: Loan_V1_DeleteLoanApplicationResponse, rhs: Loan_V1_DeleteLoanApplicationResponse) -> Bool {
     if lhs.success != rhs.success {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
