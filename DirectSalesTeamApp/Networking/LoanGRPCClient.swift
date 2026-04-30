@@ -191,6 +191,22 @@ final class LoanGRPCClient: LoanServiceProtocol {
         }
     }
 
+    func submitLoanApplication(applicationId: String) async throws {
+        var request = Loan_V1_UpdateLoanApplicationStatusRequest()
+        request.applicationID = applicationId
+        request.status = .submitted
+        
+        do {
+            let (options, metadata) = try authContext()
+            _ = try await client.updateLoanApplicationStatus(
+                request: .init(message: request, metadata: metadata),
+                options: options
+            )
+        } catch {
+            throw LoanError.from(error)
+        }
+    }
+
     func addApplicationDocument(
         applicationId: String,
         borrowerProfileId: String,

@@ -247,7 +247,8 @@ final class LoanApplicationViewModel: ObservableObject {
                 finalBranchID = try await fetchDstBranchID()
             }
 
-            // 2. Create the application
+            // 2. Always create a new application on the backend (it will be initialized as .submitted)
+            // This avoids the 'invalid dst status transition' error for DRAFT -> SUBMITTED.
             let application = try await loanService.createLoanApplication(
                 primaryBorrowerProfileId: lead.borrowerProfileID ?? "",
                 loanProductId: productID,
@@ -255,6 +256,7 @@ final class LoanApplicationViewModel: ObservableObject {
                 requestedAmount: requestedAmount,
                 tenureMonths: tenureMonths
             )
+            let targetApplicationID = application.id
             
             let product = self.loanProducts.first(where: { $0.id == productID })
             var availableReqDocs = product?.requiredDocuments ?? []
@@ -289,22 +291,28 @@ final class LoanApplicationViewModel: ObservableObject {
                 }
                 
                 _ = try await loanService.addApplicationDocument(
-                    applicationId: application.id,
+                    applicationId: targetApplicationID,
                     borrowerProfileId: lead.borrowerProfileID ?? "",
                     requiredDocId: finalRequiredDocId,
                     mediaFileId: mediaFileID
                 )
             }
             
-            // 4. Cleanup: Delete/Cancel the original draft lead so it disappears from the Leads list
-            if let oldDraftID = lead.applicationID, !oldDraftID.isEmpty {
+            // 4. Cleanup old draft
+            // Since DRAFTs are now local, we just delete them locally.
+            // If it's a legacy backend DRAFT, we cancel it on the backend.
+            if let oldDraftID = lead.applicationID, !oldDraftID.isEmpty, oldDraftID != targetApplicationID {
                 print("DEBUG: Cleaning up original draft lead \(oldDraftID)")
-                try? await loanService.deleteLoanApplication(applicationId: oldDraftID)
+                if oldDraftID.hasPrefix("LOCAL-") {
+                    LocalLeadStore.shared.remove(id: oldDraftID)
+                } else {
+                    try? await loanService.deleteLoanApplication(applicationId: oldDraftID)
+                }
             }
             
-            // 5. Persist name for the new application ID so it shows up in the Applications list
+            // 6. Persist name for the new/updated application ID so it shows up in the Applications list
             LeadMetadataStore().save(
-                applicationID: application.id,
+                applicationID: targetApplicationID,
                 name: lead.name,
                 phone: lead.phone,
                 email: lead.email,
@@ -312,7 +320,7 @@ final class LoanApplicationViewModel: ObservableObject {
                 profileID: lead.borrowerProfileID
             )
             
-            self.submittedApplicationID = application.id
+            self.submittedApplicationID = targetApplicationID
             isSubmitting = false
             
             // Post notification for cross-tab sync

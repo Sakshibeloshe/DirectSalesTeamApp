@@ -29,6 +29,40 @@ enum LeadDeletionError: LocalizedError {
     }
 }
 
+// MARK: - Local Draft Store
+class LocalLeadStore {
+    static let shared = LocalLeadStore()
+    private let key = "local_draft_leads"
+    
+    func save(_ lead: Lead) {
+        var leads = fetchAll()
+        if let idx = leads.firstIndex(where: { $0.id == lead.id }) {
+            leads[idx] = lead
+        } else {
+            leads.append(lead)
+        }
+        if let data = try? JSONEncoder().encode(leads) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+    
+    func fetchAll() -> [Lead] {
+        guard let data = UserDefaults.standard.data(forKey: key),
+              let leads = try? JSONDecoder().decode([Lead].self, from: data) else {
+            return []
+        }
+        return leads
+    }
+    
+    func remove(id: String) {
+        var leads = fetchAll()
+        leads.removeAll { $0.id == id || $0.applicationID == id }
+        if let data = try? JSONEncoder().encode(leads) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+}
+
 // MARK: - Backend Service
 final class BackendLeadService: LeadServiceProtocol {
     private let tokenStore: TokenStore
@@ -51,12 +85,12 @@ final class BackendLeadService: LeadServiceProtocol {
             Task {
                 do {
                     // Fetch all applications from the backend.
-                    // We show DRAFT (new), UNDER_REVIEW (docsPending) and SUBMITTED leads.
+                    // We ONLY show DRAFT leads here. Once submitted, they move to the Applications tab.
                     // Cancelled and already-actioned apps are excluded.
                     let apps = try await self.listLoanApplications()
                     let rawLeads = apps
                         .filter { app in
-                            guard app.status != .cancelled,
+                            guard app.status == .draft || app.status == .unspecified,
                                   !self.deletedLeadStore.contains(applicationID: app.id)
                             else { return false }
                             return true
@@ -94,6 +128,11 @@ final class BackendLeadService: LeadServiceProtocol {
                         for try await lead in group {
                             results.append(lead)
                         }
+                        
+                        // Merge with local drafts
+                        let localLeads = LocalLeadStore.shared.fetchAll()
+                        results.append(contentsOf: localLeads)
+                        
                         return results.sorted { $0.createdAt > $1.createdAt }
                     }
                     promise(.success(leads))
@@ -106,93 +145,54 @@ final class BackendLeadService: LeadServiceProtocol {
     }
 
     func addLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
-        Future { promise in
-            Task {
-                do {
-                    guard let borrowerProfileID = lead.borrowerProfileID, !borrowerProfileID.isEmpty else {
-                        throw LeadAPIError.missingBorrowerProfile
-                    }
-
-                    // Use the product ID set at lead-creation time if available;
-                    // fall back to auto-select by loan type for backward compatibility.
-                    let resolvedProductID: String
-                    if let pid = lead.loanProductID, !pid.isEmpty {
-                        resolvedProductID = pid
-                    } else {
-                        let protoProducts = try await self.listLoanProductsInternal()
-                        guard let product = self.selectProduct(for: lead.loanType, products: protoProducts) else {
-                            throw LeadAPIError.missingLoanProduct
-                        }
-                        resolvedProductID = product.id
-                    }
-                    let branchID = try await self.getDstBranchID()
-
-                    print("DEBUG: Creating application for borrower: \(borrowerProfileID), product: \(resolvedProductID), branch: \(branchID)")
-                    // Create as DRAFT — this is the "lead" stage
-                    let created = try await self.createLoanApplication(
-                        borrowerProfileID: borrowerProfileID,
-                        productID: resolvedProductID,
-                        branchID: branchID,
-                        amount: lead.loanAmount,
-                        tenureMonths: Int32(lead.loanType.defaultTenureMonths),
-                        status: .draft
-                    )
-                    print("DEBUG: Successfully created application: \(created.id)")
-
-                    // Persist UI metadata (name/phone/email/productID) keyed by applicationID
-                    self.leadMetadataStore.save(
-                        applicationID: created.id,
-                        name: lead.name,
-                        phone: lead.phone,
-                        email: lead.email,
-                        loanProductID: lead.loanProductID
-                    )
-
-                    guard var mapped = self.mapLoanApplicationToLead(created) else {
-                        throw LeadAPIError.invalidResponse
-                    }
-                    // Preserve contact info from input (metadata store may not have flushed yet)
-                    mapped.name = lead.name
-                    mapped.phone = lead.phone
-                    mapped.email = lead.email
-
-                    promise(.success(mapped))
-                } catch let rpcError as RPCError where rpcError.code == .failedPrecondition {
-                    let msg = rpcError.message.lowercased()
-                    if msg.contains("kyc") {
-                        print("DEBUG: addLead rejected — borrower KYC incomplete")
-                        promise(.failure(LeadAPIError.kycIncomplete))
-                    } else if msg.contains("requested_amount") || msg.contains("amount must be") {
-                        print("DEBUG: addLead rejected — amount out of range: \(rpcError.message)")
-                        promise(.failure(LeadAPIError.backendError(rpcError.message)))
-                    } else {
-                        print("DEBUG: addLead failedPrecondition: \(rpcError.message)")
-                        promise(.failure(LeadAPIError.backendError(rpcError.message)))
-                    }
-                } catch {
-                    print("DEBUG: addLead failed with error: \(error)")
-                    promise(.failure(error))
-                }
-            }
+        return Future { promise in
+            // DRAFT leads are now strictly local to avoid polluting the backend before submission.
+            var localLead = lead
+            let localID = "LOCAL-" + UUID().uuidString
+            localLead.applicationID = localID
+            localLead.createdAt = Date()
+            localLead.updatedAt = Date()
+            
+            // Save to local draft store
+            LocalLeadStore.shared.save(localLead)
+            
+            // Also cache metadata so UI matches properly
+            self.leadMetadataStore.save(
+                applicationID: localID,
+                name: lead.name,
+                phone: lead.phone,
+                email: lead.email,
+                loanProductID: lead.loanProductID,
+                profileID: lead.borrowerProfileID
+            )
+            
+            promise(.success(localLead))
         }
         .eraseToAnyPublisher()
     }
 
     func updateLead(_ lead: Lead) -> AnyPublisher<Lead, Error> {
-        // All leads are now backend-driven; every update is a status change on the backend.
         guard let applicationID = lead.applicationID, !applicationID.isEmpty else {
-            // No applicationID means something went wrong during addLead — treat as a no-op.
             return Fail(error: LeadAPIError.missingBorrowerProfile).eraseToAnyPublisher()
         }
 
         return Future { promise in
-            Task {
-                do {
-                    let backendStatus = self.mapLoanApplicationStatus(from: lead.status)
-                    try await self.updateLoanApplicationStatus(applicationID: applicationID, status: backendStatus)
-                    promise(.success(lead))
-                } catch {
-                    promise(.failure(error))
+            if applicationID.hasPrefix("LOCAL-") {
+                // Update local draft
+                var localLead = lead
+                localLead.updatedAt = Date()
+                LocalLeadStore.shared.save(localLead)
+                promise(.success(localLead))
+            } else {
+                // Backend update
+                Task {
+                    do {
+                        let backendStatus = self.mapLoanApplicationStatus(from: lead.status)
+                        try await self.updateLoanApplicationStatus(applicationID: applicationID, status: backendStatus)
+                        promise(.success(lead))
+                    } catch {
+                        promise(.failure(error))
+                    }
                 }
             }
         }
@@ -202,23 +202,25 @@ final class BackendLeadService: LeadServiceProtocol {
     func deleteLead(_ lead: Lead) -> AnyPublisher<Void, Error> {
         let applicationID = lead.applicationID?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !applicationID.isEmpty else {
-            // No application ID — nothing to cancel on the backend.
             return Just(()).setFailureType(to: Error.self).eraseToAnyPublisher()
         }
 
         return Future { promise in
-            Task {
-                do {
-                    if lead.status == .new {
-                        try await self.deleteLoanApplication(applicationID: applicationID)
-                    } else {
+            if applicationID.hasPrefix("LOCAL-") {
+                // Local delete
+                LocalLeadStore.shared.remove(id: applicationID)
+                promise(.success(()))
+            } else {
+                // Backend cancel
+                Task {
+                    do {
                         try await self.cancelLoanApplication(applicationID: applicationID)
+                        self.leadMetadataStore.remove(applicationID: applicationID)
+                        self.deletedLeadStore.save(applicationID: applicationID)
+                        promise(.success(()))
+                    } catch {
+                        promise(.failure(error))
                     }
-                    self.leadMetadataStore.remove(applicationID: applicationID)
-                    self.deletedLeadStore.save(applicationID: applicationID)
-                    promise(.success(()))
-                } catch {
-                    promise(.failure(error))
                 }
             }
         }
@@ -303,12 +305,8 @@ final class BackendLeadService: LeadServiceProtocol {
     }
 
     private func deleteLoanApplication(applicationID: String) async throws {
-        var request = Loan_DeleteLoanApplicationRequest()
-        request.applicationID = applicationID
-        _ = try await unaryLoanCall(
-            method: "DeleteLoanApplication",
-            request: request
-        ) as Loan_DeleteLoanApplicationResponse
+        // Fallback to cancel since Delete is not in the proto
+        try await self.cancelLoanApplication(applicationID: applicationID)
     }
 
     private func cancelLoanApplication(applicationID: String) async throws {

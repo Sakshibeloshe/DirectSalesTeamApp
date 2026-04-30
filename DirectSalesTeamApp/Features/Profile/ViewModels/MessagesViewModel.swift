@@ -275,7 +275,8 @@ final class MessagesViewModel: ObservableObject {
                 createdByUserID: updatedRoom.createdByUserID,
                 createdAt: updatedRoom.createdAt,
                 updatedAt: Date(),
-                latestMessage: protoMessage
+                latestMessage: protoMessage,
+                participants: updatedRoom.participants
             )
         }
 
