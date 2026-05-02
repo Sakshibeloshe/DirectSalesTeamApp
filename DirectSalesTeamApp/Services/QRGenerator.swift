@@ -5,6 +5,8 @@
 import CoreImage
 import CoreImage.CIFilterBuiltins
 import UIKit
+import SwiftUI
+
 
 // ═══════════════════════════════════════════════════════════════
 // MARK: - QR Code Generator Service
